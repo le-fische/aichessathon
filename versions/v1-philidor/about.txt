@@ -10,7 +10,8 @@ CHANGED FROM
 Initial starter code; completely rewrote evaluation and search to support proper time management.
 MEASURED
 vs baselines/greedy: 97.5% (+19 =1 -0)
-nodes per second: 41,023
+nodes per second (FEN1): 40,578
+nodes per second (FEN2): 41,831
 typical depth: 5
 KNOWN WEAKNESSES
 No quiescence search (suffers from horizon effect), no transposition table, and basic move ordering.

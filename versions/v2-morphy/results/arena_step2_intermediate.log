@@ -1,0 +1,24 @@
+game 1/20: white by checkmate
+game 2/20: black by checkmate
+game 3/20: draw by threefold_repetition
+game 4/20: black by checkmate
+game 5/20: white by checkmate
+game 6/20: black by checkmate
+game 7/20: white by checkmate
+game 8/20: black by checkmate
+game 9/20: white by checkmate
+game 10/20: black by checkmate
+game 11/20: white by checkmate
+game 12/20: black by checkmate
+game 13/20: white by checkmate
+game 14/20: black by checkmate
+game 15/20: white by checkmate
+game 16/20: black by checkmate
+game 17/20: white by checkmate
+game 18/20: black by checkmate
+game 19/20: white by checkmate
+game 20/20: black by checkmate
+
+. vs /Users/le/Documents/chessathon/baselines/greedy over 20 games
++19 =1 -0, score 97.5%
+terminations: checkmate 19, threefold_repetition 1
