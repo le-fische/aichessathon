@@ -1,13 +1,13 @@
 import time
 
 import chess
+import chess.polyglot
 
 from evaluation import evaluate
 
 
 class TimeUp(Exception):
     pass
-
 
 class SearchContext:
     def __init__(self, board: chess.Board, time_budget: float, history: set[str]):
@@ -17,19 +17,108 @@ class SearchContext:
         self.history = history
         self.nodes = 0
         self.hard_stop = time_budget * 0.85
+        self.killers: list[list[chess.Move]] = [[] for _ in range(128)]
+        self.history_table: list[list[int]] = [[0] * 64 for _ in range(64)]
 
     def check_time(self) -> None:
         self.nodes += 1
-        if self.nodes % 2048 == 0 and (time.monotonic() - self.start_time) * 1000 >= self.hard_stop:
+        if self.nodes % 256 == 0 and (time.monotonic() - self.start_time) * 1000 >= self.hard_stop:
             raise TimeUp()
 
+TT_EXACT = 0
+TT_LOWER = 1
+TT_UPPER = 2
+MATE_VALUE = 30000
+
+PIECE_VALUE = {
+    chess.PAWN: 100,
+    chess.KNIGHT: 320,
+    chess.BISHOP: 330,
+    chess.ROOK: 500,
+    chess.QUEEN: 900,
+    chess.KING: 0,
+}
+
+tt: dict[int, tuple[int, float, int, str | None]] = {}
+
+def clear_tt_if_full() -> None:
+    if len(tt) > 1_500_000:
+        tt.clear()
+
+def qsearch(ctx: SearchContext, alpha: float, beta: float, ply: int) -> float:
+    ctx.check_time()
+
+    if ply >= 127:
+        return evaluate(ctx.board)
+        
+    in_check = ctx.board.is_check()
+    stand_pat = -float("inf")
+
+    if not in_check:
+        stand_pat = evaluate(ctx.board)
+        if stand_pat >= beta:
+            return beta
+        if alpha < stand_pat:
+            alpha = stand_pat
+            
+    moves = list(ctx.board.legal_moves)
+    if not moves:
+        if in_check:
+            return float(-(MATE_VALUE - ply))
+        return 0.0
+        
+    if not in_check:
+        moves = [m for m in moves if ctx.board.is_capture(m) or m.promotion]
+        
+    if not moves:
+        return stand_pat
+        
+    move_scores = []
+    for m in moves:
+        if m.promotion:
+            score = 9000000 + PIECE_VALUE[m.promotion]
+        elif ctx.board.is_capture(m):
+            victim = ctx.board.piece_type_at(m.to_square)
+            if victim is None:
+                victim = chess.PAWN
+            aggressor = ctx.board.piece_type_at(m.from_square)
+            ag_val = PIECE_VALUE[aggressor] if aggressor else 100
+            score = 8000000 + PIECE_VALUE[victim] * 10 - ag_val
+        else:
+            score = 0
+        move_scores.append((score, m))
+        
+    move_scores.sort(key=lambda x: x[0], reverse=True)
+    moves = [m for _, m in move_scores]
+    
+    best_score = -float("inf") if in_check else stand_pat
+    
+    for move in moves:
+        if not in_check and not move.promotion:
+            victim = ctx.board.piece_type_at(move.to_square)
+            if victim is None:
+                victim = chess.PAWN
+            if stand_pat + PIECE_VALUE[victim] + 200 < alpha:
+                continue
+
+        ctx.board.push(move)
+        score = -qsearch(ctx, -beta, -alpha, ply + 1)
+        ctx.board.pop()
+        
+        if score > best_score:
+            best_score = score
+        if score > alpha:
+            alpha = score
+        if alpha >= beta:
+            break
+            
+    return best_score
 
 def negamax(
     ctx: SearchContext, depth: int, ply: int, alpha: float, beta: float
 ) -> float:
     ctx.check_time()
 
-    # Draw checks
     halfmove = ctx.board.halfmove_clock
     if halfmove >= 100:
         return 0.0
@@ -38,20 +127,67 @@ def negamax(
     if len(ctx.board.piece_map()) <= 4 and ctx.board.is_insufficient_material():
         return 0.0
 
+    hash_key = chess.polyglot.zobrist_hash(ctx.board)
+    tt_entry = tt.get(hash_key)
+    tt_move = None
+    orig_alpha = alpha
+
+    if tt_entry is not None:
+        tt_depth, tt_score, tt_flag, tt_move_uci = tt_entry
+        if tt_move_uci:
+            tt_move = chess.Move.from_uci(tt_move_uci)
+        
+        if tt_depth >= depth:
+            score = tt_score
+            if score >= MATE_VALUE - 1000:
+                score -= ply
+            elif score <= -MATE_VALUE + 1000:
+                score += ply
+
+            if tt_flag == TT_EXACT:
+                return score
+            if tt_flag == TT_LOWER and score > alpha:
+                alpha = score
+            if tt_flag == TT_UPPER and score < beta:
+                beta = score
+            if alpha >= beta:
+                return score
+
     if depth == 0:
-        if ctx.board.is_check() and not any(ctx.board.generate_legal_moves()):
-            return -(30000.0 - ply)
-        return evaluate(ctx.board)
+        return qsearch(ctx, alpha, beta, ply)
 
     moves = list(ctx.board.legal_moves)
     if not moves:
         if ctx.board.is_check():
-            return -(30000.0 - ply)
+            return float(-(MATE_VALUE - ply))
         return 0.0
 
     best_score = -float("inf")
+    current_best_move = None
     
-    moves.sort(key=lambda m: ctx.board.is_capture(m), reverse=True)
+    move_scores = []
+    for m in moves:
+        score = 0
+        if m == tt_move:
+            score = 10000000
+        elif m.promotion:
+            score = 9000000 + PIECE_VALUE[m.promotion]
+        elif ctx.board.is_capture(m):
+            victim = ctx.board.piece_type_at(m.to_square)
+            if victim is None:
+                victim = chess.PAWN
+            aggressor = ctx.board.piece_type_at(m.from_square)
+            ag_val = PIECE_VALUE[aggressor] if aggressor else 100
+            score = 8000000 + PIECE_VALUE[victim] * 10 - ag_val
+        else:
+            if m in ctx.killers[ply]:
+                score = 7000000 if ctx.killers[ply][0] == m else 6000000
+            else:
+                score = ctx.history_table[m.from_square][m.to_square]
+        move_scores.append((score, m))
+
+    move_scores.sort(key=lambda x: x[0], reverse=True)
+    moves = [m for _, m in move_scores]
 
     for move in moves:
         ctx.board.push(move)
@@ -60,17 +196,43 @@ def negamax(
 
         if score > best_score:
             best_score = score
+            current_best_move = move
 
         if score > alpha:
             alpha = score
 
         if alpha >= beta:
+            if not ctx.board.is_capture(move):
+                if move not in ctx.killers[ply]:
+                    ctx.killers[ply].insert(0, move)
+                    if len(ctx.killers[ply]) > 2:
+                        ctx.killers[ply].pop()
+                ctx.history_table[move.from_square][move.to_square] += depth * depth
             break
+
+    store_score = best_score
+    if store_score >= MATE_VALUE - 1000:
+        store_score += ply
+    elif store_score <= -MATE_VALUE + 1000:
+        store_score -= ply
+
+    flag = TT_EXACT
+    if best_score <= orig_alpha:
+        flag = TT_UPPER
+    elif best_score >= beta:
+        flag = TT_LOWER
+
+    clear_tt_if_full()
+    best_uci = current_best_move.uci() if current_best_move else None
+    tt[hash_key] = (depth, store_score, flag, best_uci)
 
     return best_score
 
+completed_depth = 0
 
 def get_move(fen: str, time_left_ms: int, history: set[str]) -> str:
+    global completed_depth
+    completed_depth = 0
     board = chess.Board(fen)
 
     if time_left_ms < 3000:
@@ -113,6 +275,7 @@ def get_move(fen: str, time_left_ms: int, history: set[str]) -> str:
                     alpha = score
 
             best_move = current_best_move
+            completed_depth = depth
 
             if panic:
                 break
@@ -124,6 +287,5 @@ def get_move(fen: str, time_left_ms: int, history: set[str]) -> str:
 
     except (TimeUp, RecursionError):
         pass
-
 
     return best_move.uci()
