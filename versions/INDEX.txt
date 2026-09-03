@@ -1,0 +1,1 @@
+v1-philidor   2026-09-02   PeSTO negamax with proper time management.   97.5% vs greedy

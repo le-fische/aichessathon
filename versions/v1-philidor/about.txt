@@ -1,0 +1,18 @@
+NAME
+v1-philidor
+NAMESAKE
+Named after Philidor because it relies on static structural judgement (material and piece-square tables) without memory of earlier positions.
+DATE
+2026-09-02
+WHAT IT IS
+A basic alpha-beta negamax search with iterative deepening and tapered PeSTO piece-square evaluation.
+CHANGED FROM
+Initial starter code; completely rewrote evaluation and search to support proper time management.
+MEASURED
+vs baselines/greedy: 97.5% (+19 =1 -0)
+nodes per second: 41,023
+typical depth: 5
+KNOWN WEAKNESSES
+No quiescence search (suffers from horizon effect), no transposition table, and basic move ordering.
+GIT
+7ac808a
