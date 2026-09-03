@@ -1,0 +1,18 @@
+NAME
+v2-morphy
+NAMESAKE
+Named after Morphy because it is the first build that develops its search quickly and sees tactics soundly.
+DATE
+2026-09-02
+WHAT IT IS
+A significantly stronger engine with a transposition table, MVV-LVA and killer/history move ordering, and quiescence search.
+CHANGED FROM
+v1-philidor; added a Zobrist-hashed TT, ordered moves by MVV-LVA/killers/history, and implemented delta-pruned quiescence search.
+MEASURED
+vs baselines/greedy: 100.0% (+20 =0 -0)
+nodes per second: 38,257
+typical depth: 4
+KNOWN WEAKNESSES
+No null move pruning or late move reductions (search tree grows too fast), and no endgame knowledge.
+GIT
+not tagged yet
