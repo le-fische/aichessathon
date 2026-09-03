@@ -1,29 +1,31 @@
-"""The submission entrypoint. The platform imports this file and calls get_move."""
-
-import random
-
 import chess
 
-# Import time runs once per game, inside a 60 second budget, before your clock starts.
-# Load weights and build tables out here, not inside get_move.
+import search
+
+history: set[str] = set()
 
 
 def get_move(fen: str, time_left_ms: int) -> str:
-    """Return a legal move in UCI notation.
+    """Return a legal move in UCI notation."""
+    try:
+        board = chess.Board(fen)
+        try:
+            fallback_move = next(iter(board.legal_moves)).uci()
+        except StopIteration:
+            fallback_move = "e2e4"
+        
+        position = " ".join(fen.split(" ")[:4])
+        history.add(position)
 
-    fen           the position to move in; your colour is the side to move
-    time_left_ms  your clock before this move, in milliseconds
-    returns       "e2e4", or "e7e8q" for a promotion
+        move_str = search.get_move(fen, time_left_ms, history)
 
-    The process stays alive between your moves, so state you keep on a module or in a
-    closure survives to the next call. It does not survive to the next game.
+        if chess.Move.from_uci(move_str) not in board.legal_moves:
+            return fallback_move
 
-    print() is safe. Your stdout is redirected away from the protocol stream, discarded
-    during rated games and shown back to you in the validation log.
-    """
-    board = chess.Board(fen)
-
-    # Everything from here down is yours to replace. baselines/greedy searches one ply,
-    # baselines/minimax searches two. Neither is strong. Reading them is the fastest way
-    # to see the shape of a search, and beating them is the first real milestone.
-    return random.choice(list(board.legal_moves)).uci()
+        return move_str
+    except Exception:
+        try:
+            board2 = chess.Board(fen)
+            return next(iter(board2.legal_moves)).uci()
+        except Exception:
+            return "e2e4"
