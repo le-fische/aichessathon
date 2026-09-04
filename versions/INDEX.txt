@@ -1,2 +1,2 @@
 v1-philidor   2026-09-02   PeSTO negamax with proper time management.   97.5% vs greedy
-v2-morphy     2026-09-02   Added TT, advanced move ordering, and quiescence search.   100.0% vs greedy
+v2-morphy     2026-09-03   TT, move ordering, qsearch. (+ unplanned speedups).   100.0% vs greedy, 100% vs Stockfish D2

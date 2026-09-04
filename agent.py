@@ -2,8 +2,6 @@ import chess
 
 import search
 
-history: set[str] = set()
-
 
 def get_move(fen: str, time_left_ms: int) -> str:
     """Return a legal move in UCI notation."""
@@ -13,11 +11,8 @@ def get_move(fen: str, time_left_ms: int) -> str:
             fallback_move = next(iter(board.legal_moves)).uci()
         except StopIteration:
             fallback_move = "e2e4"
-        
-        position = " ".join(fen.split(" ")[:4])
-        history.add(position)
 
-        move_str = search.get_move(fen, time_left_ms, history)
+        move_str = search.get_move(fen, time_left_ms)
 
         if chess.Move.from_uci(move_str) not in board.legal_moves:
             return fallback_move

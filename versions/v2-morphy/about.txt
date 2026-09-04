@@ -3,18 +3,19 @@ v2-morphy
 NAMESAKE
 Named after Morphy because it is the first build that develops its search quickly and sees tactics soundly.
 DATE
-2026-09-02
+2026-09-02 (Archived 2026-09-03)
 WHAT IT IS
-A significantly stronger engine with a transposition table, MVV-LVA and killer/history move ordering, and quiescence search.
+A significantly stronger engine with a transposition table, MVV-LVA and killer/history move ordering, and quiescence search. Includes three unplanned speedups, most notably the transposition key change which was worth a 20-25% node rate bump.
 CHANGED FROM
-v1-philidor; added a Zobrist-hashed TT, ordered moves by MVV-LVA/killers/history, and implemented delta-pruned quiescence search.
+v1-philidor; added TT, ordered moves by MVV-LVA/killers/history, and implemented delta-pruned quiescence search. Unplanned speedups: numba removal, evaluation loops flattened into precomputed tables, and polyglot zobrist_hash replaced with native board._transposition_key().
 MEASURED
-vs baselines/greedy: 100.0% (+20 =0 -0)
-vs v1-philidor (H2H): 98.8% ()
-nodes per second (FEN1): 41,650
-nodes per second (FEN2): 46,384
-typical depth: 14 to 24 (including quiescence)
+vs baselines/greedy (fast arena 10s + 0.1s): 100.0% (+20 =0 -0)
+vs Stockfish depth 2 (30s + 0.3s): 100.0% (+10 =0 -0)
+typical completed depth: 4 to 5 (depending on position)
+selective depth: up to 24 plies
 KNOWN WEAKNESSES
-No null move pruning or late move reductions (search tree grows too fast), and no endgame knowledge.
-GIT
-not tagged yet
+Move ordering is still somewhat weak (only ~55% first-move beta cutoffs), leading to a high node count in qsearch (68%). No null move pruning or late move reductions (search tree grows too fast), and no endgame knowledge. Subject to threefold repetition blindness.
+SHAS
+95fb3ef22936d7de3c471305994f503607997f299b07c58f9f9dc74ce80918ae  agent.py
+f3f7747521d757e595946c8a11f2b8e8b7f85cd4be53e90ba40ce3b28b83be74  search.py
+aedfc00e17ee8c8f68565a2f2a3208536eb2eaeb29aa600b1b167554ba4b3198  evaluation.py
