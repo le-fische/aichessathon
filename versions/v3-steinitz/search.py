@@ -22,7 +22,6 @@ class SearchContext:
         self.history_table: list[list[int]] = [[0] * 64 for _ in range(64)]
         max_nodes_env = os.environ.get("SEARCH_MAX_NODES")
         self.max_nodes = int(max_nodes_env) if max_nodes_env else None
-        self.path_keys = [board._transposition_key()]
 
     def check_time(self) -> None:
         self.nodes += 1
@@ -130,29 +129,18 @@ def qsearch(ctx: SearchContext, alpha: float, beta: float, ply: int) -> float:
     return best_score
 
 
-CONTEMPT = 30.0
-
-
-def get_draw_score(ply: int) -> float:
-    return -CONTEMPT if ply % 2 == 0 else CONTEMPT
-
-
 def negamax(
     ctx: SearchContext, depth: int, ply: int, alpha: float, beta: float, prev_is_null: bool = False
 ) -> float:
     ctx.check_time()
 
-    hash_key = ctx.board._transposition_key()
-    if hash_key in ctx.path_keys:
-        return get_draw_score(ply)
-
     halfmove = ctx.board.halfmove_clock
     if halfmove >= 100:
-        return get_draw_score(ply)
-    if halfmove >= 4 and ctx.board.is_repetition(3):
-        return get_draw_score(ply)
+        return 0.0
+    if halfmove >= 4 and ctx.board.is_repetition(2):
+        return 0.0
     if len(ctx.board.piece_map()) <= 4 and ctx.board.is_insufficient_material():
-        return get_draw_score(ply)
+        return 0.0
 
     hash_key = ctx.board._transposition_key()
     tt_entry = tt.get(hash_key)
@@ -183,7 +171,6 @@ def negamax(
     if depth == 0:
         return qsearch(ctx, alpha, beta, ply)
 
-    ctx.path_keys.append(hash_key)
     in_check = ctx.board.is_check()
 
     if not in_check and depth >= 3 and not prev_is_null:
@@ -198,12 +185,10 @@ def negamax(
             null_score = -negamax(ctx, depth - 3, ply + 1, -beta, -beta + 1, True)
             ctx.board.pop()
             if null_score >= beta:
-                ctx.path_keys.pop()
                 return null_score
 
     moves = list(ctx.board.legal_moves)
     if not moves:
-        ctx.path_keys.pop()
         if ctx.board.is_check():
             return float(-(MATE_VALUE - ply))
         return 0.0
@@ -292,17 +277,16 @@ def negamax(
     best_uci = current_best_move.uci() if current_best_move else None
     tt[hash_key] = (depth, store_score, flag, best_uci)
 
-    ctx.path_keys.pop()
     return best_score
 
 
 completed_depth = 0
 
 
-def get_move(board: chess.Board, time_left_ms: int) -> str:
+def get_move(fen: str, time_left_ms: int) -> str:
     global completed_depth
     completed_depth = 0
-    board = board.copy()
+    board = chess.Board(fen)
 
     if time_left_ms < 3000:
         budget_ms = min(200.0, time_left_ms * 0.1)

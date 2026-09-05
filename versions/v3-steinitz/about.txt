@@ -1,0 +1,25 @@
+v3-steinitz
+
+Features implemented:
+1. Null Move Pruning (NMP)
+2. Late Move Reductions (LMR)
+3. Aspiration Windows (AW)
+
+Results against v2-morphy:
+- Fixed nodes (10,000 max nodes): +36 =4 -0, 95.0% score.
+- Time based (30s + 0.3s): +6 =11 -3, 57.5% score. (High draw rate due to 10 threefold repetitions)
+
+Node reductions at depth 6 (vs v2-morphy):
+- FEN 1: 867,253 -> 99,401
+- FEN 2: 440,800 -> 67,588
+- FEN 3: 253,748 -> 43,821
+- FEN 4: 908,201 -> 124,993
+
+SHAs of this build:
+(will be filled after verify_zip)
+95fb3ef22936d7de3c471305994f503607997f299b07c58f9f9dc74ce80918ae  agent.py
+1ca055cd5378571ecef1508bf99bab18aa4d2c821c2b54e38dd84d1add85cfc7  search.py
+aedfc00e17ee8c8f68565a2f2a3208536eb2eaeb29aa600b1b167554ba4b3198  evaluation.py
+
+Known Weaknesses:
+- Repetitions: The search is structurally blind to game history and cannot detect repetitions that occurred before the search began. This results in converting won positions into draws (threefold repetitions) at longer time controls (e.g., 50% draw rate in the time-based match).
