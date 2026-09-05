@@ -889,4 +889,49 @@ def evaluate(board: chess.Board) -> float:
 
     phase = min(game_phase, 24)
 
-    return float((mg_diff * phase + eg_diff * (24 - phase)) // 24)
+    score = float((mg_diff * phase + eg_diff * (24 - phase)) // 24)
+
+    # Basic-mate drive. Piece-square tables give no gradient when the losing
+    # side has only a king: every rook shuffle scores the same, so a winning
+    # engine wanders until it repeats. Round 17 was drawn this way a rook up.
+    # Mate is past the horizon at these depths, so the evaluation has to point
+    # at it: force the lone king to the edge and bring the kings together.
+    if game_phase <= 6:
+        score += _mate_drive(board)
+
+    return score
+
+
+# Distance from each square to the centre, in king moves. Higher at the edges,
+# highest in the corners, which is where a lone king must be driven.
+_CENTRE_DISTANCE = [
+    max(abs((sq % 8) - 3.5), abs((sq // 8) - 3.5)) for sq in range(64)
+]
+
+
+def _mate_drive(board: chess.Board) -> float:
+    """Push the bare king to the edge and walk the winning king towards it.
+
+    Returns 0 unless exactly one side has nothing but a king, so this cannot
+    perturb any position where both sides still have material.
+    """
+    white_bare = not (board.occupied_co[chess.WHITE] & ~board.kings)
+    black_bare = not (board.occupied_co[chess.BLACK] & ~board.kings)
+    if white_bare == black_bare:
+        return 0.0
+
+    winner = chess.WHITE if black_bare else chess.BLACK
+    loser_king = board.king(not winner)
+    winner_king = board.king(winner)
+    if loser_king is None or winner_king is None:
+        return 0.0
+
+    file_gap = abs(chess.square_file(winner_king) - chess.square_file(loser_king))
+    rank_gap = abs(chess.square_rank(winner_king) - chess.square_rank(loser_king))
+    king_gap = file_gap + rank_gap
+
+    drive = 16.0 * _CENTRE_DISTANCE[loser_king] + 4.0 * (14 - king_gap)
+
+    if winner != board.turn:
+        drive = -drive
+    return drive
