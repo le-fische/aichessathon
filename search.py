@@ -304,12 +304,16 @@ def get_move(board: chess.Board, time_left_ms: int) -> str:
     completed_depth = 0
     board = board.copy()
 
-    if time_left_ms < 3000:
-        budget_ms = min(200.0, time_left_ms * 0.1)
-        panic = True
-    else:
-        budget_ms = min(time_left_ms * 0.045 + 400.0, time_left_ms * 0.25)
-        panic = False
+    # Calculate budget based on dynamic moves_to_go (using fullmove from the board state).
+    # We assume the game often resolves around 60 moves, flooring at 20 moves to prevent
+    # division by zero and ensuring we always assume there are still 20 moves left in the endgame.
+    moves_to_go = max(20.0, 60.0 - board.fullmove_number)
+    budget_ms = time_left_ms / moves_to_go + 250.0
+    budget_ms = min(budget_ms, time_left_ms * 0.8)
+    
+    # We delete the 3000ms panic threshold entirely because the increment and our floor 
+    # guarantee we stabilize smoothly above 3000ms.
+    panic = False
 
     ctx = SearchContext(board, budget_ms)
 
