@@ -2,7 +2,7 @@
 import os
 import sys
 
-ALLOWED_PY_FILES = {"agent.py", "search.py", "evaluation.py"}
+ALLOWED_PY_FILES = {"agent.py", "search.py", "evaluation.py", "bitboard.py"}
 
 
 def check_root():
