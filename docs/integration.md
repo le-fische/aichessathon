@@ -67,7 +67,7 @@ We will write `tests/test_equivalence.py`:
 
 ## 6. Warmup and JIT Failure Mitigation
 
-**Warmup:** The `bitboard.py` module includes a `warmup()` routine which forces Numba to compile all `@njit` functions during module initialization. Currently, this costs ~2.04s of the 90s init budget (using ~2.2% of the budget). We must ensure that every single jitted function (including the new Numba evaluation function) receives a real call during `warmup()` so no compilation penalties land on the game clock.
+**Warmup:** The `bitboard.py` module includes a `warmup()` routine which forces Numba to compile all `@njit` functions during module initialization. Currently, this costs 2.293s (measured locally on macOS) of the 90s init budget (using ~2.2% of the budget). We must ensure that every single jitted function (including the new Numba evaluation function) receives a real call during `warmup()` so no compilation penalties land on the game clock.
 
 **JIT Failure on Platform:** If `numba` fails to compile on the platform's hardware or exceeds the init budget, the crash would cost us the entire submission. We will guard the import with a `try/except` block and use a fallback flag. If Numba is unavailable, `agent.py` will fall back to using the legacy `python-chess` search. This makes it completely safe to ship the integration, as we are not betting the ladder on the platform environment perfectly supporting our Numba routines.
 
