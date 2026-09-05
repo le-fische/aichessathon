@@ -1,56 +1,80 @@
 # Chessathon Agent Status
 
 ## CURRENT STATE
-Last updated 2026-09-05 04:00 UTC.
+Last updated 2026-09-05 07:40 UTC.
 
 **Live on the ladder: v3-steinitz, uploaded as platform "v4", bot name `Steinitz`.**
-After round 15 it sits at **rating 1468, rank 132 of 243, 4W 4D 7L** — down from
-1519 / rank 109 after round 14. For calibration, the house bot labelled CCRL 1400
-is at 1539 and ladder #1 is 2164. We are below the CCRL-1400 house bot.
+Rating **1468, rank 132 of 243**, 4W 4D 7L. Round 16 was live at the time of
+writing. For calibration, the house bot labelled CCRL 1400 is at 1539 and ladder
+#1 is 2164 — we are below the CCRL-1400 house bot.
 
-v3-steinitz contains everything from v2-morphy plus null move pruning, late move
-reductions and aspiration windows. Working tree contents beyond that are **v7-tal
-work in progress, uncommitted**: repetition detection on the search path and a
-`CONTEMPT` constant.
+**Working tree is ahead of the ladder and verified.** Branch `v6-alekhine`,
+clean, two new commits:
 
-### WARNING: the working tree is shared
-The tree is checked out on branch `v6-alekhine` but holds v7-tal's uncommitted
-changes to `agent.py` and `search.py`. Git branches do not isolate the
-filesystem. **Do not commit from a v6 chat — it will commit v7's work.** Resolve
-this before any further branching: either commit v7's changes on a `v7-tal`
-branch, or stash them.
+- `90e13e0` numba jit bitboard move generator plus `tests/test_perft.py`
+- `f28504f` bitboard evaluation, CONTEMPT to 0.0, position-only FEN matching
+
+`v7-tal-wip` at `c8c9472` is the restore point for the previous state.
+
+### What is verified, and how
+- **Bitboard evaluation is equivalent, not just faster.** Pre-patch build vs
+  post-patch, CONTEMPT held at 0.0 in both so evaluation was the only difference,
+  depth 6: node counts identical (596,954 / 468,856 / 34,321) and chosen moves
+  identical, at 1.20-1.21x speed. Identical node counts are the proof — the tree
+  searched did not change.
+- **The numba movegen is correct.** `tests/test_perft.py` compares against
+  python-chess rather than hardcoded constants. Start position depth 5 =
+  4,865,609, Kiwipete depth 4 = 4,085,603, the four benchmark FENs, a pawn
+  endgame and a promotion race — all MATCH, at 21-27 Mnps against 0.43-0.50 Mnps
+  for python-chess. **~50x on move generation.** JIT warmup 2.293 s of a 90 s
+  init budget.
+- Fuzz passes 200 FENs. Arena gate game passes. Zip builds at 42,151 unzipped.
+
+### Two open defects
+1. **`make gate` is RED.** 71 ruff errors, all in `bitboard.py` (E701/E702
+   statement density, one I001), plus I001 in both test files. Assigned to the
+   v6-alekhine chat. Nothing here is a correctness problem, but a permanently
+   red gate is how the undefined-CONTEMPT NameError got through before.
+2. **mypy does not check the engine.** `pyproject.toml` line 37 says
+   `files = ["agent.py", "harness"]`, so `search.py`, `evaluation.py` and
+   `bitboard.py` are unchecked. This document previously claimed "mypy strict
+   clean over all three engine files" — that was false. Assigned to the
+   v6-alekhine chat.
 
 ### v7-tal: measured twice, and the answer is no both times
-`CONTEMPT` was raised from 0 to 30 with no measurement. It has since been
-instrumented and **`get_draw_score()` is unreachable in normal play** — 3 calls
-in 400,000 nodes at depth 7, zero calls across five middlegame positions at
-shallower budgets. The value cannot affect play. **Set `CONTEMPT` back to `0.0`.**
-Full evidence, including why loosening threefold to twofold changes nothing:
-`runs/2026-09-05-perf/FINDINGS.md`.
+`CONTEMPT` was raised from 0 to 30 with no measurement. Instrumented,
+`get_draw_score()` is unreachable in normal play — 3 calls in 400,000 nodes at
+depth 7, zero across five middlegame positions at shallower budgets, and
+loosening threefold to twofold changes nothing. A same-build A/B differing only
+in that constant produced byte-identical games. It is now 0.0.
 
-Second, independent check: the one game we actually drew by threefold repetition
+Second, independent check: the one game we drew by threefold repetition
 (Rated 14, White vs Rudra) was replayed from the platform PGN. **We were a pawn
 down with opposite-coloured bishops and the halfmove clock at 67.** The draw was
-the best available result, not a win thrown away — contempt would have pushed us
-to avoid a draw we should want. **Draw avoidance is not the problem. Do not build
-it at the root either.** See FINDINGS.md addendum.
+the best available result. **Draw avoidance is not the problem, in the tree or at
+the root.** Full evidence: `runs/2026-09-05-perf/FINDINGS.md` and its addendum.
 
-Also from that log: **init budget is 90 s and we use 0.5 s of it**, so there is
-room for a real numba warmup at import. And clock discipline is tight — that game
-ran 141 moves and finished with 6.0 s left of 190.5 s. Check the time manager
-against a long game before trusting it.
+### Two facts from the platform match logs
+- **Init budget is 90 s and we use 0.5 s of it.** Room for a large numba warmup.
+- **Clock discipline is tight.** Round 14 ran 141 moves and finished with 6.0 s
+  left of 190.5 s. The 4.5 percent budget fraction is tuned for a ~22 move game
+  and we play games of 141. Assigned to the v7-tal chat.
 
-### The actual bottleneck, with a patch ready
-Profiling says `board.piece_map()` inside `evaluate()` is **48% of all search
-time**. Iterating the bitboards directly is 2.93x faster on the function and
-**+26% nps end to end with a byte-identical node count** — same tree, pure speed.
-Patch: `runs/2026-09-05-perf/bitboard-eval.patch`. Apply it, `make gate`, then
-confirm the node count is still identical; if it moves, the eval is no longer
-equivalent and the patch is wrong.
+### Depth is still the competitive problem
+~58,000 nps before the evaluation patch, depth 6-7 at the tournament control,
+EBF ~2.6 (so move ordering is fine — raw speed is not). The numba integration is
+the answer and is the largest remaining item. Honest target is a few times
+faster end to end, not 50x: movegen was ~30 percent of search time and
+evaluation close to half, and the Python-to-numba boundary gets crossed per node.
+A few times faster is two or three plies, which is worth more than everything
+else on the roadmap combined.
 
-At the tournament control the engine completes **depth 6, occasionally 7**, at
-~58,000 nps. Depth is the competitive problem, not evaluation terms. Priority
-order and the numbers behind it are in FINDINGS.md §3.
+### File ownership while two chats share one checkout
+Git branches do NOT isolate the filesystem. There is one working tree.
+- v7-tal chat owns `agent.py` and `search.py`.
+- v6-alekhine chat owns `bitboard.py`, `tests/`, `tools/`, `docs/`.
+`search.py` passes to the v6 chat for numba integration once the time manager
+lands.
 
 ## MEASUREMENT RULES
 - **Fixed-Node Testing is Mandatory for A/B:** We introduced `SEARCH_MAX_NODES` to eliminate OS scheduling jitter. When set (e.g., `SEARCH_MAX_NODES=50000`), the engine strictly bounds node counts instead of wall-time. **You must use this for every build-to-build comparison** so results are deterministic.
