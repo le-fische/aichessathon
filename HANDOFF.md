@@ -1,26 +1,56 @@
 # Chessathon Agent Status
 
 ## CURRENT STATE
-We are working through a curated roadmap of classical chess engine features. v2-morphy is complete and live. v3-steinitz is next.
+Last updated 2026-09-05 04:00 UTC.
 
-### LIVE DEPLOYMENT
-**`versions/v2-morphy` is the live, verified build on the ladder.**
-It contains: transposition table, MVV-LVA, killers, history, quiescence, `_transposition_key` hashing, and `generate_legal_captures`. It does NOT contain repetition/contempt logic.
+**Live on the ladder: v3-steinitz, uploaded as platform "v4", bot name `Steinitz`.**
+After round 15 it sits at **rating 1468, rank 132 of 243, 4W 4D 7L** — down from
+1519 / rank 109 after round 14. For calibration, the house bot labelled CCRL 1400
+is at 1539 and ladder #1 is 2164. We are below the CCRL-1400 house bot.
 
-The verified SHAs for `submission.zip` matching `v2-morphy` exactly are:
-```
-95fb3ef22936d7de3c471305994f503607997f299b07c58f9f9dc74ce80918ae  agent.py
-f3f7747521d757e595946c8a11f2b8e8b7f85cd4be53e90ba40ce3b28b83be74  search.py
-aedfc00e17ee8c8f68565a2f2a3208536eb2eaeb29aa600b1b167554ba4b3198  evaluation.py
-```
-*(Uploads used: 3 of 6 on Sept 3)*
+v3-steinitz contains everything from v2-morphy plus null move pruning, late move
+reductions and aspiration windows. Working tree contents beyond that are **v7-tal
+work in progress, uncommitted**: repetition detection on the search path and a
+`CONTEMPT` constant.
 
-### REPETITION & CONTEMPT (Parked in `v7-tal`)
-We briefly worked on threefold repetition avoidance and contempt, but pulled v7's scope forward into v2 by mistake. That work is now parked on the `v7-tal` branch (with detailed findings in `v7_notes.md`).
-Key lessons learned:
-- `search.get_move` builds the board from a FEN, meaning the search is structurally blind to game history and cannot detect repetitions that occurred before the search began.
-- Fixing this requires passing a `collections.Counter` of history from `agent.py`.
-- The apparent regression in our contempt test was **entirely due to OS scheduling jitter**, not move selection logic. Because the iterative deepening loop used `time.monotonic()`, microsecond differences caused engines to diverge into different depths (e.g. depth 5 vs 6) and play different games. Over a small sample of 5 games, statistical variance looked like a regression. Move selection was proven to be 100% identical across 55 test positions.
+### WARNING: the working tree is shared
+The tree is checked out on branch `v6-alekhine` but holds v7-tal's uncommitted
+changes to `agent.py` and `search.py`. Git branches do not isolate the
+filesystem. **Do not commit from a v6 chat — it will commit v7's work.** Resolve
+this before any further branching: either commit v7's changes on a `v7-tal`
+branch, or stash them.
+
+### v7-tal: measured twice, and the answer is no both times
+`CONTEMPT` was raised from 0 to 30 with no measurement. It has since been
+instrumented and **`get_draw_score()` is unreachable in normal play** — 3 calls
+in 400,000 nodes at depth 7, zero calls across five middlegame positions at
+shallower budgets. The value cannot affect play. **Set `CONTEMPT` back to `0.0`.**
+Full evidence, including why loosening threefold to twofold changes nothing:
+`runs/2026-09-05-perf/FINDINGS.md`.
+
+Second, independent check: the one game we actually drew by threefold repetition
+(Rated 14, White vs Rudra) was replayed from the platform PGN. **We were a pawn
+down with opposite-coloured bishops and the halfmove clock at 67.** The draw was
+the best available result, not a win thrown away — contempt would have pushed us
+to avoid a draw we should want. **Draw avoidance is not the problem. Do not build
+it at the root either.** See FINDINGS.md addendum.
+
+Also from that log: **init budget is 90 s and we use 0.5 s of it**, so there is
+room for a real numba warmup at import. And clock discipline is tight — that game
+ran 141 moves and finished with 6.0 s left of 190.5 s. Check the time manager
+against a long game before trusting it.
+
+### The actual bottleneck, with a patch ready
+Profiling says `board.piece_map()` inside `evaluate()` is **48% of all search
+time**. Iterating the bitboards directly is 2.93x faster on the function and
+**+26% nps end to end with a byte-identical node count** — same tree, pure speed.
+Patch: `runs/2026-09-05-perf/bitboard-eval.patch`. Apply it, `make gate`, then
+confirm the node count is still identical; if it moves, the eval is no longer
+equivalent and the patch is wrong.
+
+At the tournament control the engine completes **depth 6, occasionally 7**, at
+~58,000 nps. Depth is the competitive problem, not evaluation terms. Priority
+order and the numbers behind it are in FINDINGS.md §3.
 
 ## MEASUREMENT RULES
 - **Fixed-Node Testing is Mandatory for A/B:** We introduced `SEARCH_MAX_NODES` to eliminate OS scheduling jitter. When set (e.g., `SEARCH_MAX_NODES=50000`), the engine strictly bounds node counts instead of wall-time. **You must use this for every build-to-build comparison** so results are deterministic.
@@ -29,6 +59,32 @@ Key lessons learned:
 - 10 games is +/-10% for a single game of difference. Treat small gaps as noise.
 - The starter baselines are saturated: 100% vs random, greedy and minimax. Use Fixed-Node A/B against a previous version for true strength testing.
 - Report completed iterative-deepening depth and selective depth separately, never a bare "depth".
+
+## WHERE THINGS ARE
+
+Repo root holds only what ships or builds:
+  agent.py search.py evaluation.py   the submission. Nothing else may be a root .py.
+  Makefile pyproject.toml uv.lock    build and gate config
+  AGENTS.md                          the organisers' brief. Authoritative.
+  HANDOFF.md                         this file. What a fresh chat reads first.
+  submission.zip                     built by make zip, gitignored
+
+  harness/    the platform's protocol and clock. NEVER edit.
+  baselines/  sparring opponents: random, greedy, minimax, numba, stockfish.
+              Never packaged, never imported by the submission.
+  versions/   one folder per archived version, each a complete runnable copy
+              plus about.txt. INDEX.txt lists them. This is the comparison set.
+  tests/      test_fuzz.py, the 200-position legality suite.
+  tools/      check_root.py, verify_zip.py, measure_version.py and friends.
+              tools/scripts/ holds the ad-hoc run scripts from past sessions.
+  runs/       archived logs, PGNs and stats, by date and version. Gitignored.
+  docs/       the starter's IDEAS.md.
+
+Two rules that keep it navigable:
+  Write run output into runs/<date>-<version>/, never into the repo root.
+  Measurement and diagnostic scripts live in tools/, never at the root, because
+  package.py sweeps every root .py into the submission zip. tools/check_root.py
+  enforces this and is wired into both the zip and gate targets.
 
 ## INVARIANTS
 - Python 3.12 only, never repin.
@@ -54,9 +110,47 @@ Real curated openings harvested from platform validation logs.
 - rnbq1rk1/pp2bppp/4pn2/2pp4/2PP4/N4NP1/PP2PPBP/R1BQK2R w KQ - 0 7
 - rnbqk1nr/bp3ppp/p7/3p4/P7/1N6/1PP2PPP/R1BQKBNR w KQkq - 2 8
 
-## NEXT UP: v3-steinitz
-**This conversation is closed. Start a fresh conversation for v3-steinitz.**
-1. **Null Move Pruning**: Build and measure deterministically using `SEARCH_MAX_NODES`.
-2. **Late Move Reductions (LMR)**: Build and measure deterministically.
-3. **Aspiration Windows**: Build and measure deterministically.
-Each feature must be built and measured separately against the previous baseline.
+## NEXT UP
+In this order. Each step measured separately against the previous baseline.
+
+1. **Set `CONTEMPT = 0.0`** in `search.py`. No measurement needed — it is
+   unreachable code, and the one repetition draw we have was the correct result.
+   See FINDINGS.md §1 and the addendum. Close v7-tal out; the premise is dead.
+2. **Apply `runs/2026-09-05-perf/bitboard-eval.patch`.** Verify with
+   `runs/2026-09-05-perf/nps_probe.py` that the node count is unchanged and nps
+   is up ~26%. Then `make gate`, `make zip`, upload.
+3. **Fix the FEN comparison in `agent.py`.** Compare position only
+   (`board_fen()` + turn + castling + ep), not the full FEN with move counters.
+   Latent, not live — see FINDINGS.md §4.
+4. **Restore `traceback.print_exc()` in `agent.py`'s blanket except.** Debug
+   through `harness/play.py`; `harness/arena.py` does not print agent stderr.
+5. **Incremental evaluation.** Update the tapered PSQT sums on push/pop instead
+   of recomputing. O(pieces) becomes O(1). Largest remaining win inside
+   python-chess.
+6. **numba.** `AGENTS.md` says numba is how Python gets fast here and the engine
+   imports it nowhere. Jitted movegen over a custom bitboard board, warmed at
+   import inside the 60 s init budget. Largest ceiling, largest project.
+
+Evaluation-term tuning (king safety, mobility, pawn structure) is worth far less
+than any of the above while the search only sees six plies. Do not start there.
+
+## A/B TESTING
+Use `tools/ab_arena.py`, not `harness/arena.py`. The latter always starts from
+the standard position and only alternates colours, so two deterministic builds
+play the same two games however many you request — it cannot A/B anything.
+
+```bash
+uv run python tools/ab_arena.py --a . --b versions/v3-steinitz \
+    --games 20 --nodes 400000 --out runs/<date>-<version>/ab.jsonl \
+    --start 0 --count 2
+# repeat with --start 2, 4, 6 ... then:
+uv run python tools/ab_arena.py --games 20 --out runs/<date>-<version>/ab.jsonl --summarize
+```
+
+Null hypothesis is verified: a build against a byte-identical copy scores exactly
+50.0%, every colour-swapped pair a perfect mirror.
+
+**Pick the node budget honestly.** 400,000 nodes is depth 7, ~5.5 s per move,
+~11 minutes per game pair. 100,000 nodes is depth 5 and ~1 s per move — an
+acceptable proxy if you say so beside the number. **4,000 nodes is depth 2 and
+tells you nothing about the engine that plays on the platform.**
