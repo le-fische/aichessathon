@@ -868,13 +868,20 @@ def evaluate(board: chess.Board) -> float:
     eg_diff = 0
     game_phase = 0
 
-    for sq, piece in board.piece_map().items():
-        pt = piece.piece_type
-        c = piece.color
-
-        mg_diff += TABLE_MG[c][pt][sq]
-        eg_diff += TABLE_EG[c][pt][sq]
-        game_phase += gamephase_inc[pt]
+    for pt, mask in [
+        (chess.PAWN, board.pawns),
+        (chess.KNIGHT, board.knights),
+        (chess.BISHOP, board.bishops),
+        (chess.ROOK, board.rooks),
+        (chess.QUEEN, board.queens),
+        (chess.KING, board.kings),
+    ]:
+        game_phase += gamephase_inc[pt] * chess.popcount(mask)
+        for c in [chess.WHITE, chess.BLACK]:
+            c_mask = mask & board.occupied_co[c]
+            for sq in chess.scan_reversed(c_mask):
+                mg_diff += TABLE_MG[c][pt][sq]
+                eg_diff += TABLE_EG[c][pt][sq]
 
     if board.turn == chess.BLACK:
         mg_diff = -mg_diff

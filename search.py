@@ -130,7 +130,7 @@ def qsearch(ctx: SearchContext, alpha: float, beta: float, ply: int) -> float:
     return best_score
 
 
-CONTEMPT = 30.0
+CONTEMPT = 0.0
 
 
 def get_draw_score(ply: int) -> float:

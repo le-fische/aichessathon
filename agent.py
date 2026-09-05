@@ -1,22 +1,27 @@
+import traceback
+
 import chess
 
 import search
 
 game_board: chess.Board | None = None
 
+def get_position_fen(fen: str) -> str:
+    return " ".join(fen.split(" ")[:4])
 
 def get_move(fen: str, time_left_ms: int) -> str:
     """Return a legal move in UCI notation."""
     global game_board
 
     try:
+        target_pos = get_position_fen(fen)
         if game_board is None:
             game_board = chess.Board(fen)
-        elif game_board.fen() != fen:
+        elif get_position_fen(game_board.fen()) != target_pos:
             matched = False
             for m in list(game_board.legal_moves):
                 game_board.push(m)
-                if game_board.fen() == fen:
+                if get_position_fen(game_board.fen()) == target_pos:
                     matched = True
                     break
                 game_board.pop()
@@ -43,6 +48,7 @@ def get_move(fen: str, time_left_ms: int) -> str:
         game_board.push(move_obj)
         return move_str
     except Exception:
+        traceback.print_exc()
         try:
             game_board = chess.Board(fen)
             fallback = next(iter(game_board.legal_moves)).uci()
