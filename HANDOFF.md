@@ -9,20 +9,25 @@ Last updated 2026-09-05 09:00 UTC.
 
 ## CURRENT STATE
 
-**Live on the ladder: platform v6, bot name `Tal`.** VALID and Active.
-Rating **1508, rank 127 of 264**, 5W 5D 7L. Zip sha256 `f61f82c9f6e0...`:
+**Live on the ladder: platform v7, bot name `Tal`.** Zip sha256 `8f84a3bfb432...`:
 
     a3f8f89d7e2be51860e7db9cfa2f0ec616acf5f253d4536bd7086450801e3e93  agent.py
-    c3bc532a65faa856f352c2333c03846ec10522aef64235b3d9a9fe9d6914fcc5  search.py
+    e4bb6898c9f3462106747a336bb3cba6512b7d4d4219dad62de775d53c58af5b  search.py
     d2692572400754cae5fee4786059ecf589232b619a3efa1ffa5dd9bf6fcd1ab3  evaluation.py
 
-For calibration: the house bot labelled CCRL 1400 sits at 1539, above us. Ladder
-#1 is 2164. We are not going to top this ladder; the ladder only seeds the final
-Swiss.
+Rating **1429, rank 162 of 283**, 8W 7D 11L at upload. The peak was 1508 before
+v6 went live.
 
-**Rosters lock 11 September, 11:00.** The final Swiss is for teams with a UK
-university student on them. The team is one UBC student. Until that changes,
-engine work moves ladder position and nothing else.
+**v6 was a regression and v7 rolls its clock back.** v6 shipped a moves-to-go
+time policy alongside the mate drive; measured, it searched **a full ply
+shallower on 7 of 12 clock points, all in the first two thirds of the game**. It
+was chosen on a simulation that scored minimum-clock-remaining and never looked
+at depth. v7 = v5's clock plus v6's mate drive. Full evidence and the depth
+table: `runs/2026-09-05-clock/FINDINGS.md`.
+
+Do not reintroduce a time policy without running
+`runs/2026-09-05-clock/depth_compare.py` against it. Not flagging is a
+constraint; depth is the objective.
 
 ### What v6 contains, beyond v3-steinitz
 - Tapered PeSTO evaluation iterating bitboards instead of `board.piece_map()`.
