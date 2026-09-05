@@ -1,6 +1,7 @@
-import sys
 import os
+import sys
 import time
+
 import chess
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -18,6 +19,7 @@ FENS_AND_DEPTHS = [
     ("n1n5/PPPk4/8/8/8/8/4Kppp/5N1N w - - 0 1", 4),
 ]
 
+
 def py_perft(board, depth):
     if depth == 0:
         return 1
@@ -28,18 +30,19 @@ def py_perft(board, depth):
         board.pop()
     return nodes
 
+
 def test_perft(fen, depth):
     print(f"\n--- Testing {fen} Depth {depth} ---")
     board = chess.Board(fen)
     pieces, colors, state = bitboard.from_chess_board(board)
-    
+
     t0 = time.time()
-    total, valid_moves, nodes_per_move = bitboard.divide(pieces, colors, state, depth)
+    total, _valid_moves, _nodes_per_move = bitboard.divide(pieces, colors, state, depth)
     t1 = time.time()
-    nps = total / max(1e-6, t1-t0)
-    
-    print(f"My perft: {total} nodes in {t1-t0:.3f}s ({nps/1e6:.2f} Mnps)")
-    
+    nps = total / max(1e-6, t1 - t0)
+
+    print(f"My perft: {total} nodes in {t1 - t0:.3f}s ({nps / 1e6:.2f} Mnps)")
+
     print("Running python-chess perft...")
     py_t0 = time.time()
     py_total = 0
@@ -51,11 +54,11 @@ def test_perft(fen, depth):
         py_moves[py_move.uci()] = count
         board.pop()
     py_t1 = time.time()
-    py_nps = py_total / max(1e-6, py_t1-py_t0)
-        
-    print(f"python-chess perft: {py_total} nodes in {py_t1-py_t0:.3f}s ({py_nps/1e6:.2f} Mnps)")
+    py_nps = py_total / max(1e-6, py_t1 - py_t0)
+
+    print(f"python-chess perft: {py_total} nodes in {py_t1 - py_t0:.3f}s ({py_nps / 1e6:.2f} Mnps)")
     print(f"Speedup: {nps / max(1, py_nps):.2f}x")
-    
+
     if total != py_total:
         print("MISMATCH!")
         return False
@@ -63,18 +66,20 @@ def test_perft(fen, depth):
         print("MATCH!")
         return True
 
+
 def run_all():
     print("Warming up JIT...")
     warmup_time = bitboard.warmup()
     print(f"Warmup time: {warmup_time:.3f}s")
-    
+
     any_failed = False
     for fen, depth in FENS_AND_DEPTHS:
         if not test_perft(fen, depth):
             any_failed = True
-            
+
     if any_failed:
         sys.exit(1)
+
 
 if __name__ == "__main__":
     run_all()
