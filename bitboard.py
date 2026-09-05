@@ -548,6 +548,10 @@ def divide(pieces, colors, state, depth):
 EVAL_MG = np.array(evaluation.TABLE_MG, dtype=np.int32)
 EVAL_EG = np.array(evaluation.TABLE_EG, dtype=np.int32)
 PHASE_INC = np.array(evaluation.gamephase_inc, dtype=np.int32)
+CENTRE_DISTANCE = np.array(
+    [max(abs((sq % 8) - 3.5), abs((sq // 8) - 3.5)) for sq in range(64)],
+    dtype=np.float64
+)
 
 @njit(cache=False)
 def evaluate(pieces, colors, state):
@@ -579,7 +583,31 @@ def evaluate(pieces, colors, state):
         eg_diff = -eg_diff
         
     phase = min(game_phase, 24)
-    return float((mg_diff * phase + eg_diff * (24 - phase)) // 24)
+    
+    score = float((mg_diff * phase + eg_diff * (24 - phase)) // 24)
+    
+    if game_phase <= 6:
+        white_bare = (colors[WHITE] & ~pieces[KING]) == 0
+        black_bare = (colors[BLACK] & ~pieces[KING]) == 0
+        
+        if white_bare != black_bare:
+            winner = WHITE if black_bare else BLACK
+            loser = winner ^ 1
+            
+            loser_king = lsb(pieces[KING] & colors[loser])
+            winner_king = lsb(pieces[KING] & colors[winner])
+            
+            file_gap = abs((winner_king % 8) - (loser_king % 8))
+            rank_gap = abs((winner_king // 8) - (loser_king // 8))
+            king_gap = file_gap + rank_gap
+            
+            drive = 16.0 * CENTRE_DISTANCE[loser_king] + 4.0 * (14 - king_gap)
+            if turn != winner:
+                drive = -drive
+            score += drive
+            
+    return score
+
 
 def warmup():
     import time
