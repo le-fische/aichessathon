@@ -5,6 +5,8 @@ import chess
 import numpy as np
 from numba import njit
 
+import evaluation
+
 PAWN = 0
 KNIGHT = 1
 BISHOP = 2
@@ -540,6 +542,45 @@ def divide(pieces, colors, state, depth):
     return total, valid_moves[:valid_count], nodes_per_move[:valid_count]
 
 
+
+
+
+EVAL_MG = np.array(evaluation.TABLE_MG, dtype=np.int32)
+EVAL_EG = np.array(evaluation.TABLE_EG, dtype=np.int32)
+PHASE_INC = np.array(evaluation.gamephase_inc, dtype=np.int32)
+
+@njit(cache=False)
+def evaluate(pieces, colors, state):
+    mg_diff = 0
+    eg_diff = 0
+    game_phase = 0
+    
+    for pt in range(6):
+        bb = pieces[pt]
+        
+        count = popcount(bb)
+        game_phase += PHASE_INC[pt + 1] * count
+        
+        for c in range(2):
+            c_mask = bb & colors[c]
+            while c_mask:
+                sq = lsb(c_mask)
+                c_mask &= c_mask - np.uint64(1)
+                
+                py_c = 1 - c
+                py_pt = pt + 1
+                
+                mg_diff += EVAL_MG[py_c][py_pt][sq]
+                eg_diff += EVAL_EG[py_c][py_pt][sq]
+                
+    turn = state[0]
+    if turn == BLACK:
+        mg_diff = -mg_diff
+        eg_diff = -eg_diff
+        
+    phase = min(game_phase, 24)
+    return float((mg_diff * phase + eg_diff * (24 - phase)) // 24)
+
 def warmup():
     import time
 
@@ -547,6 +588,7 @@ def warmup():
     board = chess.Board()
     pieces, colors, state = from_chess_board(board)
     divide(pieces, colors, state, 1)
+    evaluate(pieces, colors, state)
     t1 = time.time()
     return t1 - t0
 

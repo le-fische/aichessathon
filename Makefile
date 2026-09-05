@@ -18,4 +18,5 @@ gate:
 	uv run ruff check .
 	uv run mypy
 	uv run python tests/test_perft.py
+	uv run python tests/test_evaluate.py
 	uv run python -m harness.arena --opponent baselines/random --games 2 --base-ms 5000
