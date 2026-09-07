@@ -1,10 +1,13 @@
+import collections
 import traceback
+from collections.abc import Hashable
 
 import chess
 
 import search
 
 game_board: chess.Board | None = None
+position_counts: collections.Counter[Hashable] = collections.Counter()
 
 def get_position_fen(fen: str) -> str:
     return " ".join(fen.split(" ")[:4])
@@ -12,11 +15,13 @@ def get_position_fen(fen: str) -> str:
 def get_move(fen: str, time_left_ms: int) -> str:
     """Return a legal move in UCI notation."""
     global game_board
+    global position_counts
 
     try:
         target_pos = get_position_fen(fen)
         if game_board is None:
             game_board = chess.Board(fen)
+            position_counts.clear()
         elif get_position_fen(game_board.fen()) != target_pos:
             matched = False
             for m in list(game_board.legal_moves):
@@ -27,13 +32,18 @@ def get_move(fen: str, time_left_ms: int) -> str:
                 game_board.pop()
             if not matched:
                 game_board = chess.Board(fen)
+                position_counts.clear()
 
         try:
             fallback_move = next(iter(game_board.legal_moves)).uci()
         except StopIteration:
             fallback_move = "e2e4"
 
-        move_str = search.get_move(game_board, time_left_ms)
+        # The counter only sees positions where it is our turn to move.
+        # This is sufficient to detect threefold repetitions caused by shuffling.
+        position_counts[game_board._transposition_key()] += 1
+
+        move_str = search.get_move(game_board, time_left_ms, position_counts)
 
         try:
             move_obj = chess.Move.from_uci(move_str)
@@ -51,6 +61,7 @@ def get_move(fen: str, time_left_ms: int) -> str:
         traceback.print_exc()
         try:
             game_board = chess.Board(fen)
+            position_counts.clear()
             fallback = next(iter(game_board.legal_moves)).uci()
             game_board.push(chess.Move.from_uci(fallback))
             return fallback
