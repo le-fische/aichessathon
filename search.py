@@ -1,10 +1,19 @@
+import collections
 import os
 import time
 import typing
+from collections.abc import Hashable
 
 import chess
+import chess.syzygy
 
 from evaluation import evaluate
+
+tb: typing.Optional[chess.syzygy.Tablebase] = None
+try:
+    tb = chess.syzygy.open_tablebase("weights")
+except Exception:
+    pass
 
 
 class TimeUp(Exception):
@@ -12,10 +21,13 @@ class TimeUp(Exception):
 
 
 class SearchContext:
-    def __init__(self, board: chess.Board, time_budget: float):
+    def __init__(
+        self, board: chess.Board, time_budget: float, position_counts: collections.Counter[Hashable]
+    ):
         self.board = board
         self.start_time = time.monotonic()
         self.time_budget = time_budget
+        self.position_counts = position_counts
         self.nodes = 0
         self.hard_stop = time_budget * 0.85
         self.killers: list[list[chess.Move]] = [[] for _ in range(128)]
@@ -57,17 +69,39 @@ def clear_tt_if_full() -> None:
         tt.clear()
 
 
+CONTEMPT = 0.0
+
+
+def get_draw_score(ply: int) -> float:
+    return -CONTEMPT if ply % 2 == 0 else CONTEMPT
+
+
+def get_evaluation(ctx: SearchContext, ply: int) -> float:
+    if tb is not None and ctx.board.occupied.bit_count() <= 4:
+        try:
+            wdl = tb.probe_wdl(ctx.board)
+            if wdl > 0:
+                return 20000 - ply
+            elif wdl < 0:
+                return -20000 + ply
+            else:
+                return get_draw_score(ply)
+        except Exception:
+            pass
+    return evaluate(ctx.board)
+
+
 def qsearch(ctx: SearchContext, alpha: float, beta: float, ply: int) -> float:
     ctx.check_time()
 
     if ply >= 127:
-        return evaluate(ctx.board)
+        return get_evaluation(ctx, ply)
 
     in_check = ctx.board.is_check()
     stand_pat = -float("inf")
 
     if not in_check:
-        stand_pat = evaluate(ctx.board)
+        stand_pat = get_evaluation(ctx, ply)
         if stand_pat >= beta:
             return stand_pat
         if alpha < stand_pat:
@@ -130,17 +164,15 @@ def qsearch(ctx: SearchContext, alpha: float, beta: float, ply: int) -> float:
     return best_score
 
 
-CONTEMPT = 0.0
-
-
-def get_draw_score(ply: int) -> float:
-    return -CONTEMPT if ply % 2 == 0 else CONTEMPT
-
-
 def negamax(
     ctx: SearchContext, depth: int, ply: int, alpha: float, beta: float, prev_is_null: bool = False
 ) -> float:
     ctx.check_time()
+
+    if ply > 0:
+        pos_key = ctx.board._transposition_key()
+        if ctx.position_counts.get(pos_key, 0) >= 2:
+            return get_draw_score(ply)
 
     hash_key = ctx.board._transposition_key()
     if hash_key in ctx.path_keys:
@@ -151,7 +183,7 @@ def negamax(
         return get_draw_score(ply)
     if halfmove >= 4 and ctx.board.is_repetition(3):
         return get_draw_score(ply)
-    if len(ctx.board.piece_map()) <= 4 and ctx.board.is_insufficient_material():
+    if ctx.board.occupied.bit_count() <= 4 and ctx.board.is_insufficient_material():
         return get_draw_score(ply)
 
     hash_key = ctx.board._transposition_key()
@@ -299,7 +331,9 @@ def negamax(
 completed_depth = 0
 
 
-def get_move(board: chess.Board, time_left_ms: int) -> str:
+def get_move(
+    board: chess.Board, time_left_ms: int, position_counts: collections.Counter[Hashable]
+) -> str:
     global completed_depth
     completed_depth = 0
     board = board.copy()
@@ -317,7 +351,7 @@ def get_move(board: chess.Board, time_left_ms: int) -> str:
         budget_ms = min(time_left_ms * 0.045 + 400.0, time_left_ms * 0.25)
         panic = False
 
-    ctx = SearchContext(board, budget_ms)
+    ctx = SearchContext(board, budget_ms, position_counts)
 
     moves = list(board.legal_moves)
     if not moves:
@@ -379,6 +413,8 @@ def get_move(board: chess.Board, time_left_ms: int) -> str:
 
             best_move = current_best_move
             completed_depth = depth
+            global root_score
+            root_score = prev_score
 
             if panic:
                 break
