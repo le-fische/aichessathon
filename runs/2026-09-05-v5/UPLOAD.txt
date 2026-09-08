@@ -1,0 +1,22 @@
+Platform v5, uploaded 2026-09-05 08:47 local (15:47 UTC-7 -> 07:47 UTC)
+Bot name on the leaderboard: Tal
+Zip sha256: eb956c49cedb4e528212bdfac3a0059fe5e575c0e587902ec2ca65dbb5bc24f5
+
+Members, byte-identical to the repo root at upload time:
+  a3f8f89d7e2be51860e7db9cfa2f0ec616acf5f253d4536bd7086450801e3e93  agent.py
+  e4bb6898c9f3462106747a336bb3cba6512b7d4d4219dad62de775d53c58af5b  search.py
+  fc674d4858e822b24122e4f1b70f303b34348ffae4ef0913bdab58878e480f7e  evaluation.py
+
+bitboard.py was deliberately EXCLUDED. It is correct and tested, but nothing
+imports it yet, so shipping it would only add an unused module to the zip.
+It joins the submission when the numba integration lands.
+
+Delta from platform v4 (v3-steinitz):
+  - bitboard evaluation: identical node counts and identical chosen moves,
+    ~1.20x nps (verify_eval.py in this directory reproduces it)
+  - CONTEMPT 30.0 -> 0.0 (unreachable code; see runs/2026-09-05-perf/FINDINGS.md)
+  - agent.py matches on position only, not the full FEN with move counters
+  - agent.py restores traceback.print_exc() in the blanket except
+
+Ladder at upload: 1508, rank 126 of 263, 5W 4D 7L after a round 16 win over
+En Passant.

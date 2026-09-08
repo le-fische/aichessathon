@@ -1,0 +1,10 @@
+Starting 60 games match at 120s + 500ms
+Game 1/60: white by checkmate | A depth: 0.0, B depth: 0.0
+Game 2/60: black by checkmate | A depth: 0.0, B depth: 0.0
+Game 3/60: white by checkmate | A depth: 0.0, B depth: 0.0
+Game 4/60: black by checkmate | A depth: 0.0, B depth: 0.0
+Game 5/60: white by checkmate | A depth: 0.0, B depth: 0.0
+Game 6/60: white by checkmate | A depth: 0.0, B depth: 0.0
+Game 7/60: white by checkmate | A depth: 0.0, B depth: 0.0
+Game 8/60: black by checkmate | A depth: 0.0, B depth: 0.0
+Game 9/60: white by checkmate | A depth: 0.0, B depth: 0.0
