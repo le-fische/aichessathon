@@ -1,6 +1,7 @@
 import collections
 import contextlib
 import os
+import sys
 import time
 import typing
 from collections.abc import Hashable
@@ -50,6 +51,11 @@ TT_LOWER = 1
 TT_UPPER = 2
 MATE_VALUE = 30000
 INCREMENT_MS = 500.0
+
+# Harness instrument, off unless explicitly switched on. tools/run_depth_match.py
+# parses this line to report mean completed depth. It must stay off in a rated
+# game: stderr writes cost time on every move and diagnostics do not ship.
+DEPTH_LOG = os.environ.get("CHESSATHON_DEPTH_LOG") == "1"
 
 PIECE_VALUE = {
     chess.PAWN: 100,
@@ -462,5 +468,11 @@ def get_move(
 
     except (TimeUp, RecursionError):
         pass
+
+    if DEPTH_LOG:
+        print(
+            f"info depth {completed_depth} score cp {int(prev_score)} nodes {ctx.nodes}",
+            file=sys.stderr,
+        )
 
     return best_move.uci()
