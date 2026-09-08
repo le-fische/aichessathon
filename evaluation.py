@@ -949,6 +949,42 @@ def evaluate(board: chess.Board) -> float:
         mg_diff -= 30
         eg_diff -= 50
 
+    # Rook on open/semi-open files and 7th rank
+    for c in [chess.WHITE, chess.BLACK]:
+        rooks = board.rooks & board.occupied_co[c]
+        if not rooks:
+            continue
+            
+        opp = not c
+        my_pawns = board.pawns & board.occupied_co[c]
+        opp_pawns = board.pawns & board.occupied_co[opp]
+        
+        sign = 1 if c == chess.WHITE else -1
+        
+        # 7th rank
+        rank7 = 0x00FF000000000000 if c == chess.WHITE else 0x000000000000FF00
+        rooks_on_7 = (rooks & rank7).bit_count()
+        if rooks_on_7 > 0:
+            mg_diff += sign * 20 * rooks_on_7
+            eg_diff += sign * 40 * rooks_on_7
+            
+        # Open / Semi-open files
+        while rooks:
+            sq = chess.lsb(rooks)
+            rooks &= rooks - 1
+            file_mask = 0x0101010101010101 << (sq % 8)
+            
+            if not (my_pawns & file_mask):
+                if not (opp_pawns & file_mask):
+                    # Fully open file
+                    mg_diff += sign * 15
+                    eg_diff += sign * 15
+                else:
+                    # Semi-open file
+                    mg_diff += sign * 10
+                    eg_diff += sign * 10
+
+
     for pt, mask in [
         (chess.PAWN, board.pawns),
         (chess.KNIGHT, board.knights),
