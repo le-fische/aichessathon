@@ -5,3 +5,7 @@ __pycache__/
 submission.zip
 *.pgn
 data/
+baselines/stockfish/
+data/
+*.npy
+_stage_*
