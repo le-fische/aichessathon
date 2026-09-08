@@ -46,6 +46,22 @@ PASSED_PAWN_EG = [0, 10, 25, 45, 75, 120, 170, 0]
 CONNECTED_PASSED_BONUS_MG = 15
 CONNECTED_PASSED_BONUS_EG = 25
 
+ADJACENT_FILES_MASK = [0] * 64
+FILE_MASKS = [0] * 64
+for sq in range(64):
+    f = sq % 8
+    file_mask = 0x0101010101010101 << f
+    adj = 0
+    if f > 0: adj |= file_mask >> 1
+    if f < 7: adj |= file_mask << 1
+    FILE_MASKS[sq] = file_mask
+    ADJACENT_FILES_MASK[sq] = adj
+
+DOUBLED_PAWN_MG = -10
+DOUBLED_PAWN_EG = -20
+ISOLATED_PAWN_MG = -15
+ISOLATED_PAWN_EG = -25
+
 _pawn_cache = {}
 
 def _pawn_structure(white_pawns: int, black_pawns: int) -> tuple[int, int]:
@@ -68,6 +84,14 @@ def _pawn_structure(white_pawns: int, black_pawns: int) -> tuple[int, int]:
             if (1 << sq) & wp_attacks:
                 mg += CONNECTED_PASSED_BONUS_MG
                 eg += CONNECTED_PASSED_BONUS_EG
+                
+        if (white_pawns & FILE_MASKS[sq]).bit_count() > 1:
+            mg += DOUBLED_PAWN_MG
+            eg += DOUBLED_PAWN_EG
+            
+        if not (white_pawns & ADJACENT_FILES_MASK[sq]):
+            mg += ISOLATED_PAWN_MG
+            eg += ISOLATED_PAWN_EG
 
     for sq in chess.scan_reversed(black_pawns):
         if not (white_pawns & BLACK_PASSED_PAWN_MASKS[sq]):
@@ -77,6 +101,14 @@ def _pawn_structure(white_pawns: int, black_pawns: int) -> tuple[int, int]:
             if (1 << sq) & bp_attacks:
                 mg -= CONNECTED_PASSED_BONUS_MG
                 eg -= CONNECTED_PASSED_BONUS_EG
+                
+        if (black_pawns & FILE_MASKS[sq]).bit_count() > 1:
+            mg -= DOUBLED_PAWN_MG
+            eg -= DOUBLED_PAWN_EG
+            
+        if not (black_pawns & ADJACENT_FILES_MASK[sq]):
+            mg -= ISOLATED_PAWN_MG
+            eg -= ISOLATED_PAWN_EG
                 
     if len(_pawn_cache) > 16384:
         _pawn_cache.clear()
