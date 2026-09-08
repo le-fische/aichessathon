@@ -1,194 +1,185 @@
-# Chessathon Agent Status
+# HANDOFF
 
-**A fresh Antigravity chat reads this file first, and nothing else, before it
-starts work.** Every version gets its own chat; a chat closes when its version
-ships. Long-running chats degrade — both of the long ones on 5 September
-reported completed work that did not exist on disk.
+Read this first. It is the seed a fresh chat needs to be useful in this repo.
+Last updated 8 September, 07:2x UTC, by the Claude session coordinating the work.
 
-Last updated 2026-09-05 09:00 UTC.
+## Where we are right now
 
-## CURRENT STATE
+- **v10 is LIVE and ACTIVE** on the ladder. Zip sha256 prefix `5eae2f15`, uploaded
+  8 Sept 07:26. It is the first build running the numba search.
+- Ladder: **1531, rank #212 of 377**, peak 1626, record 17-15-20 over 60 rated rounds.
+  That rating predates v10 and has not yet moved.
+- Branch: **`nnue`**. Everyone commits here. `v6-alekhine` and `main` are behind.
+- **Uploads and rosters lock 11 September 11:00.** The build frozen then plays the
+  13-round Swiss that decides the 50 London seats. Ten uploads per team per day.
+- The team is currently **"Ladder only"** on the dashboard: the final Swiss requires a
+  UK university student on the roster. This is a people problem, not an engine problem,
+  and it outranks every technical item here.
 
-**Live on the ladder: platform v7, bot name `Tal`.** Zip sha256 `8f84a3bfb432...`:
+## What v10 is
 
-    a3f8f89d7e2be51860e7db9cfa2f0ec616acf5f253d4536bd7086450801e3e93  agent.py
-    e4bb6898c9f3462106747a336bb3cba6512b7d4d4219dad62de775d53c58af5b  search.py
-    d2692572400754cae5fee4786059ecf589232b619a3efa1ffa5dd9bf6fcd1ab3  evaluation.py
+`agent.py` tries the numba search at import and falls back permanently to the pure
+Python search on any exception. Both searches share the evaluation logic but not the
+file:
 
-Rating **1429, rank 162 of 283**, 8W 7D 11L at upload. The peak was 1508 before
-v6 went live.
+    agent.py ──> nsearch.py ──> bitboard.py ──> evaluation.py   (numba path, ships live)
+             └─> search.py  ──> evaluation.py                   (fallback path)
 
-**v6 was a regression and v7 rolls its clock back.** v6 shipped a moves-to-go
-time policy alongside the mate drive; measured, it searched **a full ply
-shallower on 7 of 12 clock points, all in the first two thirds of the game**. It
-was chosen on a simulation that scored minimum-clock-remaining and never looked
-at depth. v7 = v5's clock plus v6's mate drive. Full evidence and the depth
-table: `runs/2026-09-05-clock/FINDINGS.md`.
+**Two evaluations exist and they must agree.** `nsearch` imports `evaluate` from
+`bitboard`, NOT from `evaluation.py`. `tests/test_evaluate.py` compares them on 7,663
+random-walk positions. It has silently broken twice, both times because a term landed
+in one file and not the other. Any evaluation change goes in BOTH files in the same
+commit, and the random walk is the gate -- the six curated positions are not enough,
+they contain no bishop pair and missed a 50 cp divergence for hours.
 
-Do not reintroduce a time policy without running
-`runs/2026-09-05-clock/depth_compare.py` against it. Not flagging is a
-constraint; depth is the objective.
+Search: negamax + alpha-beta fail-soft, iterative deepening, transposition table,
+MVV-LVA + killers + history ordering, quiescence with stand-pat, null-move pruning
+(depth-3, zugzwang guard), late move reductions, aspiration windows, check extension
+capped at `ply < 2 * root_depth`, and no LMR on a quiet move that gives check.
 
-### What v6 contains, beyond v3-steinitz
-- Tapered PeSTO evaluation iterating bitboards instead of `board.piece_map()`.
-  Node-identical, ~1.20x nps.
-- `CONTEMPT = 0.0`. It was 30.0 and it was unreachable code.
-- Basic-mate drive: pushes a lone enemy king to the edge and walks the winning
-  king in. Fixes drawn K+R vs K endgames. See `runs/2026-09-05-krk/`.
-- Moves-to-go time management, `time_left / max(20, 60 - fullmove) + 250`,
-  capped at 80% of the clock, with the old `< 3000 ms` panic branch removed.
-- `agent.py` matches on position only, not the full FEN with move counters, and
-  restores `traceback.print_exc()` in its blanket except.
+Evaluation: tapered PeSTO piece-square tables, passed pawns, tapered bishop pair,
+`_mate_drive` for bare-king endings. Syzygy WDL for <= 4 pieces (35 files, 1.3 MB).
 
-### Not shipped yet: the numba engine
-`bitboard.py` is a numba-jitted bitboard move generator, perft-verified against
-python-chess on 8 positions at **21-27 Mnps against 0.43-0.50 Mnps**, roughly
-50x on move generation. JIT warmup 2.29 s of a 90 s init budget. It also carries
-a numba copy of `evaluate()` that matches the Python one on 7,663 random
-positions.
+Measured: **~2.7 M nodes/sec, ~12.4 plies** at the tournament clock, against the Python
+search's ~60-90 k nodes/sec and ~8.4 plies.
 
-**It is not imported by the engine and is deliberately excluded from the zip.**
-It ships when the search is integrated. Plan: `docs/integration.md`.
+## Platform constraints (verified against the official docs)
 
-## THE NEXT VERSION IS FISCHER
+Python 3.12. Five packages only: torch 2.13.0+cpu, numpy 2.5.2, python-chess 1.11.2,
+onnxruntime 1.29.0, numba 0.67.0. One core of an AMD EPYC 9V74 @ 2.60 GHz. 2 GB RAM.
+No network. Read-only filesystem plus 256 MB `/tmp`. **120 s + 0.5 s** time control.
+**90 s init budget** (we use 28.4 s -- numba JIT). **50 MB unzipped** (we use 1.5 MB).
+Games drawn at 600 plies. Rated rounds 08:00-22:00 London.
 
-Versions are named after chess legends in the order they dominated. Shipped so
-far: Philidor, Morphy, Steinitz, Tal. Lasker, Capablanca, Alekhine and Botvinnik
-were skipped, so the sequence resumes at **Fischer**, then Karpov, Kasparov,
-Kramnik, Anand, Carlsen.
+Rules that constrain design, verbatim:
+- "Third party engines are prohibited... any port or translation of one. Your moves
+  come from code you wrote."
+- "Any network you ship is one you trained yourself, and training it on positions an
+  existing engine labelled is allowed. Starting from a published chess network is not...
+  a database of another engine's moves or evaluations shipped for lookup at runtime is
+  an engine, not training data."
+- "Opening books and endgame tablebases are permitted as shipped data, and
+  chess.polyglot and chess.syzygy are in the base image."
+- "Native binaries inside the zip are rejected... Cython does not work here."
+- "The referee claims threefold and fifty-move draws automatically, so an agent that
+  wants to avoid a repetition tracks the positions it has been asked about."
+- "During your own move one thread is fastest."
 
-**Fischer = the numba engine integrated.** Honest target 2.5-3.5x end to end and
-+2-3 plies, not 50x: movegen is ~30% of search time and evaluation close to
-half, and the Python-to-numba boundary is crossed per node. It ships behind a
-JIT-failure fallback flag so a compilation problem on the platform costs nothing.
+## File ownership -- one working tree, several chats
 
-After Fischer validates on the ladder, the full search port — negamax,
-quiescence and the transposition table inside numba — is the next item. That
-removes the per-node boundary and puts us in perft's 26 Mnps regime.
+All chats share ONE checkout. **A git branch does NOT isolate you**: checking out a
+branch moves every chat onto it. Isolation is by file ownership only.
 
-**Do not tune evaluation terms** (king safety, mobility, pawn structure) before
-Fischer. They are worth little at depth 6-7 and several times more at depth 9-10.
+| Files | Owner |
+|---|---|
+| `search.py` | the coordinating Claude session. Do not edit. |
+| `nsearch.py`, `agent.py` | the numba chat |
+| `bitboard.py`, `evaluation.py` | the evaluation chat |
+| `nnue.py`, `nsearch_nnue.py`, `tools/*nnue*`, `tools/generate_data.py`, `tools/label_data.py` | the NNUE chat |
 
-## HARD RULES LEARNED THE EXPENSIVE WAY
+If you find a file you do not own already changed, leave it and say so.
 
-**One working tree, and more than one chat in it.** Git branches do not isolate
-the filesystem. Run `git status --short` before editing. If a file you do not own
-is dirty, another chat is in it right now.
+## House rules, each learned the hard way
 
-- `agent.py`, `search.py`, `evaluation.py` — the engine chat owns these.
-- `bitboard.py`, `tests/`, `tools/`, `docs/` — the numba chat owns these.
-- `runs/` — nobody owns it. **Append only. Never delete anything under it.**
-  It is gitignored, so a deletion is permanent. Most of it was destroyed once
-  already.
+1. **Run it, watch it, then say it.** Every number you report is one you watched print.
+   Paste literal output -- `git status --short`, `sha256sum`, the actual benchmark
+   lines. Three chats have reported work that was on no branch; one reported an NPS
+   figure 3.7x the truth.
+2. **60 games minimum, with a standard error.** A 4-game A/B has SE ~= +/-25 points.
+   If the interval crosses 50%, the change is *unmeasured*, not neutral. Say so.
+3. **Pick a gate that can fail.** We once validated a clock policy by measuring depth
+   at a given *clock value*. For a policy that only adds time that comparison is
+   monotone by construction -- it could not come back negative, so it was not a gate.
+   The real question was depth by *move number*. See `runs/2026-09-08-clock/FINDINGS.md`.
+4. **Matches run against frozen snapshots, never the working tree.** Copy the engine
+   files into `snapshots/<name>/`, run against that, and print the sha256 of every file
+   into the results. A mid-match edit to `bitboard.py` has already contaminated one run.
+5. **Fixed-node A/B is the wrong instrument for anything that changes search depth.**
+   It is right when node counts are identical by construction (an evaluation rewrite).
+   It is wrong for time policies, extensions and reductions. Use the real time control.
+6. **Diagnostics never ship unguarded.** `harness/package.py` globs every root `*.py`
+   into the zip. An `info depth` print left in `get_move` would have run on every move
+   of every rated game. It is now behind `CHESSATHON_DEPTH_LOG`, default off.
+7. **`runs/` is append-only.** It was deleted once during a tidy-up and is gitignored,
+   so nothing was recoverable.
+8. **Scratch scripts go in `tools/scratch/`, never the repo root.** Nine were found at
+   the root in one morning, all of which would have shipped.
 
-**Do not edit a file you do not own, and if you find one already changed, leave
-it.** On 5 September a chat applied a patch to `evaluation.py`, verified it,
-then reverted it because the file was not its own. That left the tree
-inconsistent and nearly shipped an engine with a known defect. When a test fails
-because of a file you do not own, report the failure. Do not repair it by
-undoing the other side.
+## Testing switches
 
-**Report only what you have read off disk.** Twice on 5 September a chat
-reported completed work — a committed 55x movegen, a landed time policy — that
-did not exist in any branch or file. Before saying a change is done, run
-`git status --short` and `sha256sum` and paste the literal output. A hash you did
-not read from a file is not evidence.
+- `CHESSATHON_REQUIRE_NUMBA=1` -- turns the silent numba fallback into a hard error.
+  **Every match and benchmark must set this.** Without it a test can quietly measure
+  the Python search against itself; that exact thing happened and produced a bogus
+  "numba is no deeper than python" result.
+- `CHESSATHON_DEPTH_LOG=1` -- emits `info depth ...` on stderr for depth harvesting.
+- `SEARCH_MAX_NODES` -- fixed-node mode for the legacy A/B arena.
 
-**Nothing but the engine at the repo root.** `harness/package.py` sweeps every
-root `*.py` into the submission zip. Scratch scripts written to the root have
-been caught six times. Scripts go in `tools/`, output goes in
-`runs/<date>-<version>/`. `tools/check_root.py` enforces it and is wired into
-`gate` and `zip`.
+## Verification checklist before any upload
 
-## MEASUREMENT RULES
-- **Fixed-node A/B is mandatory for build-to-build comparison.** Set
-  `SEARCH_MAX_NODES`; wall-clock jitter changes completed depth between
-  byte-identical builds.
-- **A fixed-node harness cannot measure a time policy.** It holds constant the
-  one thing the policy changes. Time policies are measured by simulation for
-  safety and by real 120 s + 0.5 s games for strength.
-- State the control beside every score. Never a bare "depth" — report completed
-  iterative-deepening depth and selective depth separately.
-- 20 games at 62.5% is about 1.25 sigma. That is not a result.
-- The starter baselines are saturated at 100%. Use a previous version.
-- Node identity is the right gate for a change that does not touch move
-  ordering, and the wrong gate for one that does. A reordering change legitimately
-  searches a different tree; assert on the root score instead, and handle ties.
+Build the zip from a staging directory of `git show HEAD:<file>`, never the working
+tree. Members: `agent.py`, `search.py`, `evaluation.py`, `nsearch.py`, `bitboard.py`,
+and `weights/`. Then, against the unzipped archive with only the platform's packages:
 
-## WHERE THINGS ARE
+- `tools/check_root.py` passes
+- exactly 5 `.py` files, 0 binaries, unzipped size well under 50 MB
+- cold import time (v10: 28.4 s measured by the judge, 90 s budget)
+- `agent.USE_NUMBA_SEARCH` resolves True with no environment variable set
+- a 128+ ply game: no illegal move, no flag, clock left at the end
+- peak RSS (v10: 632 MB, 2048 MB limit)
 
-    agent.py search.py evaluation.py   the submission
-    bitboard.py                        numba movegen + evaluation, not yet shipped
-    Makefile pyproject.toml uv.lock    build and gate config
-    AGENTS.md                          the organisers' brief. Authoritative.
-    HANDOFF.md                         this file
-    submission.zip                     built by make zip, gitignored
+The platform's own smoke test runs BUILDING -> SMOKE TEST -> ACTIVE and will reject an
+init that blows the budget, so ACTIVE is meaningful confirmation.
 
-    harness/    the platform's protocol and clock. NEVER edit.
-    baselines/  random, greedy, minimax, numba, stockfish. Never packaged.
-    versions/   archived versions, each runnable, with about.txt. INDEX.txt lists them.
-    tests/      test_fuzz.py (200 positions), test_perft.py, test_evaluate.py
-    tools/      check_root.py, verify_zip.py, ab_arena.py, sim_time.py
-    runs/       measurement record, by date and version. Gitignored. Append only.
-    docs/       IDEAS.md, integration.md
+## Benchmark positions
 
-## INVARIANTS
-- Python 3.12 only, never repin.
-- Only the preinstalled packages: torch (CPU), numpy, python-chess, onnxruntime, numba.
-- Only `agent.py`, `search.py`, `evaluation.py`, `bitboard.py` at the root.
-- `submission.zip` must byte-match the root files. Rebuild and verify before upload.
-- Never edit `harness/`.
-- `make gate` must pass. A permanently red gate is how an undefined-constant
-  NameError once reached a measurement run.
-- `get_move` must never raise and must always return a validated legal move.
-- No third-party engine code, ever. Stockfish is allowed as a local sparring
-  partner and for annotating training data, never inside the zip.
+    opening     r1bq1rk1/pp2ppbp/2np1np1/2p5/4P2P/2NP2P1/PPP1NPB1/R1BQK2R w KQ - 3 8
+    middlegame  r1bqkb1r/pp3ppp/2n1pn2/2pp4/3P4/2P1P1B1/PP1N1PPP/R2QKBNR b KQkq - 1 6
+    sharp       r2q1rk1/pp1bbppp/2np1n2/4p3/2B1P3/2NP1N2/PPPB1PPP/R2Q1RK1 w - - 4 10
+    K+R vs K    4R3/8/8/3k1K2/8/8/8/8 w - - 15 83        (must mate, must not repeat)
+    eval split  rn2qbn1/p3p3/b2pkp2/4P2r/P2P1PpP/R1p1K1P1/1PPNNR2/2BQ4 w - - 0 27
+                (the position where the two evaluations diverged by exactly 50 cp)
 
-## HOW TO VERIFY BEFORE SHIPPING
-1. `uv run python tests/test_fuzz.py` — 200 positions, zero illegal moves.
-2. `uv run python tests/test_perft.py` — 8 positions against python-chess.
-3. `uv run python tests/test_evaluate.py` — numba evaluation against Python,
-   including a several-thousand-position random walk.
-4. `make gate` — check_root, ruff, mypy strict over 12 files, arena game.
-5. Real time-controlled games at 120 s + 0.5 s. Check terminations for `flag`
-   and `crash`, not just the score.
-6. Build the zip from a staging directory holding only the three engine files,
-   and confirm each member's sha256 against the repo root before uploading.
+## Tools
 
-## BENCHMARK POSITIONS
-Curated openings harvested from platform validation logs.
-- r1bq1rk1/pp2ppbp/2np1np1/2p5/4P2P/2NP2P1/PPP1NPB1/R1BQK2R w KQ - 3 8
-- r1bqkb1r/pp3ppp/2n1pn2/2pp4/3P4/2P1P1B1/PP1N1PPP/R2QKBNR b KQkq - 1 6
-- rnbq1rk1/pp2bppp/4pn2/2pp4/2PP4/N4NP1/PP2PPBP/R1BQK2R w KQ - 0 7
-- rnbqk1nr/bp3ppp/p7/3p4/P7/1N6/1PP2PPP/R1BQKBNR w KQkq - 2 8
+    tools/run_gate_match.py     60-game match at the real time control, snapshotted
+    tools/run_depth_match.py    short match reporting mean completed depth per side
+    tools/clocktraj.py          depth by MOVE NUMBER over a long game -- the clock gate
+    tools/clocksim.py           self-play game charging real wall time; reproduces the
+                                rated-game clock statistics (74.5% used / 35.7 s left)
+    tools/clockprobe.py         depth at a given clock value. NOT a gate on its own.
+    tools/ab_arena.py           fixed-node A/B. Only for changes that preserve nodes.
+    tools/check_root.py         run before every upload
 
-Endgame regression, from the round 17 draw:
-- 4R3/8/8/3k1K2/8/8/8/8 w - - 15 83   (K+R vs K, must mate, must not repeat)
+## Open work
 
-## A/B TESTING
-Use `tools/ab_arena.py`, not `harness/arena.py`. The latter always starts from
-the standard position and only alternates colours, so two deterministic builds
-play the same two games however many you request — it cannot A/B anything.
+- **Horizon fixes gate** -- check extension and the LMR gives-check guard shipped in v10
+  before their gate finished, which is backwards. The 60-game match is running; at 16
+  games it reads 9.0/16 = 56.2% +/- 12.4%, leaning positive but unmeasured. If it comes
+  back negative, roll them out.
+- **NNUE** -- 768x256, trained on positions labelled locally by Stockfish 16.1 arm64
+  (`baselines/stockfish/`, gitignored, never shipped). Speed is settled: it costs about
+  zero plies and is sometimes faster than the classical evaluation. Go/no-go on a
+  60-game gate by end of 9 September.
+  **Known bug to fix before it can ship:** `tools/train_nnue.py` writes `weights.npy`,
+  `biases.npy` and `weights2.npy` to the REPO ROOT, and `nsearch_nnue.py` loads them
+  from there. The zip contains only `*.py` and `weights/`, so those files would not be
+  in the submission. NNUE weights must live in `weights/`.
+- **Opening book** -- we ship none. Permitted, cheap, and pays twice: stronger opening
+  moves and clock saved in the phase where the budget is most generous. Unclaimed.
+- **5-man tablebases** -- we ship 4-man only and probe at `<= 4` pieces. The full 5-man
+  WDL set is ~380 MB, over the cap, but individual endgames could be cherry-picked into
+  the 48 MB of headroom. The cost is probe time, not size; needs measuring.
 
-```bash
-uv run python tools/ab_arena.py --a . --b versions/v3-steinitz \
-    --games 20 --nodes 400000 --out runs/<date>-<version>/ab.jsonl \
-    --start 0 --count 2
-# repeat with --start 2, 4, 6 ... then:
-uv run python tools/ab_arena.py --games 20 --out runs/<date>-<version>/ab.jsonl --summarize
-```
+## Version history and what each taught us
 
-Null verified: a build against a byte-identical copy scores exactly 50.0%, every
-colour-swapped pair a perfect mirror.
-
-**Pick the node budget honestly.** 400,000 nodes is depth 7 and ~5.5 s per move,
-about 11 minutes per colour-swapped pair. 100,000 nodes is depth 5 and ~1 s per
-move, an acceptable proxy if you say so beside the number. **4,000 nodes is
-depth 2 and tells you nothing about the engine that plays on the platform.**
-
-## UNMINED
-18 rated games of PGNs and per-game agent logs, of which two have been analysed.
-Both analyses found a real defect; round 17 was worth a full point.
-`runs/2026-09-05-krk/analyse17.py` replays a game from its PGN and prints the
-material trace. **Rounds 6 and 7 are also threefold-repetition draws and have
-never been looked at.** This is the cheapest source of real defects we have.
+    v5   bitboard evaluation replacing piece_map()  2.93x on the function, +26% nps
+    v6   mate drive + moves-to-go clock             REGRESSION 1508 -> 1429; the clock
+                                                    policy was scored on time remaining
+                                                    and never on depth
+    v7   rolled the clock back, kept the mate drive recovered to 1531
+    v8   repetition tracking                        stopped repeating; did not stop
+                                                    accepting draws when better
+    v9   clock 0.045 -> 0.050 + spend the increment reserve 20.6 s -> 10.4 s; honestly
+                                                    worth about a quarter of a ply
+    v10  numba search, bishop pair, check extension 88.3% +/- 3.4% over 60 games against
+                                                    v9's search; 12.4 plies vs 8.4
