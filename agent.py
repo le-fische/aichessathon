@@ -1,10 +1,24 @@
 import collections
+import os
 import traceback
 from collections.abc import Hashable
 
 import chess
 
-import search
+USE_NUMBA_SEARCH = os.environ.get("USE_NUMBA_SEARCH", "0") == "1"
+
+if USE_NUMBA_SEARCH:
+    from nsearch import clear_tt
+    from nsearch import get_move as search_get_move
+    
+    def on_game_start() -> None:
+        clear_tt() # type: ignore
+else:
+    from search import get_move as search_get_move
+    from search import tt
+    
+    def on_game_start() -> None:
+        tt.clear()
 
 game_board: chess.Board | None = None
 position_counts: collections.Counter[Hashable] = collections.Counter()
@@ -22,6 +36,7 @@ def get_move(fen: str, time_left_ms: int) -> str:
         if game_board is None:
             game_board = chess.Board(fen)
             position_counts.clear()
+            on_game_start()
         elif get_position_fen(game_board.fen()) != target_pos:
             matched = False
             for m in list(game_board.legal_moves):
@@ -39,11 +54,14 @@ def get_move(fen: str, time_left_ms: int) -> str:
         except StopIteration:
             fallback_move = "e2e4"
 
-        # The counter only sees positions where it is our turn to move.
-        # This is sufficient to detect threefold repetitions caused by shuffling.
-        position_counts[game_board._transposition_key()] += 1
+        if USE_NUMBA_SEARCH:
+            from nsearch import from_chess_board  # type: ignore
+            _, _, state = from_chess_board(game_board) # type: ignore
+            position_counts[state[4]] += 1
+        else:
+            position_counts[game_board._transposition_key()] += 1
 
-        move_str = search.get_move(game_board, time_left_ms, position_counts)
+        move_str = search_get_move(game_board, time_left_ms, position_counts)
 
         try:
             move_obj = chess.Move.from_uci(move_str)

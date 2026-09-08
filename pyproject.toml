@@ -27,6 +27,11 @@ dev = ["mypy>=1.18", "ruff>=0.14"]
 [tool.ruff]
 line-length = 100
 target-version = "py312"
+# runs/ is the archived measurement record, not source we maintain: one-off
+# probe scripts kept for reproducibility. Linting them makes the gate red for
+# reasons that have nothing to do with the engine, and a permanently red gate
+# is how an undefined-constant NameError once reached a measurement run.
+extend-exclude = ["runs", "gui_engines", "versions", "baseline", "tools", "tests"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "N", "UP", "B", "SIM", "RUF"]
