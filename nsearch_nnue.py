@@ -7,9 +7,18 @@ import numpy as np
 from numba import njit, objmode
 
 # NNUE Setup
-weights = np.zeros((768, 256), dtype=np.int16)
-biases = np.zeros(256, dtype=np.int16)
-weights2 = np.zeros(512, dtype=np.int8)
+import os
+import numpy as np
+
+# Load weights if available
+if os.path.exists("weights.npy"):
+    weights = np.load("weights.npy")
+    biases = np.load("biases.npy")
+    weights2 = np.load("weights2.npy")
+else:
+    weights = np.zeros((768, 256), dtype=np.int16)
+    biases = np.zeros(256, dtype=np.int16)
+    weights2 = np.zeros(512, dtype=np.int8)
 
 @njit(cache=False)
 def nnue_full_refresh(pieces, colors, weights, biases, acc):
@@ -92,7 +101,7 @@ def nnue_eval(weights2, acc, turn):
         if v < 0: v = 0
         elif v > 127: v = 127
         out += v * weights2[256 + i]
-    return out
+    return out // 64
 
 
 import bitboard

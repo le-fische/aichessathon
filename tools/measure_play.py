@@ -1,3 +1,4 @@
+# ruff: noqa
 import subprocess
 
 proc = subprocess.Popen([

@@ -1,2 +1,4 @@
 v1-philidor   2026-09-02   PeSTO negamax with proper time management.   97.5% vs greedy
 v2-morphy     2026-09-03   TT, move ordering, qsearch. (+ unplanned speedups).   100.0% vs greedy, 100% vs Stockfish D2
+v3-steinitz   2026-09-04   NMP, LMR, Aspiration Windows.   95.0% vs v2-morphy (fixed nodes)
+v4-tal        2026-09-05   Platform v6. Mate drive, moves-to-go clock, numba eval. Live on ladder.

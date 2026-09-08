@@ -1,3 +1,4 @@
+# ruff: noqa
 def policy_moves_to_go_50(time_left_ms, fullmove):
     moves_to_go = max(20.0, 50.0 - fullmove)
     budget = time_left_ms / moves_to_go + 350.0

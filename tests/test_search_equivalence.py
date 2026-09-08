@@ -1,6 +1,8 @@
-import sys
-import os
+# ruff: noqa: E501
 import importlib.util
+import os
+import sys
+
 import chess
 
 FENS = [
@@ -55,12 +57,31 @@ def run_search_to_depth(search_mod, board: chess.Board, depth_target: int):
     search_mod.SearchContext.check_time = hooked_check_time
     search_mod.tt.clear()
     
+    import collections
     try:
+        best_uci = search_mod.get_move(board, 99999999, collections.Counter())
+    except TypeError:
         best_uci = search_mod.get_move(board, 99999999)
     finally:
         search_mod.SearchContext.check_time = original_check_time
         
-    return best_uci, search_mod.root_score
+    score = None
+    if hasattr(search_mod, "root_score"):
+        score = search_mod.root_score
+    else:
+        # Extract from TT
+        key = board._transposition_key()
+        if hasattr(search_mod, "tt") and key in search_mod.tt:
+            score = search_mod.tt[key][1]
+        elif hasattr(search_mod, "tt_keys"):
+            from bitboard import from_chess_board
+            p, c, s = from_chess_board(board)
+            k = s[4]
+            idx = k % search_mod.TT_SIZE
+            if search_mod.tt_keys[idx] == k:
+                score = search_mod.tt_scores[idx]
+        
+    return best_uci, score
 
 def test_equivalence(search_a_path: str, search_b_path: str):
     print(f"Comparing {search_a_path} against {search_b_path}")
@@ -75,9 +96,9 @@ def test_equivalence(search_a_path: str, search_b_path: str):
         
         ctx_a = None
         orig_init_a = search_a.SearchContext.__init__
-        def hook_init_a(self, b, budget):
+        def hook_init_a(self, *args, orig_init_a=orig_init_a, **kwargs):
             nonlocal ctx_a
-            orig_init_a(self, b, budget)
+            orig_init_a(self, *args, **kwargs)
             ctx_a = self
         search_a.SearchContext.__init__ = hook_init_a
         
@@ -87,9 +108,9 @@ def test_equivalence(search_a_path: str, search_b_path: str):
         
         ctx_b = None
         orig_init_b = search_b.SearchContext.__init__
-        def hook_init_b(self, b, budget):
+        def hook_init_b(self, *args, orig_init_b=orig_init_b, **kwargs):
             nonlocal ctx_b
-            orig_init_b(self, b, budget)
+            orig_init_b(self, *args, **kwargs)
             ctx_b = self
         search_b.SearchContext.__init__ = hook_init_b
         
