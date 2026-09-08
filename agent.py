@@ -1,27 +1,36 @@
 import collections
 import os
+import sys
 import traceback
 from collections.abc import Hashable
 
 import chess
+from search import get_move as pysearch_get_move
+from search import tt as pysearch_tt
 
-USE_NUMBA_SEARCH = os.environ.get("USE_NUMBA_SEARCH", "0") == "1"
+USE_NUMBA_SEARCH = True
 
-if USE_NUMBA_SEARCH:
-    from nsearch import clear_tt
-    from nsearch import get_move as search_get_move
-    
-    def on_game_start() -> None:
-        clear_tt() # type: ignore
-else:
-    from search import get_move as search_get_move
-    from search import tt
-    
-    def on_game_start() -> None:
-        tt.clear()
+try:
+    from nsearch import clear_tt as nsearch_clear_tt
+    from nsearch import get_move as nsearch_get_move
+    from nsearch import from_chess_board
+except Exception:
+    traceback.print_exc(file=sys.stderr)
+    USE_NUMBA_SEARCH = False
+
+numba_failed_runtime = False
 
 game_board: chess.Board | None = None
-position_counts: collections.Counter[Hashable] = collections.Counter()
+position_counts_py: collections.Counter[Hashable] = collections.Counter()
+position_counts_numba: collections.Counter[Hashable] = collections.Counter()
+
+def on_game_start() -> None:
+    pysearch_tt.clear()
+    if USE_NUMBA_SEARCH and not numba_failed_runtime:
+        try:
+            nsearch_clear_tt()
+        except Exception:
+            pass
 
 def get_position_fen(fen: str) -> str:
     return " ".join(fen.split(" ")[:4])
@@ -29,13 +38,17 @@ def get_position_fen(fen: str) -> str:
 def get_move(fen: str, time_left_ms: int) -> str:
     """Return a legal move in UCI notation."""
     global game_board
-    global position_counts
+    global position_counts_py
+    global position_counts_numba
+    global numba_failed_runtime
+    global USE_NUMBA_SEARCH
 
     try:
         target_pos = get_position_fen(fen)
         if game_board is None:
             game_board = chess.Board(fen)
-            position_counts.clear()
+            position_counts_py.clear()
+            position_counts_numba.clear()
             on_game_start()
         elif get_position_fen(game_board.fen()) != target_pos:
             matched = False
@@ -47,21 +60,34 @@ def get_move(fen: str, time_left_ms: int) -> str:
                 game_board.pop()
             if not matched:
                 game_board = chess.Board(fen)
-                position_counts.clear()
+                position_counts_py.clear()
+                position_counts_numba.clear()
 
         try:
             fallback_move = next(iter(game_board.legal_moves)).uci()
         except StopIteration:
             fallback_move = "e2e4"
 
+        position_counts_py[game_board._transposition_key()] += 1
         if USE_NUMBA_SEARCH:
-            from nsearch import from_chess_board  # type: ignore
-            _, _, state = from_chess_board(game_board) # type: ignore
-            position_counts[state[4]] += 1
-        else:
-            position_counts[game_board._transposition_key()] += 1
+            _, _, state = from_chess_board(game_board)
+            position_counts_numba[state[4]] += 1
 
-        move_str = search_get_move(game_board, time_left_ms, position_counts)
+        move_str = None
+        
+        if USE_NUMBA_SEARCH and not numba_failed_runtime:
+            try:
+                move_str = nsearch_get_move(game_board, time_left_ms, position_counts_numba)
+                move_obj = chess.Move.from_uci(move_str)
+                if move_obj not in game_board.legal_moves:
+                    raise ValueError("Numba search returned illegal move")
+            except Exception:
+                traceback.print_exc(file=sys.stderr)
+                numba_failed_runtime = True
+                move_str = None
+                
+        if move_str is None:
+            move_str = pysearch_get_move(game_board, time_left_ms, position_counts_py)
 
         try:
             move_obj = chess.Move.from_uci(move_str)
@@ -76,12 +102,14 @@ def get_move(fen: str, time_left_ms: int) -> str:
         game_board.push(move_obj)
         return move_str
     except Exception:
-        traceback.print_exc()
+        traceback.print_exc(file=sys.stderr)
         try:
             game_board = chess.Board(fen)
-            position_counts.clear()
+            position_counts_py.clear()
+            position_counts_numba.clear()
             fallback = next(iter(game_board.legal_moves)).uci()
             game_board.push(chess.Move.from_uci(fallback))
             return fallback
         except Exception:
             return "e2e4"
+
