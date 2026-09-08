@@ -941,6 +941,13 @@ def evaluate(board: chess.Board) -> float:
     )
     mg_diff += pawn_mg
     eg_diff += pawn_eg
+    
+    if (board.bishops & board.occupied_co[chess.WHITE]).bit_count() >= 2:
+        mg_diff += 30
+        eg_diff += 50
+    if (board.bishops & board.occupied_co[chess.BLACK]).bit_count() >= 2:
+        mg_diff -= 30
+        eg_diff -= 50
 
     for pt, mask in [
         (chess.PAWN, board.pawns),

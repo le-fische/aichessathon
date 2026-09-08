@@ -604,6 +604,7 @@ def divide(pieces, colors, state, depth):
 
 
 
+
 EVAL_MG = np.array(evaluation.TABLE_MG, dtype=np.int32)
 EVAL_EG = np.array(evaluation.TABLE_EG, dtype=np.int32)
 PHASE_INC = np.array(evaluation.gamephase_inc, dtype=np.int32)
@@ -612,11 +613,70 @@ CENTRE_DISTANCE = np.array(
     dtype=np.float64
 )
 
+WHITE_PASSED_PAWN_MASKS = np.array(evaluation.WHITE_PASSED_PAWN_MASKS, dtype=np.uint64)
+BLACK_PASSED_PAWN_MASKS = np.array(evaluation.BLACK_PASSED_PAWN_MASKS, dtype=np.uint64)
+PASSED_PAWN_MG = np.array(evaluation.PASSED_PAWN_MG, dtype=np.int32)
+PASSED_PAWN_EG = np.array(evaluation.PASSED_PAWN_EG, dtype=np.int32)
+CONNECTED_PASSED_BONUS_MG = evaluation.CONNECTED_PASSED_BONUS_MG
+CONNECTED_PASSED_BONUS_EG = evaluation.CONNECTED_PASSED_BONUS_EG
+
+@njit(cache=False)
+def numba_pawn_structure(white_pawns, black_pawns):
+    mg = 0
+    eg = 0
+    
+    wp_attacks = ((white_pawns << np.uint64(7)) & np.uint64(0x7f7f7f7f7f7f7f7f)) | ((white_pawns << np.uint64(9)) & np.uint64(0xfefefefefefefefe))
+    bp_attacks = ((black_pawns >> np.uint64(9)) & np.uint64(0x7f7f7f7f7f7f7f7f)) | ((black_pawns >> np.uint64(7)) & np.uint64(0xfefefefefefefefe))
+    
+    wp = white_pawns
+    while wp:
+        sq = lsb(wp)
+        wp &= wp - np.uint64(1)
+        if not (black_pawns & WHITE_PASSED_PAWN_MASKS[sq]):
+            rank = sq // 8
+            mg += PASSED_PAWN_MG[rank]
+            eg += PASSED_PAWN_EG[rank]
+            if (np.uint64(1) << np.uint64(sq)) & wp_attacks:
+                mg += CONNECTED_PASSED_BONUS_MG
+                eg += CONNECTED_PASSED_BONUS_EG
+
+    bp = black_pawns
+    while bp:
+        sq = lsb(bp)
+        bp &= bp - np.uint64(1)
+        if not (white_pawns & BLACK_PASSED_PAWN_MASKS[sq]):
+            rank = 7 - (sq // 8)
+            mg -= PASSED_PAWN_MG[rank]
+            eg -= PASSED_PAWN_EG[rank]
+            if (np.uint64(1) << np.uint64(sq)) & bp_attacks:
+                mg -= CONNECTED_PASSED_BONUS_MG
+                eg -= CONNECTED_PASSED_BONUS_EG
+
+    return mg, eg
+
+
+
 @njit(cache=False)
 def evaluate(pieces, colors, state):
     mg_diff = 0
     eg_diff = 0
     game_phase = 0
+    
+    pawn_mg, pawn_eg = numba_pawn_structure(
+        pieces[PAWN] & colors[WHITE],
+        pieces[PAWN] & colors[BLACK]
+    )
+    mg_diff += pawn_mg
+    eg_diff += pawn_eg
+
+    if popcount(pieces[BISHOP] & colors[WHITE]) >= 2:
+        mg_diff += 30
+        eg_diff += 50
+    if popcount(pieces[BISHOP] & colors[BLACK]) >= 2:
+        mg_diff -= 30
+        eg_diff -= 50
+
+
     
     for pt in range(6):
         bb = pieces[pt]
