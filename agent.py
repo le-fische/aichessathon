@@ -8,17 +8,25 @@ import chess
 from search import get_move as pysearch_get_move
 from search import tt as pysearch_tt
 
-USE_NUMBA_SEARCH = True
+USE_NUMBA_SEARCH = os.environ.get("USE_NUMBA_SEARCH", "1") == "1"
+REQUIRE_NUMBA = os.environ.get("CHESSATHON_REQUIRE_NUMBA", "0") == "1"
 
 try:
     from nsearch import clear_tt as nsearch_clear_tt
     from nsearch import get_move as nsearch_get_move
     from nsearch import from_chess_board
+    if USE_NUMBA_SEARCH:
+        print("agent.py: Numba search successfully imported and active.", file=sys.stderr)
 except Exception:
-    traceback.print_exc(file=sys.stderr)
+    if USE_NUMBA_SEARCH:
+        print("agent.py: Numba import failed. Falling back to Python search.", file=sys.stderr)
+        traceback.print_exc(file=sys.stderr)
+        if REQUIRE_NUMBA:
+            raise
     USE_NUMBA_SEARCH = False
 
 numba_failed_runtime = False
+first_move = True
 
 game_board: chess.Board | None = None
 position_counts_py: collections.Counter[Hashable] = collections.Counter()
@@ -36,12 +44,19 @@ def get_position_fen(fen: str) -> str:
     return " ".join(fen.split(" ")[:4])
 
 def get_move(fen: str, time_left_ms: int) -> str:
-    """Return a legal move in UCI notation."""
     global game_board
     global position_counts_py
     global position_counts_numba
     global numba_failed_runtime
     global USE_NUMBA_SEARCH
+    global first_move
+
+    if first_move:
+        if USE_NUMBA_SEARCH and not numba_failed_runtime:
+            print("agent.py: Executing get_move using Numba search.", file=sys.stderr)
+        else:
+            print("agent.py: Executing get_move using Python search.", file=sys.stderr)
+        first_move = False
 
     try:
         target_pos = get_position_fen(fen)
@@ -82,7 +97,10 @@ def get_move(fen: str, time_left_ms: int) -> str:
                 if move_obj not in game_board.legal_moves:
                     raise ValueError("Numba search returned illegal move")
             except Exception:
+                print("agent.py: Numba get_move failed. Falling back to Python search.", file=sys.stderr)
                 traceback.print_exc(file=sys.stderr)
+                if REQUIRE_NUMBA:
+                    raise
                 numba_failed_runtime = True
                 move_str = None
                 
@@ -102,6 +120,7 @@ def get_move(fen: str, time_left_ms: int) -> str:
         game_board.push(move_obj)
         return move_str
     except Exception:
+        print("agent.py: Top-level get_move exception.", file=sys.stderr)
         traceback.print_exc(file=sys.stderr)
         try:
             game_board = chess.Board(fen)
@@ -112,4 +131,3 @@ def get_move(fen: str, time_left_ms: int) -> str:
             return fallback
         except Exception:
             return "e2e4"
-

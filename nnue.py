@@ -1,5 +1,7 @@
+# ruff: noqa: E501
 import chess
 import numpy as np
+
 
 class NNUEAccumulator:
     def __init__(self, weights, biases=None):
