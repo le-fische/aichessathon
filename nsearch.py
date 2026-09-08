@@ -529,7 +529,9 @@ def get_move_with_info(board: chess.Board, time_left_ms: int, position_counts, m
         
     uci = decode_move(best_move)
     import sys
-    print(f"info depth {completed_depth} score cp {int(score)} nodes {nodes}", file=sys.stderr)
+    import os
+    if os.environ.get('CHESSATHON_DEPTH_LOG') == '1':
+        print(f"info depth {completed_depth} score cp {int(score)} nodes {nodes}", file=sys.stderr)
     return uci, score, nodes
 
 def get_move(board: chess.Board, time_left_ms: int, position_counts) -> str:
