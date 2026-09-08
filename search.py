@@ -1,4 +1,5 @@
 import collections
+import contextlib
 import os
 import time
 import typing
@@ -9,11 +10,9 @@ import chess.syzygy
 
 from evaluation import evaluate
 
-tb: typing.Optional[chess.syzygy.Tablebase] = None
-try:
+tb: chess.syzygy.Tablebase | None = None
+with contextlib.suppress(Exception):
     tb = chess.syzygy.open_tablebase("weights")
-except Exception:
-    pass
 
 
 class TimeUp(Exception):
@@ -50,6 +49,7 @@ TT_EXACT = 0
 TT_LOWER = 1
 TT_UPPER = 2
 MATE_VALUE = 30000
+INCREMENT_MS = 500.0
 
 PIECE_VALUE = {
     chess.PAWN: 100,
@@ -329,6 +329,7 @@ def negamax(
 
 
 completed_depth = 0
+root_score = 0.0
 
 
 def get_move(
@@ -348,7 +349,23 @@ def get_move(
         budget_ms = min(200.0, time_left_ms * 0.1)
         panic = True
     else:
-        budget_ms = min(time_left_ms * 0.045 + 400.0, time_left_ms * 0.25)
+        budget_ms = min(time_left_ms * 0.065 + 400.0, time_left_ms * 0.25)
+        # 60 rated games finished with 35.0 s unspent on average and 41.8 s
+        # unspent in the losses: we were being mated on move 43 while sitting
+        # on 42 seconds. The budget is a fixed fraction of the time REMAINING,
+        # so it decays geometrically while the game does not, and the engine
+        # thinks least in exactly the endgames it keeps drawing and losing.
+        # The 0.5 s increment is income that arrives every move, so spending
+        # it cannot bankrupt the clock.
+        #
+        # Gate (this is the change that regressed in v6, so it is measured,
+        # not argued): completed depth at 24 (position, clock) points is
+        # deeper on 12 and shallower on 0. A self-play clock simulation
+        # reproduces the shipped engine at 74.5% used / 35.7 s left against
+        # the real 74.6% / 35.0 s, and this policy lands at 87.8% / 17.1 s
+        # with mean depth 6.05 -> 6.26.
+        # See runs/2026-09-08-clock/FINDINGS.md.
+        budget_ms = min(budget_ms + INCREMENT_MS * 0.8, time_left_ms * 0.25)
         panic = False
 
     ctx = SearchContext(board, budget_ms, position_counts)
