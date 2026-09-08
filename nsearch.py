@@ -193,7 +193,7 @@ def qsearch(pieces, colors, state, alpha, beta, ply, path_keys, path_count, star
 def negamax(pieces, colors, state, depth, ply, alpha, beta, prev_is_null, 
             path_keys, path_count, pos_counts_keys, pos_counts_vals, 
             killers, history_table, start_time, budget_ms, max_nodes, nodes, panic,
-            tt_keys, tt_depths, tt_scores, tt_flags, tt_moves):
+            tt_keys, tt_depths, tt_scores, tt_flags, tt_moves, root_depth):
     
     nodes[0] += 1
     if (nodes[0] & 255) == 0:
@@ -201,6 +201,10 @@ def negamax(pieces, colors, state, depth, ply, alpha, beta, prev_is_null,
             curr_time = time.time()
         if (curr_time - start_time) * 1000 > budget_ms * 0.85:
             return 0.0 # Timeout
+    is_ch = in_check(pieces, colors, state)
+    if is_ch and ply < 2 * root_depth:
+        depth += 1
+
 
     hash_key = state[4]
     
@@ -272,7 +276,7 @@ def negamax(pieces, colors, state, depth, ply, alpha, beta, prev_is_null,
             null_score = -negamax(pieces, colors, state, depth - 3, ply + 1, -beta, -beta + 1, True, 
                                   path_keys, path_count, pos_counts_keys, pos_counts_vals,
                                   killers, history_table, start_time, budget_ms, max_nodes, nodes, panic,
-                                  tt_keys, tt_depths, tt_scores, tt_flags, tt_moves)
+                                  tt_keys, tt_depths, tt_scores, tt_flags, tt_moves, root_depth)
             
             state[0] = opp ^ 1
             state[2] = ep_save
@@ -309,11 +313,12 @@ def negamax(pieces, colors, state, depth, ply, alpha, beta, prev_is_null,
         needs_full_search = True
         score = 0.0
         
-        if legal_moves_played >= 4 and depth >= 3 and not is_ch and is_quiet:
+        gives_check = in_check(pieces, colors, state)
+        if legal_moves_played >= 4 and depth >= 3 and not is_ch and is_quiet and not gives_check:
             reduced_score = -negamax(pieces, colors, state, depth - 2, ply + 1, -alpha - 1, -alpha, False,
                                      path_keys, path_count, pos_counts_keys, pos_counts_vals,
                                      killers, history_table, start_time, budget_ms, max_nodes, nodes, panic,
-                                     tt_keys, tt_depths, tt_scores, tt_flags, tt_moves)
+                                     tt_keys, tt_depths, tt_scores, tt_flags, tt_moves, root_depth)
             if reduced_score > alpha:
                 needs_full_search = True
             else:
@@ -324,7 +329,7 @@ def negamax(pieces, colors, state, depth, ply, alpha, beta, prev_is_null,
             score = -negamax(pieces, colors, state, depth - 1, ply + 1, -beta, -alpha, False,
                              path_keys, path_count, pos_counts_keys, pos_counts_vals,
                              killers, history_table, start_time, budget_ms, max_nodes, nodes, panic,
-                             tt_keys, tt_depths, tt_scores, tt_flags, tt_moves)
+                             tt_keys, tt_depths, tt_scores, tt_flags, tt_moves, root_depth)
                              
         unmake_move(pieces, colors, state, move, undo)
         
@@ -404,11 +409,12 @@ def numba_search(pieces, colors, state, time_left_ms, pos_counts_keys, pos_count
             legal_count += 1
             
     if legal_count == 0:
-        return 0, 0.0, 0
+        return 0, 0.0, 0, 0
         
     best_move = legal_moves[0]
     
     depth = 1
+    completed_depth = 0
     prev_score = -1e9
     
     while depth <= max_depth:
@@ -437,7 +443,7 @@ def numba_search(pieces, colors, state, time_left_ms, pos_counts_keys, pos_count
                 score = -negamax(pieces, colors, state, depth - 1, 1, -beta, -alpha, False,
                                  path_keys, path_count, pos_counts_keys, pos_counts_vals,
                                  killers, history_table, start_time, budget_ms, max_nodes, nodes, panic,
-                                 tt_keys, tt_depths, tt_scores, tt_flags, tt_moves)
+                                 tt_keys, tt_depths, tt_scores, tt_flags, tt_moves, depth)
                 unmake_move(pieces, colors, state, move, undo)
                 
                 # Check timeout
@@ -451,7 +457,7 @@ def numba_search(pieces, colors, state, time_left_ms, pos_counts_keys, pos_count
                         timeout = True
                     
                 if timeout:
-                    return best_move, prev_score, nodes[0]
+                    return best_move, prev_score, nodes[0], completed_depth
                     
                 if score > current_best_score:
                     current_best_score = score
@@ -491,9 +497,10 @@ def numba_search(pieces, colors, state, time_left_ms, pos_counts_keys, pos_count
             if (curr_time - start_time) * 1000 > budget_ms / 2:
                 break
                 
+        completed_depth = depth
         depth += 1
         
-    return best_move, prev_score, nodes[0]
+    return best_move, prev_score, nodes[0], completed_depth
 
 def get_move_with_info(board: chess.Board, time_left_ms: int, position_counts, max_depth=64):
     pieces, colors, state = from_chess_board(board)
@@ -514,13 +521,16 @@ def get_move_with_info(board: chess.Board, time_left_ms: int, position_counts, m
     
     start_time = time.time()
     
-    best_move, score, nodes = numba_search(pieces, colors, state, time_left_ms, pos_keys, pos_vals, max_nodes, start_time,
+    best_move, score, nodes, completed_depth = numba_search(pieces, colors, state, time_left_ms, pos_keys, pos_vals, max_nodes, start_time,
                                            tt_keys, tt_depths, tt_scores, tt_flags, tt_moves, max_depth)
     
     if best_move == 0:
-        return "0000", score, nodes
+        return next(iter(board.legal_moves)).uci(), score, nodes
         
-    return decode_move(best_move), score, nodes
+    uci = decode_move(best_move)
+    import sys
+    print(f"info depth {completed_depth} score cp {int(score)} nodes {nodes}", file=sys.stderr)
+    return uci, score, nodes
 
 def get_move(board: chess.Board, time_left_ms: int, position_counts) -> str:
     uci, _, _ = get_move_with_info(board, time_left_ms, position_counts)
