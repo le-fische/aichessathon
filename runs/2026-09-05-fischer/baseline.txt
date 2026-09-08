@@ -1,0 +1,13 @@
+Measuring baseline NPS on this machine...
+[1/5] FEN: r1bq1rk1/pp2ppbp/2np1np1/2p5/4P2P/2NP2P1/PPP1NPB1/R1BQK2R w KQ - 3 8
+  Nodes: 131748, Time: 1.933s, NPS: 68144, Depth: 6
+[2/5] FEN: r1bqkb1r/pp3ppp/2n1pn2/2pp4/3P4/2P1P1B1/PP1N1PPP/R2QKBNR b KQkq - 1 6
+  Nodes: 144128, Time: 2.102s, NPS: 68581, Depth: 6
+[3/5] FEN: rnbq1rk1/pp2bppp/4pn2/2pp4/2PP4/N4NP1/PP2PPBP/R1BQK2R w KQ - 0 7
+  Nodes: 155904, Time: 2.139s, NPS: 72884, Depth: 6
+[4/5] FEN: rnbqk1nr/bp3ppp/p7/3p4/P7/1N6/1PP2PPP/R1BQKBNR w KQkq - 2 8
+  Nodes: 149173, Time: 1.995s, NPS: 74785, Depth: 6
+[5/5] FEN: 4R3/8/8/3k1K2/8/8/8/8 w - - 15 83
+  Nodes: 512607, Time: 4.050s, NPS: 126558, Depth: 12
+
+Average NPS: 89496
