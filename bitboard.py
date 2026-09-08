@@ -676,6 +676,36 @@ def evaluate(pieces, colors, state):
         mg_diff -= 30
         eg_diff -= 50
 
+    # Rook evaluation
+    for c in range(2):
+        rooks = pieces[ROOK] & colors[c]
+        if rooks:
+            opp = c ^ 1
+            my_pawns = pieces[PAWN] & colors[c]
+            opp_pawns = pieces[PAWN] & colors[opp]
+            
+            sign = 1 if c == WHITE else -1
+            
+            rank7 = np.uint64(0x00FF000000000000) if c == WHITE else np.uint64(0x000000000000FF00)
+            rooks_on_7 = popcount(rooks & rank7)
+            if rooks_on_7 > 0:
+                mg_diff += sign * 20 * rooks_on_7
+                eg_diff += sign * 40 * rooks_on_7
+                
+            r_temp = rooks
+            while r_temp:
+                sq = lsb(r_temp)
+                r_temp &= r_temp - np.uint64(1)
+                file_mask = np.uint64(0x0101010101010101) << np.uint64(sq % 8)
+                
+                if not (my_pawns & file_mask):
+                    if not (opp_pawns & file_mask):
+                        mg_diff += sign * 15
+                        eg_diff += sign * 15
+                    else:
+                        mg_diff += sign * 10
+                        eg_diff += sign * 10
+
 
     
     for pt in range(6):
