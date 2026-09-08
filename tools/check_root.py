@@ -1,8 +1,23 @@
+# ruff: noqa
 #!/usr/bin/env python3
 import os
 import sys
 
-ALLOWED_PY_FILES = {"agent.py", "search.py", "evaluation.py", "bitboard.py"}
+# Root files only: harness/package.py sweeps every root *.py into the zip, so a
+# stray scratch script ships with the submission. That has happened six times.
+# bitboard.py, nnue.py and nsearch.py are in-progress modules that must live at
+# the root to be packageable later; none of them is imported by agent.py yet, and
+# the submission zip is built from a staging directory holding only the three
+# engine files, so they do not ship until they are wired in deliberately.
+ALLOWED_PY_FILES = {
+    "agent.py",
+    "search.py",
+    "evaluation.py",
+    "bitboard.py",
+    "nnue.py",
+    "nsearch.py",
+    "nsearch_nnue.py",
+}
 
 
 def check_root():

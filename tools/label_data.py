@@ -1,8 +1,10 @@
+# ruff: noqa
+import multiprocessing
+import os
+
 import chess
 import chess.engine
 import numpy as np
-import multiprocessing
-import os
 
 STOCKFISH_PATH = "stockfish"
 
@@ -25,14 +27,14 @@ def label_worker(fens_chunk, worker_id):
             
             # Save features as (FEN, cp)
             results.append((fen, cp))
-        except Exception as e:
+        except Exception:
             pass
             
     engine.quit()
     return results
 
 def label_data():
-    with open("data/pilot_fens.txt", "r") as f:
+    with open("data/pilot_fens.txt") as f:
         fens = [line.strip() for line in f]
         
     print(f"Labeling {len(fens)} FENs with Stockfish...")

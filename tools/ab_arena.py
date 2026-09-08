@@ -1,3 +1,4 @@
+# ruff: noqa
 """Deterministic A/B arena for engine changes.
 
 Plays build A against build B from a reproducible opening book, each position

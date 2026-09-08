@@ -449,6 +449,8 @@ def get_move(
         pass
 
     import sys
-    print(f"info depth {completed_depth} score cp {int(prev_score)} nodes {ctx.nodes}", file=sys.stderr)
+    import os
+    if os.environ.get('CHESSATHON_DEPTH_LOG') == '1':
+        print(f"info depth {completed_depth} score cp {int(prev_score)} nodes {ctx.nodes}", file=sys.stderr)
 
     return best_move.uci()

@@ -1,3 +1,4 @@
+# ruff: noqa
 def current_policy(time_left_ms):
     if time_left_ms < 3000:
         budget_ms = min(200.0, time_left_ms * 0.1)

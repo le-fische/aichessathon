@@ -404,11 +404,12 @@ def numba_search(pieces, colors, state, time_left_ms, pos_counts_keys, pos_count
             legal_count += 1
             
     if legal_count == 0:
-        return 0, 0.0, 0
+        return 0, 0.0, 0, 0
         
     best_move = legal_moves[0]
     
     depth = 1
+    completed_depth = 0
     prev_score = -1e9
     
     while depth <= max_depth:
@@ -451,7 +452,7 @@ def numba_search(pieces, colors, state, time_left_ms, pos_counts_keys, pos_count
                         timeout = True
                     
                 if timeout:
-                    return best_move, prev_score, nodes[0]
+                    return best_move, prev_score, nodes[0], completed_depth
                     
                 if score > current_best_score:
                     current_best_score = score
@@ -523,7 +524,9 @@ def get_move_with_info(board: chess.Board, time_left_ms: int, position_counts, m
         
     uci = decode_move(best_move)
     import sys
-    print(f"info depth {completed_depth} score cp {int(score)} nodes {nodes}", file=sys.stderr)
+    import os
+    if os.environ.get('CHESSATHON_DEPTH_LOG') == '1':
+        print(f"info depth {completed_depth} score cp {int(score)} nodes {nodes}", file=sys.stderr)
     return uci, score, nodes
 
 def get_move(board: chess.Board, time_left_ms: int, position_counts) -> str:
