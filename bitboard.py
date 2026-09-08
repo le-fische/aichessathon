@@ -112,6 +112,41 @@ QUEEN_DIRS = np.array([0, 1, 2, 3, 4, 5, 6, 7], dtype=np.int32)
 QUEEN_POS = np.array([True, True, False, False, True, False, False, True], dtype=np.bool_)
 
 
+np.random.seed(12345)
+ZOBRIST_PIECES = np.empty((2, 6, 64), dtype=np.uint64)
+for c in range(2):
+    for pt in range(6):
+        for sq in range(64):
+            ZOBRIST_PIECES[c, pt, sq] = np.uint64(np.random.randint(0, 2**63 - 1))
+
+ZOBRIST_TURN = np.uint64(np.random.randint(0, 2**63 - 1))
+ZOBRIST_CASTLING = np.empty(16, dtype=np.uint64)
+for i in range(16):
+    ZOBRIST_CASTLING[i] = np.uint64(np.random.randint(0, 2**63 - 1))
+
+ZOBRIST_EP = np.empty(8, dtype=np.uint64)
+for i in range(8):
+    ZOBRIST_EP[i] = np.uint64(np.random.randint(0, 2**63 - 1))
+
+@njit(cache=False)
+def compute_zobrist(pieces, colors, state):
+    h = np.uint64(0)
+    for c in range(2):
+        for pt in range(6):
+            bb = pieces[pt] & colors[c]
+            while bb:
+                sq = lsb(bb)
+                bb &= bb - np.uint64(1)
+                h ^= ZOBRIST_PIECES[c, pt, sq]
+    if state[0] == BLACK:
+        h ^= ZOBRIST_TURN
+    h ^= ZOBRIST_CASTLING[state[1]]
+    if state[2] != 64:
+        h ^= ZOBRIST_EP[state[2] % 8]
+    return h
+
+
+
 @njit(cache=False)
 def get_slider_attacks(sq, blockers, dirs, is_positive):
     attacks = np.uint64(0)
@@ -380,6 +415,11 @@ def make_move(pieces, colors, state, move, undo):
     undo[0] = state[1]
     undo[1] = state[2]
     undo[2] = state[3]
+    undo[3] = state[4]
+    z = state[4] ^ ZOBRIST_TURN
+    z ^= ZOBRIST_CASTLING[state[1]]
+    if state[2] != 64:
+        z ^= ZOBRIST_EP[state[2] % 8]
 
     state[0] = opp
     state[2] = 64
@@ -392,6 +432,8 @@ def make_move(pieces, colors, state, move, undo):
     to_mask = np.uint64(1) << np.uint64(to)
 
     pieces[piece_moved] ^= fr_mask | to_mask
+    z ^= ZOBRIST_PIECES[turn, piece_moved, fr]
+    z ^= ZOBRIST_PIECES[turn, piece_moved, to]
     colors[turn] ^= fr_mask | to_mask
 
     if captured != NONE:
@@ -399,28 +441,40 @@ def make_move(pieces, colors, state, move, undo):
             cap_sq = to - 8 if turn == WHITE else to + 8
             cap_mask = np.uint64(1) << np.uint64(cap_sq)
             pieces[PAWN] ^= cap_mask
+            z ^= ZOBRIST_PIECES[opp, PAWN, cap_sq]
             colors[opp] ^= cap_mask
         else:
             pieces[captured] ^= to_mask
+            z ^= ZOBRIST_PIECES[opp, captured, to]
             colors[opp] ^= to_mask
 
     if promo != NONE:
         pieces[PAWN] ^= to_mask
         pieces[promo] ^= to_mask
+        z ^= ZOBRIST_PIECES[turn, PAWN, to]
+        z ^= ZOBRIST_PIECES[turn, promo, to]
 
     if castle:
         if to == 6:
             pieces[ROOK] ^= (np.uint64(1) << np.uint64(7)) | (np.uint64(1) << np.uint64(5))
             colors[WHITE] ^= (np.uint64(1) << np.uint64(7)) | (np.uint64(1) << np.uint64(5))
+            z ^= ZOBRIST_PIECES[WHITE, ROOK, 7]
+            z ^= ZOBRIST_PIECES[WHITE, ROOK, 5]
         elif to == 2:
             pieces[ROOK] ^= (np.uint64(1) << np.uint64(0)) | (np.uint64(1) << np.uint64(3))
             colors[WHITE] ^= (np.uint64(1) << np.uint64(0)) | (np.uint64(1) << np.uint64(3))
+            z ^= ZOBRIST_PIECES[WHITE, ROOK, 0]
+            z ^= ZOBRIST_PIECES[WHITE, ROOK, 3]
         elif to == 62:
             pieces[ROOK] ^= (np.uint64(1) << np.uint64(63)) | (np.uint64(1) << np.uint64(61))
             colors[BLACK] ^= (np.uint64(1) << np.uint64(63)) | (np.uint64(1) << np.uint64(61))
+            z ^= ZOBRIST_PIECES[BLACK, ROOK, 63]
+            z ^= ZOBRIST_PIECES[BLACK, ROOK, 61]
         elif to == 58:
             pieces[ROOK] ^= (np.uint64(1) << np.uint64(56)) | (np.uint64(1) << np.uint64(59))
             colors[BLACK] ^= (np.uint64(1) << np.uint64(56)) | (np.uint64(1) << np.uint64(59))
+            z ^= ZOBRIST_PIECES[BLACK, ROOK, 56]
+            z ^= ZOBRIST_PIECES[BLACK, ROOK, 59]
 
     if piece_moved == PAWN and abs(to - fr) == 16:
         state[2] = fr + 8 if turn == WHITE else fr - 8
@@ -441,6 +495,10 @@ def make_move(pieces, colors, state, move, undo):
             state[1] &= ~CR_BK
 
     king_sq = lsb(pieces[KING] & colors[turn])
+    z ^= ZOBRIST_CASTLING[state[1]]
+    if state[2] != 64:
+        z ^= ZOBRIST_EP[state[2] % 8]
+    state[4] = z
     return not is_square_attacked(king_sq, opp, pieces, colors)
 
 
@@ -461,6 +519,7 @@ def unmake_move(pieces, colors, state, move, undo):
     state[1] = undo[0]
     state[2] = undo[1]
     state[3] = undo[2]
+    state[4] = undo[3]
 
     fr_mask = np.uint64(1) << np.uint64(fr)
     to_mask = np.uint64(1) << np.uint64(to)
@@ -506,7 +565,7 @@ def perft(pieces, colors, state, depth):
     count = generate_pseudo_legal_moves(pieces, colors, state, moves)
 
     nodes = 0
-    undo = np.zeros(3, dtype=np.int32)
+    undo = np.zeros(4, dtype=np.uint64)
 
     for i in range(count):
         move = moves[i]
@@ -524,7 +583,7 @@ def divide(pieces, colors, state, depth):
 
     nodes_per_move = np.zeros(count, dtype=np.uint64)
     valid_moves = np.zeros(256, dtype=np.uint32)
-    undo = np.zeros(3, dtype=np.int32)
+    undo = np.zeros(4, dtype=np.uint64)
 
     total = 0
     valid_count = 0
@@ -624,7 +683,7 @@ def warmup():
 def from_chess_board(board):
     pieces = np.zeros(6, dtype=np.uint64)
     colors = np.zeros(2, dtype=np.uint64)
-    state = np.zeros(4, dtype=np.int32)
+    state = np.zeros(5, dtype=np.uint64)
 
     for sq in range(64):
         piece = board.piece_at(sq)
@@ -649,6 +708,7 @@ def from_chess_board(board):
 
     state[2] = board.ep_square if board.ep_square is not None else 64
     state[3] = board.halfmove_clock
+    state[4] = compute_zobrist(pieces, colors, state)
 
     return pieces, colors, state
 
