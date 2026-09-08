@@ -17,6 +17,73 @@ eg_value: dict[chess.PieceType, int] = {
     chess.KING: 0,
 }
 
+
+WHITE_PASSED_PAWN_MASKS = [0] * 64
+BLACK_PASSED_PAWN_MASKS = [0] * 64
+
+for sq in range(64):
+    f = sq % 8
+    r = sq // 8
+    
+    w_mask = 0
+    b_mask = 0
+    
+    for r2 in range(r + 1, 8):
+        w_mask |= 1 << (r2 * 8 + f)
+        if f > 0: w_mask |= 1 << (r2 * 8 + f - 1)
+        if f < 7: w_mask |= 1 << (r2 * 8 + f + 1)
+        
+    for r2 in range(0, r):
+        b_mask |= 1 << (r2 * 8 + f)
+        if f > 0: b_mask |= 1 << (r2 * 8 + f - 1)
+        if f < 7: b_mask |= 1 << (r2 * 8 + f + 1)
+        
+    WHITE_PASSED_PAWN_MASKS[sq] = w_mask
+    BLACK_PASSED_PAWN_MASKS[sq] = b_mask
+
+PASSED_PAWN_MG = [0, 5, 10, 20, 35, 60, 100, 0]
+PASSED_PAWN_EG = [0, 10, 25, 45, 75, 120, 170, 0]
+CONNECTED_PASSED_BONUS_MG = 15
+CONNECTED_PASSED_BONUS_EG = 25
+
+_pawn_cache = {}
+
+def _pawn_structure(white_pawns: int, black_pawns: int) -> tuple[int, int]:
+    key = (white_pawns, black_pawns)
+    if key in _pawn_cache:
+        return _pawn_cache[key]
+        
+    mg = 0
+    eg = 0
+    
+    wp_attacks = ((white_pawns << 7) & 0x7f7f7f7f7f7f7f7f) | ((white_pawns << 9) & 0xfefefefefefefefe)
+    bp_attacks = ((black_pawns >> 9) & 0x7f7f7f7f7f7f7f7f) | ((black_pawns >> 7) & 0xfefefefefefefefe)
+    
+    import chess
+    for sq in chess.scan_reversed(white_pawns):
+        if not (black_pawns & WHITE_PASSED_PAWN_MASKS[sq]):
+            rank = sq // 8
+            mg += PASSED_PAWN_MG[rank]
+            eg += PASSED_PAWN_EG[rank]
+            if (1 << sq) & wp_attacks:
+                mg += CONNECTED_PASSED_BONUS_MG
+                eg += CONNECTED_PASSED_BONUS_EG
+
+    for sq in chess.scan_reversed(black_pawns):
+        if not (white_pawns & BLACK_PASSED_PAWN_MASKS[sq]):
+            rank = 7 - (sq // 8)
+            mg -= PASSED_PAWN_MG[rank]
+            eg -= PASSED_PAWN_EG[rank]
+            if (1 << sq) & bp_attacks:
+                mg -= CONNECTED_PASSED_BONUS_MG
+                eg -= CONNECTED_PASSED_BONUS_EG
+                
+    if len(_pawn_cache) > 16384:
+        _pawn_cache.clear()
+        
+    _pawn_cache[key] = (mg, eg)
+    return mg, eg
+
 mg_pawn_table: list[int] = [
     0,
     0,
@@ -867,6 +934,13 @@ def evaluate(board: chess.Board) -> float:
     mg_diff = 0
     eg_diff = 0
     game_phase = 0
+    
+    pawn_mg, pawn_eg = _pawn_structure(
+        board.pawns & board.occupied_co[chess.WHITE],
+        board.pawns & board.occupied_co[chess.BLACK]
+    )
+    mg_diff += pawn_mg
+    eg_diff += pawn_eg
 
     for pt, mask in [
         (chess.PAWN, board.pawns),
