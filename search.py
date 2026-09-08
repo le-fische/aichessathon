@@ -349,7 +349,7 @@ def get_move(
         budget_ms = min(200.0, time_left_ms * 0.1)
         panic = True
     else:
-        budget_ms = min(time_left_ms * 0.065 + 400.0, time_left_ms * 0.25)
+        budget_ms = min(time_left_ms * 0.050 + 400.0, time_left_ms * 0.25)
         # 60 rated games finished with 35.0 s unspent on average and 41.8 s
         # unspent in the losses: we were being mated on move 43 while sitting
         # on 42 seconds. The budget is a fixed fraction of the time REMAINING,
@@ -358,12 +358,27 @@ def get_move(
         # The 0.5 s increment is income that arrives every move, so spending
         # it cannot bankrupt the clock.
         #
-        # Gate (this is the change that regressed in v6, so it is measured,
-        # not argued): completed depth at 24 (position, clock) points is
-        # deeper on 12 and shallower on 0. A self-play clock simulation
-        # reproduces the shipped engine at 74.5% used / 35.7 s left against
-        # the real 74.6% / 35.0 s, and this policy lands at 87.8% / 17.1 s
-        # with mean depth 6.05 -> 6.26.
+        # The coefficient is 0.050, NOT the 0.065 that tools/clockprobe.py
+        # appeared to justify. clockprobe compares depth at a given CLOCK
+        # VALUE, which is monotone by construction for a policy that only
+        # adds -- so it said 0.065 was deeper at 12 of 24 points and shallower
+        # at none, and that was true and beside the point. A policy that
+        # spends more ARRIVES at a low clock sooner, so depth by MOVE NUMBER
+        # is a different question, and it is the one that decides games.
+        # tools/clocktraj.py measures that, mean completed depth by phase over
+        # a 70-move game:
+        #
+        #   build            d1-20  d21-45  d46-70   floor
+        #   0.045 (shipped)   6.55    6.00    5.24   20.6 s
+        #   0.050 + inc       6.80    6.00    5.20   10.4 s   <- this
+        #   0.055 + inc       6.80    6.00    5.04    8.8 s
+        #   0.065 + inc       6.90    5.88    5.00    4.7 s
+        #
+        # 0.065 buys 0.35 ply in the opening by giving back 0.12 in the
+        # middlegame and 0.24 in the endgame, and leaves a 4.7 s buffer.
+        # 0.050 is deeper than the shipped policy in the opening, gives back
+        # nothing before move 45 and 0.04 ply after it, and halves the wasted
+        # reserve. None of the four flags; the panic branch catches at 3 s.
         # See runs/2026-09-08-clock/FINDINGS.md.
         budget_ms = min(budget_ms + INCREMENT_MS * 0.8, time_left_ms * 0.25)
         panic = False
