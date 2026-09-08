@@ -620,6 +620,13 @@ PASSED_PAWN_EG = np.array(evaluation.PASSED_PAWN_EG, dtype=np.int32)
 CONNECTED_PASSED_BONUS_MG = evaluation.CONNECTED_PASSED_BONUS_MG
 CONNECTED_PASSED_BONUS_EG = evaluation.CONNECTED_PASSED_BONUS_EG
 
+ADJACENT_FILES_MASK = np.array(evaluation.ADJACENT_FILES_MASK, dtype=np.uint64)
+FILE_MASKS = np.array(evaluation.FILE_MASKS, dtype=np.uint64)
+DOUBLED_PAWN_MG = evaluation.DOUBLED_PAWN_MG
+DOUBLED_PAWN_EG = evaluation.DOUBLED_PAWN_EG
+ISOLATED_PAWN_MG = evaluation.ISOLATED_PAWN_MG
+ISOLATED_PAWN_EG = evaluation.ISOLATED_PAWN_EG
+
 @njit(cache=False)
 def numba_pawn_structure(white_pawns, black_pawns):
     mg = 0
@@ -639,6 +646,14 @@ def numba_pawn_structure(white_pawns, black_pawns):
             if (np.uint64(1) << np.uint64(sq)) & wp_attacks:
                 mg += CONNECTED_PASSED_BONUS_MG
                 eg += CONNECTED_PASSED_BONUS_EG
+                
+        if popcount(white_pawns & FILE_MASKS[sq]) > 1:
+            mg += DOUBLED_PAWN_MG
+            eg += DOUBLED_PAWN_EG
+            
+        if not (white_pawns & ADJACENT_FILES_MASK[sq]):
+            mg += ISOLATED_PAWN_MG
+            eg += ISOLATED_PAWN_EG
 
     bp = black_pawns
     while bp:
@@ -651,6 +666,14 @@ def numba_pawn_structure(white_pawns, black_pawns):
             if (np.uint64(1) << np.uint64(sq)) & bp_attacks:
                 mg -= CONNECTED_PASSED_BONUS_MG
                 eg -= CONNECTED_PASSED_BONUS_EG
+                
+        if popcount(black_pawns & FILE_MASKS[sq]) > 1:
+            mg -= DOUBLED_PAWN_MG
+            eg -= DOUBLED_PAWN_EG
+            
+        if not (black_pawns & ADJACENT_FILES_MASK[sq]):
+            mg -= ISOLATED_PAWN_MG
+            eg -= ISOLATED_PAWN_EG
 
     return mg, eg
 
