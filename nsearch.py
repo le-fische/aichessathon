@@ -303,7 +303,12 @@ def qsearch(pieces, colors, state, alpha, beta, ply, path_keys, path_count, star
         legal_moves_played += 1
         child_score = -qsearch(pieces, colors, state, -beta, -alpha, ply + 1, path_keys, path_count, start_time, budget_ms, nodes)
         unmake_move(pieces, colors, state, move, undo)
-        
+
+        # Same reason as in negamax: unwind immediately instead of starting the next
+        # capture, and do not let the abort value become best_score.
+        if nodes[1] != 0:
+            break
+
         if child_score > best_score:
             best_score = child_score
         if child_score > alpha:
@@ -460,11 +465,20 @@ def negamax(pieces, colors, state, depth, ply, alpha, beta, prev_is_null,
                              tt_keys, tt_depths, tt_scores, tt_flags, tt_moves, root_depth)
                              
         unmake_move(pieces, colors, state, move, undo)
-        
+
+        # v11: stop the move loop the moment any descendant aborted on the deadline.
+        # Checking only at node entry is not enough: an aborted child returns after ~256
+        # nodes and the loop immediately starts the next one, so unwinding a depth-10
+        # tree costs ~35 moves x 256 nodes per level. Measured 5.8M nodes and 1,951 ms
+        # spent past the deadline before this check existed. `score` here is the
+        # fabricated abort value, so break before it can become best_score.
+        if nodes[1] != 0:
+            break
+
         if score > best_score:
             best_score = score
             current_best_move = move
-            
+
         if score > alpha:
             alpha = score
             
