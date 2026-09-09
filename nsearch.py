@@ -109,7 +109,18 @@ def insertion_sort(moves, scores, count):
 @njit(cache=False)
 def qsearch(pieces, colors, state, alpha, beta, ply, path_keys, path_count, start_time, budget_ms, nodes):
     nodes[0] += 1
-    
+
+    # v11: quiescence used to take start_time and budget_ms and read neither, so a large
+    # capture subtree ran past the deadline unchecked. Measured: 6,061 ms against a 648 ms
+    # budget at ply 155, clock to -0.55 s, game lost on time. Same cadence and same
+    # deadline negamax uses. nodes[1] is the shared stop flag; see numba_search.
+    if (nodes[0] & 255) == 0:
+        with objmode(curr_time='float64'):
+            curr_time = time.time()
+        if (curr_time - start_time) * 1000 > budget_ms * 0.85:
+            nodes[1] = 1
+            return alpha
+
     if ply >= 127:
         return evaluate(pieces, colors, state)
         
@@ -200,6 +211,7 @@ def negamax(pieces, colors, state, depth, ply, alpha, beta, prev_is_null,
         with objmode(curr_time='float64'):
             curr_time = time.time()
         if (curr_time - start_time) * 1000 > budget_ms * 0.85:
+            nodes[1] = 1  # v11: mark the search aborted so no TT entry is written
             return 0.0 # Timeout
     is_ch = in_check(pieces, colors, state)
     if is_ch and ply < 2 * root_depth:
@@ -368,12 +380,16 @@ def negamax(pieces, colors, state, depth, ply, alpha, beta, prev_is_null,
     elif best_score >= beta:
         flag = TT_LOWER
         
-    # Always replace for now
-    tt_keys[tt_idx] = hash_key
-    tt_depths[tt_idx] = depth
-    tt_scores[tt_idx] = store_score
-    tt_flags[tt_idx] = flag
-    tt_moves[tt_idx] = current_best_move
+    # Always replace for now -- but never with the result of an aborted search.
+    # v11: on timeout negamax returns a fabricated 0.0 which propagated up as a real
+    # child score and was stored here as an exact entry. With "always replace" and the
+    # table 98% full by move 156, every timed-out search poisoned it with fake draws.
+    if nodes[1] == 0:
+        tt_keys[tt_idx] = hash_key
+        tt_depths[tt_idx] = depth
+        tt_scores[tt_idx] = store_score
+        tt_flags[tt_idx] = flag
+        tt_moves[tt_idx] = current_best_move
     
     path_count -= 1
     return best_score
@@ -388,7 +404,9 @@ def numba_search(pieces, colors, state, time_left_ms, pos_counts_keys, pos_count
         budget_ms = min(time_left_ms * 0.045 + 400.0, time_left_ms * 0.25)
         panic = False
         
-    nodes = np.zeros(1, dtype=np.int64)
+    # nodes[0] = node count, nodes[1] = stop flag set when a search aborts on the
+    # deadline. Carried in the existing array so no signature has to change.
+    nodes = np.zeros(2, dtype=np.int64)
     killers = np.zeros((128, 2), dtype=np.uint32)
     history_table = np.zeros((64, 64), dtype=np.int32)
     path_keys = np.zeros(256, dtype=np.uint64)
