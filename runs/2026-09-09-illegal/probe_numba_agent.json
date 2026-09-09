@@ -1,0 +1,495 @@
+[
+  {
+    "id": "ep_horizontal_pin",
+    "category": "movegen",
+    "tags": [
+      "legality",
+      "en-passant"
+    ],
+    "fen": "8/8/8/8/k2Pp2Q/8/8/3K4 b - d3 0 1",
+    "time_left_ms": 120000,
+    "status": "pass",
+    "move": "a4a5",
+    "elapsed_ms": 4057.97,
+    "stdout_bytes": 0,
+    "detail": "",
+    "why": "En passant capture d4 would remove two pawns from the rank and expose the black king to Qh4. The single most common legality bug in hand-rolled move generators."
+  },
+  {
+    "id": "ep_available_and_legal",
+    "category": "movegen",
+    "tags": [
+      "en-passant"
+    ],
+    "fen": "rnbqkbnr/ppp1p1pp/8/3pPp2/8/8/PPPP1PPP/RNBQKBNR w KQkq f6 0 3",
+    "time_left_ms": 120000,
+    "status": "pass",
+    "move": "d2d4",
+    "elapsed_ms": 4591.71,
+    "stdout_bytes": 0,
+    "detail": "",
+    "why": "En passant is genuinely available. A generator that drops e.p. entirely still passes the pin test above, so we need the positive case too."
+  },
+  {
+    "id": "ep_pinned_pawn_diagonal",
+    "category": "movegen",
+    "tags": [
+      "legality",
+      "en-passant"
+    ],
+    "fen": "8/8/8/2k5/3Pp3/8/8/4K1R1 b - d3 0 1",
+    "time_left_ms": 120000,
+    "status": "pass",
+    "move": "c5c4",
+    "elapsed_ms": 3039.61,
+    "stdout_bytes": 0,
+    "detail": "",
+    "why": "En passant with a rook on the e-file behind the capturing pawn. Tests that the pin check considers the departing square, not just the arrival square."
+  },
+  {
+    "id": "castle_through_check",
+    "category": "movegen",
+    "tags": [
+      "castling"
+    ],
+    "fen": "r3k2r/8/8/8/8/8/8/R3K2R w KQkq - 0 1",
+    "time_left_ms": 120000,
+    "status": "pass",
+    "move": "a1a8",
+    "elapsed_ms": 5392.21,
+    "stdout_bytes": 0,
+    "detail": "",
+    "why": "All four castles available. Baseline for the castling encoder."
+  },
+  {
+    "id": "castle_blocked_by_attack",
+    "category": "movegen",
+    "tags": [
+      "legality",
+      "castling"
+    ],
+    "fen": "r3k2r/8/8/8/8/8/6b1/R3K2R w KQkq - 0 1",
+    "time_left_ms": 120000,
+    "status": "pass",
+    "move": "a1a8",
+    "elapsed_ms": 4503.07,
+    "stdout_bytes": 0,
+    "detail": "",
+    "why": "Bg2 attacks f1, so O-O is illegal but O-O-O is legal. A generator that only checks the king's origin and destination squares, and not the square it transits, emits an illegal castle here."
+  },
+  {
+    "id": "castle_uci_encoding",
+    "category": "protocol",
+    "tags": [
+      "encoding",
+      "castling"
+    ],
+    "fen": "4k3/8/8/8/8/8/8/R3K2R w KQ - 0 1",
+    "time_left_ms": 120000,
+    "status": "pass",
+    "move": "a1a7",
+    "elapsed_ms": 4931.35,
+    "stdout_bytes": 0,
+    "detail": "",
+    "why": "Castling must serialise as e1g1 / e1c1. If the board was built with chess960=True anywhere in the pipeline, python-chess emits e1h1 / e1a1 in Shredder notation and the runner scores it illegal. This is a silent, total game loss and it looks fine in a PGN."
+  },
+  {
+    "id": "promotion_forced",
+    "category": "protocol",
+    "tags": [
+      "encoding",
+      "promotion"
+    ],
+    "fen": "8/P7/8/8/8/7k/6r1/7K w - - 0 1",
+    "time_left_ms": 120000,
+    "status": "pass",
+    "move": "a7a8q",
+    "elapsed_ms": 3530.84,
+    "stdout_bytes": 0,
+    "detail": "",
+    "why": "The white king is stalemated by Rg2 and Kh3, so every legal move in the position is a promotion. There is no way to sidestep this case with a king move. A move encoder that omits the promotion suffix returns 'a7a8', which is malformed, and malformed loses the game on the spot."
+  },
+  {
+    "id": "promotion_with_capture",
+    "category": "protocol",
+    "tags": [
+      "encoding",
+      "promotion"
+    ],
+    "fen": "1n2k3/P7/8/8/8/8/8/4K3 w - - 0 1",
+    "time_left_ms": 120000,
+    "status": "pass",
+    "move": "a7b8q",
+    "elapsed_ms": 3020.82,
+    "stdout_bytes": 0,
+    "detail": "",
+    "why": "Capture-promotion (axb8=Q). Separate code path from a quiet promotion in most generators."
+  },
+  {
+    "id": "underpromotion_to_avoid_stalemate",
+    "category": "eval",
+    "tags": [
+      "promotion",
+      "search-quality"
+    ],
+    "fen": "8/6P1/8/8/8/8/8/k1K5 w - - 0 1",
+    "time_left_ms": 120000,
+    "status": "pass",
+    "move": "c1c2",
+    "elapsed_ms": 4013.67,
+    "stdout_bytes": 0,
+    "detail": "",
+    "why": "g8=Q is stalemate and throws away a won game. g8=R keeps the win. Not a legality bug, but a search that never generates underpromotions cannot see the difference, and this is the single cheapest half point in any pawn endgame."
+  },
+  {
+    "id": "max_legal_moves_218",
+    "category": "movegen",
+    "tags": [
+      "capacity"
+    ],
+    "fen": "R6R/3Q4/1Q4Q1/4Q3/2Q4Q/Q4Q2/pp1Q4/kBNN1KB1 w - - 0 1",
+    "time_left_ms": 120000,
+    "status": "pass",
+    "move": "c1b3",
+    "elapsed_ms": 4939.99,
+    "stdout_bytes": 0,
+    "detail": "",
+    "why": "218 legal moves, the theoretical maximum. Smokes out fixed-size move list buffers and any assumption that a movelist fits in a small array. Also a worst case for move ordering cost."
+  },
+  {
+    "id": "kiwipete",
+    "category": "movegen",
+    "tags": [
+      "perft"
+    ],
+    "fen": "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1",
+    "time_left_ms": 120000,
+    "status": "pass",
+    "move": "e2a6",
+    "elapsed_ms": 5251.19,
+    "stdout_bytes": 0,
+    "detail": "",
+    "why": "The standard perft position 2. Dense with pins, castles and captures. If perft is wrong anywhere it is usually wrong here."
+  },
+  {
+    "id": "perft_position_3",
+    "category": "movegen",
+    "tags": [
+      "perft"
+    ],
+    "fen": "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1",
+    "time_left_ms": 120000,
+    "status": "pass",
+    "move": "b4f4",
+    "elapsed_ms": 4938.68,
+    "stdout_bytes": 0,
+    "detail": "",
+    "why": "Standard perft position 3. Sparse, but rich in discovered checks and en passant edge cases."
+  },
+  {
+    "id": "perft_position_4",
+    "category": "movegen",
+    "tags": [
+      "perft"
+    ],
+    "fen": "r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2Q1RK1 w kq - 0 1",
+    "time_left_ms": 120000,
+    "status": "pass",
+    "move": "c4c5",
+    "elapsed_ms": 4958.27,
+    "stdout_bytes": 0,
+    "detail": "",
+    "why": "Standard perft position 4. Promotions, castling rights on one side only, and a pinned queen."
+  },
+  {
+    "id": "perft_position_5",
+    "category": "movegen",
+    "tags": [
+      "perft"
+    ],
+    "fen": "rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8",
+    "time_left_ms": 120000,
+    "status": "pass",
+    "move": "d7c8q",
+    "elapsed_ms": 4202.53,
+    "stdout_bytes": 0,
+    "detail": "",
+    "why": "Standard perft position 5. Known to break generators that mishandle promotion while in check."
+  },
+  {
+    "id": "single_legal_move",
+    "category": "movegen",
+    "tags": [
+      "degenerate"
+    ],
+    "fen": "7k/8/8/8/8/8/5Q2/6RK b - - 0 1",
+    "time_left_ms": 120000,
+    "status": "pass",
+    "move": "h8h7",
+    "elapsed_ms": 5481.76,
+    "stdout_bytes": 0,
+    "detail": "",
+    "why": "Exactly one legal move. Any search that returns an empty PV must still emit that move rather than None."
+  },
+  {
+    "id": "single_evasion_by_capture",
+    "category": "movegen",
+    "tags": [
+      "legality",
+      "degenerate"
+    ],
+    "fen": "1Q1k4/8/4K1p1/1r6/5p2/8/8/8 b - - 0 1",
+    "time_left_ms": 120000,
+    "status": "pass",
+    "move": "b5b8",
+    "elapsed_ms": 3340.68,
+    "stdout_bytes": 0,
+    "detail": "",
+    "why": "Black is in check and the only legal move in the position is Rxb8, a capture of the checking piece. Not a king move. A generator that handles check by enumerating king escapes first and short-circuiting will report no legal moves and crash."
+  },
+  {
+    "id": "double_check_king_must_move",
+    "category": "movegen",
+    "tags": [
+      "legality",
+      "degenerate"
+    ],
+    "fen": "8/8/2r5/8/1k6/2B5/1R6/5K2 b - - 0 1",
+    "time_left_ms": 120000,
+    "status": "pass",
+    "move": "b4c3",
+    "elapsed_ms": 3754.18,
+    "stdout_bytes": 0,
+    "detail": "",
+    "why": "Double check from Bc3 and Rb2. In double check, blocking and capturing are both illegal no matter how attractive, and only king moves are legal. Generators that build evasions as 'capture the checker, block the ray, or move the king' emit an illegal move here unless they special-case the double."
+  },
+  {
+    "id": "stalemate_no_legal_moves",
+    "category": "robustness",
+    "tags": [
+      "degenerate",
+      "must-not-crash"
+    ],
+    "fen": "7k/5Q2/6K1/8/8/8/8/8 b - - 0 1",
+    "time_left_ms": 120000,
+    "status": "ILLEGAL",
+    "move": "e2e4",
+    "elapsed_ms": 3.82,
+    "stdout_bytes": 0,
+    "detail": "e2e4 is illegal here (not even pseudo-legal)",
+    "why": "Zero legal moves. The runner should never ask for a move here, but if it does, or if this position turns up inside a self-play harness, the agent must not raise. An uncaught exception is a crash, and a crash is a loss."
+  },
+  {
+    "id": "clock_move_150",
+    "category": "clock",
+    "tags": [
+      "long-game"
+    ],
+    "fen": "8/5k2/8/3p4/3P4/8/5K2/8 w - - 40 150",
+    "time_left_ms": 18000,
+    "status": "pass",
+    "move": "f2f3",
+    "elapsed_ms": 630.07,
+    "stdout_bytes": 0,
+    "detail": "",
+    "why": "Move 150 with a high halfmove clock. clocksim.py stops at 84 plies, so nothing in the repo has ever exercised the clock policy this deep. Both previous clock failures only showed up in long games."
+  },
+  {
+    "id": "clock_move_250",
+    "category": "clock",
+    "tags": [
+      "long-game"
+    ],
+    "fen": "8/8/4k3/8/8/3K4/8/6R1 w - - 12 250",
+    "time_left_ms": 9000,
+    "status": "pass",
+    "move": "d3e4",
+    "elapsed_ms": 584.73,
+    "stdout_bytes": 0,
+    "detail": "",
+    "why": "Move 250, deep into the territory the 600-ply draw rule allows and nothing has tested."
+  },
+  {
+    "id": "clock_near_ply_cap",
+    "category": "clock",
+    "tags": [
+      "long-game"
+    ],
+    "fen": "8/8/4k3/8/8/3K4/8/6R1 w - - 80 295",
+    "time_left_ms": 4000,
+    "status": "pass",
+    "move": "d3e4",
+    "elapsed_ms": 386.97,
+    "stdout_bytes": 0,
+    "detail": "",
+    "why": "Approaching the 600-ply cap where the game is drawn anyway. A time policy that divides remaining time by an estimate of moves left can allocate absurd amounts here, or divide by zero."
+  },
+  {
+    "id": "clock_almost_flagged",
+    "category": "clock",
+    "tags": [
+      "panic"
+    ],
+    "fen": "r1bqkbnr/pppp1ppp/2n5/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R b KQkq - 4 4",
+    "time_left_ms": 300,
+    "status": "pass",
+    "move": "g8f6",
+    "elapsed_ms": 0.46,
+    "stdout_bytes": 0,
+    "detail": "",
+    "why": "300ms left, less than one increment. The engine must return something instantly. Overshooting here is a flag, and a flag is a loss."
+  },
+  {
+    "id": "clock_one_ms",
+    "category": "clock",
+    "tags": [
+      "panic"
+    ],
+    "fen": "r1bqkbnr/pppp1ppp/2n5/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R b KQkq - 4 4",
+    "time_left_ms": 1,
+    "status": "pass",
+    "move": "a7a6",
+    "elapsed_ms": 1.12,
+    "stdout_bytes": 0,
+    "detail": "",
+    "why": "1ms left. Pathological, but the runner can hand this over and a search that does not check the clock before its first iteration will flag."
+  },
+  {
+    "id": "clock_zero_ms",
+    "category": "clock",
+    "tags": [
+      "panic",
+      "must-not-crash"
+    ],
+    "fen": "r1bqkbnr/pppp1ppp/2n5/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R b KQkq - 4 4",
+    "time_left_ms": 0,
+    "status": "pass",
+    "move": "a7a6",
+    "elapsed_ms": 1.05,
+    "stdout_bytes": 0,
+    "detail": "",
+    "why": "Zero. Tests for division by zero in the time manager and for any negative-budget arithmetic."
+  },
+  {
+    "id": "clock_first_move_full",
+    "category": "clock",
+    "tags": [
+      "control"
+    ],
+    "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+    "time_left_ms": 120000,
+    "status": "pass",
+    "move": "d2d4",
+    "elapsed_ms": 4417.48,
+    "stdout_bytes": 0,
+    "detail": "",
+    "why": "Standard start position at a full clock. Note the rated games do NOT start here, they start from a curated near-level position, so this is a control case rather than a realistic one."
+  },
+  {
+    "id": "no_castling_rights",
+    "category": "robustness",
+    "tags": [
+      "legality",
+      "castling"
+    ],
+    "fen": "r3k2r/8/8/8/8/8/8/R3K2R w - - 0 1",
+    "time_left_ms": 120000,
+    "status": "pass",
+    "move": "a1a8",
+    "elapsed_ms": 3886.68,
+    "stdout_bytes": 0,
+    "detail": "",
+    "why": "Rooks and kings on their home squares with every castling right gone. A generator that infers rights from piece placement emits an illegal castle."
+  },
+  {
+    "id": "stale_ep_square",
+    "category": "robustness",
+    "tags": [
+      "en-passant"
+    ],
+    "fen": "rnbqkbnr/ppp1pppp/8/3p4/8/8/PPPPPPPP/RNBQKBNR w KQkq d6 0 2",
+    "time_left_ms": 120000,
+    "status": "pass",
+    "move": "g1f3",
+    "elapsed_ms": 4169.56,
+    "stdout_bytes": 0,
+    "detail": "",
+    "why": "An e.p. square is set but no pawn can actually capture there. Tests that the generator does not invent a capture from the FEN field alone."
+  },
+  {
+    "id": "fifty_move_boundary",
+    "category": "robustness",
+    "tags": [
+      "draw-rules"
+    ],
+    "fen": "8/8/4k3/8/8/3K4/8/6R1 w - - 99 120",
+    "time_left_ms": 30000,
+    "status": "pass",
+    "move": "g1a1",
+    "elapsed_ms": 4.92,
+    "stdout_bytes": 0,
+    "detail": "",
+    "why": "Halfmove clock at 99. The next quiet move triggers the fifty-move draw, which the runner claims automatically. The engine should know it is about to draw."
+  },
+  {
+    "id": "lone_kings_drawn",
+    "category": "robustness",
+    "tags": [
+      "degenerate"
+    ],
+    "fen": "8/8/4k3/8/8/3K4/8/8 w - - 0 60",
+    "time_left_ms": 120000,
+    "status": "pass",
+    "move": "d3e4",
+    "elapsed_ms": 433.04,
+    "stdout_bytes": 0,
+    "detail": "",
+    "why": "Dead drawn, insufficient material. Some evaluators divide by material and produce NaN or an infinity here, which then poisons move selection."
+  },
+  {
+    "id": "four_man_endgame_krk",
+    "category": "tablebase",
+    "tags": [
+      "endgame"
+    ],
+    "fen": "8/8/8/4k3/8/8/8/R3K3 w - - 0 1",
+    "time_left_ms": 120000,
+    "status": "pass",
+    "move": "a1d1",
+    "elapsed_ms": 3234.09,
+    "stdout_bytes": 0,
+    "detail": "",
+    "why": "KRvK, three men. Relevant to the tablebase question: 5-man Syzygy is 378 MiB for WDL alone against a 50 MB submission budget, so it cannot ship. The 3-4 man set can. This is where that would pay off."
+  },
+  {
+    "id": "four_man_kpkp",
+    "category": "tablebase",
+    "tags": [
+      "endgame"
+    ],
+    "fen": "8/5p2/8/4k3/8/2K5/3P4/8 w - - 0 1",
+    "time_left_ms": 120000,
+    "status": "pass",
+    "move": "c3c4",
+    "elapsed_ms": 3746.88,
+    "stdout_bytes": 0,
+    "detail": "",
+    "why": "KPvKP, four men. Notoriously hard for a shallow search and exactly what a 4-man tablebase would resolve instantly."
+  },
+  {
+    "id": "checkmate_delivered",
+    "category": "robustness",
+    "tags": [
+      "degenerate",
+      "must-not-crash"
+    ],
+    "fen": "rnb1kbnr/pppp1ppp/8/4p3/6Pq/5P2/PPPPP2P/RNBQKBNR w KQkq - 1 3",
+    "time_left_ms": 120000,
+    "status": "ILLEGAL",
+    "move": "e2e4",
+    "elapsed_ms": 1.43,
+    "stdout_bytes": 0,
+    "detail": "e2e4 is illegal here (leaves own king in check)",
+    "why": "Fool's mate. Zero legal moves and the side to move is in check. Must not raise if the agent is ever handed it."
+  }
+]

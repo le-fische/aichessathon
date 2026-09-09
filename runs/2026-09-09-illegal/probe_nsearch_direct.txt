@@ -1,0 +1,36 @@
+Warming up Numba JIT...
+Warmup complete.
+  ok         ep_horizontal_pin                    4689.7ms  -> a4a5  
+  ok         ep_available_and_legal               4623.5ms  -> d2d4  
+  ok         ep_pinned_pawn_diagonal              3506.4ms  -> c5c4  
+  ok         castle_through_check                 2999.9ms  -> a1a8  
+  ok         castle_blocked_by_attack             2912.0ms  -> a1a8  
+  ok         castle_uci_encoding                  3901.0ms  -> a1a7  
+  ok         promotion_forced                     5188.7ms  -> a7a8q  
+  ok         promotion_with_capture               4783.3ms  -> a7b8q  
+  ok         underpromotion_to_avoid_stalemate    3437.6ms  -> c1c2  
+  ok         max_legal_moves_218                  4946.4ms  -> c1b3  
+  ok         kiwipete                             5246.0ms  -> e2a6  
+  ok         perft_position_3                     2995.2ms  -> b4f4  
+  ok         perft_position_4                     5190.3ms  -> c4c5  
+  ok         perft_position_5                     4469.4ms  -> d7c8q  
+  ok         single_legal_move                    5861.9ms  -> h8h7  
+  ok         single_evasion_by_capture            5821.8ms  -> b5b8  
+  ok         double_check_king_must_move          3312.1ms  -> b4c3  
+  RAISE(terminal) stalemate_no_legal_moves                0.1ms  StopIteration
+  ok         clock_move_150                        610.7ms  -> f2f3  
+  ok         clock_move_250                        562.2ms  -> d3e4  
+  ok         clock_near_ply_cap                    490.9ms  -> d3d4  
+  ok         clock_almost_flagged                    0.3ms  -> g8f6  
+  ok         clock_one_ms                            0.1ms  -> a7a6  
+  ok         clock_zero_ms                           0.1ms  -> a7a6  
+  ok         clock_first_move_full                4388.1ms  -> d2d4  
+  ok         no_castling_rights                   3274.5ms  -> h1h8  
+  ok         stale_ep_square                      3599.9ms  -> d2d4  
+  ok         fifty_move_boundary                     4.4ms  -> g1a1  
+  ok         lone_kings_drawn                      504.0ms  -> d3e4  
+  ok         four_man_endgame_krk                 2943.5ms  -> a1a5  
+  ok         four_man_kpkp                        3645.5ms  -> d2d4  
+  RAISE(terminal) checkmate_delivered                     0.2ms  StopIteration
+
+32 cases, 0 faults, 2 raises in positions with zero legal moves

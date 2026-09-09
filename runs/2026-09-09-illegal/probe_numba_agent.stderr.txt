@@ -1,0 +1,46 @@
+agent.py: Numba search successfully imported and active.
+agent.py: Executing get_move using Numba search.
+agent.py: Numba get_move failed. Falling back to Python search.
+Traceback (most recent call last):
+  File "/Users/dannybudiada/Desktop/AIChessHackathon/aichessathon/agent.py", line 95, in get_move
+    move_str = nsearch_get_move(game_board, time_left_ms, position_counts_numba)
+  File "/Users/dannybudiada/Desktop/AIChessHackathon/aichessathon/nsearch.py", line 538, in get_move
+    uci, _, _ = get_move_with_info(board, time_left_ms, position_counts)
+                ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/dannybudiada/Desktop/AIChessHackathon/aichessathon/nsearch.py", line 528, in get_move_with_info
+    return next(iter(board.legal_moves)).uci(), score, nodes
+           ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+StopIteration
+agent.py: Top-level get_move exception.
+Traceback (most recent call last):
+  File "/Users/dannybudiada/Desktop/AIChessHackathon/aichessathon/agent.py", line 95, in get_move
+    move_str = nsearch_get_move(game_board, time_left_ms, position_counts_numba)
+  File "/Users/dannybudiada/Desktop/AIChessHackathon/aichessathon/nsearch.py", line 538, in get_move
+    uci, _, _ = get_move_with_info(board, time_left_ms, position_counts)
+                ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/dannybudiada/Desktop/AIChessHackathon/aichessathon/nsearch.py", line 528, in get_move_with_info
+    return next(iter(board.legal_moves)).uci(), score, nodes
+           ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+StopIteration
+agent.py: Numba get_move failed. Falling back to Python search.
+Traceback (most recent call last):
+  File "/Users/dannybudiada/Desktop/AIChessHackathon/aichessathon/agent.py", line 95, in get_move
+    move_str = nsearch_get_move(game_board, time_left_ms, position_counts_numba)
+  File "/Users/dannybudiada/Desktop/AIChessHackathon/aichessathon/nsearch.py", line 538, in get_move
+    uci, _, _ = get_move_with_info(board, time_left_ms, position_counts)
+                ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/dannybudiada/Desktop/AIChessHackathon/aichessathon/nsearch.py", line 528, in get_move_with_info
+    return next(iter(board.legal_moves)).uci(), score, nodes
+           ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+StopIteration
+agent.py: Top-level get_move exception.
+Traceback (most recent call last):
+  File "/Users/dannybudiada/Desktop/AIChessHackathon/aichessathon/agent.py", line 95, in get_move
+    move_str = nsearch_get_move(game_board, time_left_ms, position_counts_numba)
+  File "/Users/dannybudiada/Desktop/AIChessHackathon/aichessathon/nsearch.py", line 538, in get_move
+    uci, _, _ = get_move_with_info(board, time_left_ms, position_counts)
+                ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/dannybudiada/Desktop/AIChessHackathon/aichessathon/nsearch.py", line 528, in get_move_with_info
+    return next(iter(board.legal_moves)).uci(), score, nodes
+           ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+StopIteration

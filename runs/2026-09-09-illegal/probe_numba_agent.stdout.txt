@@ -1,0 +1,46 @@
+Warming up Numba JIT...
+Warmup complete.
+  ok         ep_horizontal_pin                    4058.0ms  -> a4a5
+  ok         ep_available_and_legal               4591.7ms  -> d2d4
+  ok         ep_pinned_pawn_diagonal              3039.6ms  -> c5c4
+  ok         castle_through_check                 5392.2ms  -> a1a8
+  ok         castle_blocked_by_attack             4503.1ms  -> a1a8
+  ok         castle_uci_encoding                  4931.3ms  -> a1a7
+  ok         promotion_forced                     3530.8ms  -> a7a8q
+  ok         promotion_with_capture               3020.8ms  -> a7b8q
+  ok         underpromotion_to_avoid_stalemate    4013.7ms  -> c1c2
+  ok         max_legal_moves_218                  4940.0ms  -> c1b3
+  ok         kiwipete                             5251.2ms  -> e2a6
+  ok         perft_position_3                     4938.7ms  -> b4f4
+  ok         perft_position_4                     4958.3ms  -> c4c5
+  ok         perft_position_5                     4202.5ms  -> d7c8q
+  ok         single_legal_move                    5481.8ms  -> h8h7
+  ok         single_evasion_by_capture            3340.7ms  -> b5b8
+  ok         double_check_king_must_move          3754.2ms  -> b4c3
+  ILLEGAL    stalemate_no_legal_moves                3.8ms  -> e2e4
+             e2e4 is illegal here (not even pseudo-legal)
+  ok         clock_move_150                        630.1ms  -> f2f3
+  ok         clock_move_250                        584.7ms  -> d3e4
+  ok         clock_near_ply_cap                    387.0ms  -> d3e4
+  ok         clock_almost_flagged                    0.5ms  -> g8f6
+  ok         clock_one_ms                            1.1ms  -> a7a6
+  ok         clock_zero_ms                           1.1ms  -> a7a6
+  ok         clock_first_move_full                4417.5ms  -> d2d4
+  ok         no_castling_rights                   3886.7ms  -> a1a8
+  ok         stale_ep_square                      4169.6ms  -> g1f3
+  ok         fifty_move_boundary                     4.9ms  -> g1a1
+  ok         lone_kings_drawn                      433.0ms  -> d3e4
+  ok         four_man_endgame_krk                 3234.1ms  -> a1d1
+  ok         four_man_kpkp                        3746.9ms  -> c3c4
+  ILLEGAL    checkmate_delivered                     1.4ms  -> e2e4
+             e2e4 is illegal here (leaves own king in check)
+
+32 cases, 2 that would lose a rated game, 0 soft failures
+
+Would lose a rated game:
+  ILLEGAL    stalemate_no_legal_moves
+             Zero legal moves. The runner should never ask for a move here, but if it does, or if this position turns up inside a self-play harness, the agent must not raise. An uncaught exception is a crash, and a crash is a loss.
+  ILLEGAL    checkmate_delivered
+             Fool's mate. Zero legal moves and the side to move is in check. Must not raise if the agent is ever handed it.
+
+wrote /Users/dannybudiada/Desktop/AIChessHackathon/aichessathon/runs/2026-09-09-illegal/probe_numba_agent.json

@@ -1,0 +1,56 @@
+warming numba...
+warmup 3.13s
+
+  ok    ep_horizontal_pin                    6 legal
+  ok    ep_available_and_legal              31 legal ep=e5f6
+  ok    ep_pinned_pawn_diagonal              9 legal ep=e4d3
+  ok    castle_through_check                26 legal castle=e1c1,e1g1
+  ok    castle_blocked_by_attack            24 legal castle=e1c1
+  ok    castle_uci_encoding                 26 legal castle=e1c1,e1g1
+  ok    promotion_forced                     4 legal promo=4
+  ok    promotion_with_capture              13 legal promo=8
+  ok    underpromotion_to_avoid_stalemate    7 legal promo=4
+  ok    max_legal_moves_218                218 legal
+  ok    kiwipete                            48 legal castle=e1c1,e1g1
+  ok    perft_position_3                    14 legal
+  ok    perft_position_4                     6 legal
+  ok    perft_position_5                    44 legal castle=e1g1 promo=4
+  ok    single_legal_move                    1 legal
+  ok    single_evasion_by_capture            1 legal
+  ok    double_check_king_must_move          5 legal
+  ok    stalemate_no_legal_moves             0 legal
+  ok    clock_move_150                       8 legal
+  ok    clock_move_250                      22 legal
+  ok    clock_near_ply_cap                  22 legal
+  ok    clock_almost_flagged                31 legal
+  ok    clock_one_ms                        31 legal
+  ok    clock_zero_ms                       31 legal
+  ok    clock_first_move_full               20 legal
+  ok    no_castling_rights                  24 legal
+  ok    stale_ep_square                     20 legal
+  ok    fifty_move_boundary                 22 legal
+  ok    lone_kings_drawn                     8 legal
+  ok    four_man_endgame_krk                15 legal
+  ok    four_man_kpkp                        8 legal
+  ok    checkmate_delivered                  0 legal
+  ok    castle_white_both                   26 legal castle=e1c1,e1g1
+  ok    castle_black_both                   26 legal castle=e8c8,e8g8
+  ok    castle_black_kingside_only          26 legal castle=e8c8,e8g8
+  ok    castle_all_four_rights              26 legal castle=e1c1,e1g1
+  ok    castle_rook_attacked_is_legal       25 legal castle=e1g1
+  ok    castle_king_in_check                 4 legal
+  ok    castle_blocked_b1                   25 legal castle=e1g1
+  ok    promo_white_all_four                13 legal promo=8
+  ok    promo_black_all_four                13 legal promo=8
+  ok    promo_black_capture_both_ways       17 legal promo=12
+  ok    promo_white_capture_both_ways       17 legal promo=12
+  ok    promo_under_check_evasion           44 legal castle=e1g1 promo=4
+  ok    ep_black_capture                     5 legal ep=c4d3
+  ok    ep_white_capture                     7 legal ep=e5d6
+  ok    ep_two_captures_available            9 legal ep=c5d6,e5d6
+  ok    ep_discovered_check_pin              6 legal
+
+48 positions, 0 with a move-generation or encoding fault
+castling moves generated and encoded: 19
+promotion moves generated and encoded: 64
+en-passant captures present in these positions: 6

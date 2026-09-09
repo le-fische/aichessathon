@@ -1,0 +1,163 @@
+warming numba...
+warmup 3.27s
+
+position                      d          ours   python-chess  ours Mnps  verdict
+------------------------------------------------------------------------------------
+pos1-startpos                 1            20             20       0.20  MATCH
+pos1-startpos                 2           400            400       4.51  MATCH
+pos1-startpos                 3         8,902          8,902      16.89  MATCH
+pos1-startpos                 4       197,281        197,281      18.81  MATCH
+pos1-startpos                 5     4,865,609              -      19.22  skipped
+pos1-startpos                 6   119,060,324              -      18.80  skipped
+------------------------------------------------------------------------------------
+pos2-kiwipete                 1            48             48       0.12  MATCH
+pos2-kiwipete                 2         2,039          2,039       4.92  MATCH
+pos2-kiwipete                 3        97,862         97,862      19.84  MATCH
+pos2-kiwipete                 4     4,085,603              -      18.62  skipped
+pos2-kiwipete                 5   193,690,690              -      19.88  skipped
+------------------------------------------------------------------------------------
+pos3-endgame                  1            14             14       0.10  MATCH
+pos3-endgame                  2           191            191       3.36  MATCH
+pos3-endgame                  3         2,812          2,812      13.26  MATCH
+pos3-endgame                  4        43,238         43,238      15.41  MATCH
+pos3-endgame                  5       674,624        674,624      17.64  MATCH
+pos3-endgame                  6    11,030,083              -      16.24  skipped
+------------------------------------------------------------------------------------
+pos4-promotions               1             6              6       0.04  MATCH
+pos4-promotions               2           264            264       2.25  MATCH
+pos4-promotions               3         9,467          9,467      15.49  MATCH
+pos4-promotions               4       422,333        422,333      18.20  MATCH
+pos4-promotions               5    15,833,292              -      18.72  skipped
+------------------------------------------------------------------------------------
+pos4-mirrored                 1             6              6       0.04  MATCH
+pos4-mirrored                 2           264            264       2.36  MATCH
+pos4-mirrored                 3         9,467          9,467      14.97  MATCH
+pos4-mirrored                 4       422,333        422,333      19.19  MATCH
+pos4-mirrored                 5    15,833,292              -      18.09  skipped
+------------------------------------------------------------------------------------
+pos5-promo-in-check           1            44             44       0.31  MATCH
+pos5-promo-in-check           2         1,486          1,486       8.74  MATCH
+pos5-promo-in-check           3        62,379         62,379      17.91  MATCH
+pos5-promo-in-check           4     2,103,487      2,103,487      18.25  MATCH
+pos5-promo-in-check           5    89,941,194              -      18.54  skipped
+------------------------------------------------------------------------------------
+pos6-steven-edwards           1            46             46       0.28  MATCH
+pos6-steven-edwards           2         2,079          2,079      10.30  MATCH
+pos6-steven-edwards           3        89,890         89,890      20.38  MATCH
+pos6-steven-edwards           4     3,894,594              -      20.00  skipped
+pos6-steven-edwards           5   164,075,551              -      20.36  skipped
+------------------------------------------------------------------------------------
+ep-capture-checks-opponent    1            18             18       0.18  MATCH
+ep-capture-checks-opponent    2            92             92       2.30  MATCH
+ep-capture-checks-opponent    3         1,670          1,670      14.11  MATCH
+ep-capture-checks-opponent    4        10,138         10,138      13.63  MATCH
+ep-capture-checks-opponent    5       185,429        185,429      19.56  MATCH
+ep-capture-checks-opponent    6     1,134,888      1,134,888      14.03  MATCH
+------------------------------------------------------------------------------------
+ep-capture-gives-check        1            13             13       0.14  MATCH
+ep-capture-gives-check        2           102            102       2.64  MATCH
+ep-capture-gives-check        3         1,266          1,266      12.04  MATCH
+ep-capture-gives-check        4        10,276         10,276      13.55  MATCH
+ep-capture-gives-check        5       135,655        135,655      17.51  MATCH
+ep-capture-gives-check        6     1,015,133      1,015,133      14.76  MATCH
+------------------------------------------------------------------------------------
+ep-pinned-by-bishop           1            15             15       0.17  MATCH
+ep-pinned-by-bishop           2           126            126       2.85  MATCH
+ep-pinned-by-bishop           3         1,928          1,928      13.19  MATCH
+ep-pinned-by-bishop           4        13,931         13,931      15.40  MATCH
+ep-pinned-by-bishop           5       206,379        206,379      18.23  MATCH
+ep-pinned-by-bishop           6     1,440,467      1,440,467      15.54  MATCH
+------------------------------------------------------------------------------------
+ep-horizontal-pin             1             6              6       0.07  MATCH
+ep-horizontal-pin             2           136            136       3.26  MATCH
+ep-horizontal-pin             3           863            863       9.02  MATCH
+ep-horizontal-pin             4        20,471         20,471      19.10  MATCH
+ep-horizontal-pin             5       117,741        117,741      13.12  MATCH
+ep-horizontal-pin             6     2,822,114      2,822,114      20.22  MATCH
+------------------------------------------------------------------------------------
+ep-rook-pin-on-file           1             8              8       0.09  MATCH
+ep-rook-pin-on-file           2           125            125       2.84  MATCH
+ep-rook-pin-on-file           3           869            869       9.26  MATCH
+ep-rook-pin-on-file           4        14,601         14,601      18.65  MATCH
+ep-rook-pin-on-file           5        96,907         96,907      14.66  MATCH
+ep-rook-pin-on-file           6     1,668,908      1,668,908      19.22  MATCH
+------------------------------------------------------------------------------------
+castle-short-gives-check      1            15             15       0.17  MATCH
+castle-short-gives-check      2            66             66       1.67  MATCH
+castle-short-gives-check      3         1,198          1,198      12.97  MATCH
+castle-short-gives-check      4         6,399          6,399      12.57  MATCH
+castle-short-gives-check      5       120,330        120,330      20.60  MATCH
+castle-short-gives-check      6       661,072        661,072      14.04  MATCH
+------------------------------------------------------------------------------------
+castle-long-gives-check       1            16             16       0.17  MATCH
+castle-long-gives-check       2            71             71       1.96  MATCH
+castle-long-gives-check       3         1,286          1,286      13.51  MATCH
+castle-long-gives-check       4         7,418          7,418      13.22  MATCH
+castle-long-gives-check       5       141,077        141,077      20.46  MATCH
+castle-long-gives-check       6       803,711        803,711      14.25  MATCH
+------------------------------------------------------------------------------------
+castle-rights-both-sides      1            26             26       0.26  MATCH
+castle-rights-both-sides      2         1,141          1,141       6.59  MATCH
+castle-rights-both-sides      3        27,826         27,826      17.36  MATCH
+castle-rights-both-sides      4     1,274,206      1,274,206      18.75  MATCH
+------------------------------------------------------------------------------------
+castle-prevented              1            44             44       0.44  MATCH
+castle-prevented              2         1,494          1,494       9.89  MATCH
+castle-prevented              3        50,509         50,509      15.10  MATCH
+castle-prevented              4     1,720,476      1,720,476      16.67  MATCH
+------------------------------------------------------------------------------------
+castle-through-attacked       1            24             24       0.26  MATCH
+castle-through-attacked       2           697            697       7.95  MATCH
+castle-through-attacked       3        16,544         16,544      17.43  MATCH
+castle-through-attacked       4       489,635        489,635      17.65  MATCH
+------------------------------------------------------------------------------------
+promote-out-of-check          1            11             11       0.16  MATCH
+promote-out-of-check          2           133            133       3.41  MATCH
+promote-out-of-check          3         1,442          1,442      11.37  MATCH
+promote-out-of-check          4        19,174         19,174      17.48  MATCH
+promote-out-of-check          5       266,199        266,199      17.71  MATCH
+promote-out-of-check          6     3,821,001              -      18.55  skipped
+------------------------------------------------------------------------------------
+promote-to-give-check         1             9              9       0.13  MATCH
+promote-to-give-check         2            40             40       1.31  MATCH
+promote-to-give-check         3           472            472       8.80  MATCH
+promote-to-give-check         4         2,661          2,661      11.88  MATCH
+promote-to-give-check         5        38,983         38,983      19.20  MATCH
+promote-to-give-check         6       217,342        217,342      13.27  MATCH
+------------------------------------------------------------------------------------
+underpromote-to-check         1             6              6       0.08  MATCH
+underpromote-to-check         2            27             27       0.89  MATCH
+underpromote-to-check         3           273            273       5.68  MATCH
+underpromote-to-check         4         1,329          1,329       9.04  MATCH
+underpromote-to-check         5        18,135         18,135      17.63  MATCH
+underpromote-to-check         6        92,683         92,683      12.06  MATCH
+------------------------------------------------------------------------------------
+self-stalemate                1             2              2       0.03  MATCH
+self-stalemate                2             6              6       0.13  MATCH
+self-stalemate                3            13             13       0.35  MATCH
+self-stalemate                4            63             63       1.83  MATCH
+self-stalemate                5           382            382       4.77  MATCH
+self-stalemate                6         2,217          2,217      10.14  MATCH
+------------------------------------------------------------------------------------
+stalemate-and-checkmate-a     1            10             10       0.33  MATCH
+stalemate-and-checkmate-a     2            25             25       0.94  MATCH
+stalemate-and-checkmate-a     3           268            268       6.32  MATCH
+stalemate-and-checkmate-a     4           926            926       7.40  MATCH
+stalemate-and-checkmate-a     5        10,857         10,857      15.67  MATCH
+stalemate-and-checkmate-a     6        43,261         43,261      10.15  MATCH
+stalemate-and-checkmate-a     7       567,584        567,584      17.47  MATCH
+------------------------------------------------------------------------------------
+stalemate-and-checkmate-b     1            37             37       0.48  MATCH
+stalemate-and-checkmate-b     2           183            183       3.74  MATCH
+stalemate-and-checkmate-b     3         6,559          6,559      19.56  MATCH
+stalemate-and-checkmate-b     4        23,527         23,527       9.68  MATCH
+stalemate-and-checkmate-b     5       811,573        811,573      21.22  MATCH
+------------------------------------------------------------------------------------
+discovered-check              1            29             29       0.41  MATCH
+discovered-check              2           165            165       3.59  MATCH
+discovered-check              3         5,160          5,160      18.72  MATCH
+discovered-check              4        31,961         31,961      11.69  MATCH
+discovered-check              5     1,004,658      1,004,658      21.16  MATCH
+------------------------------------------------------------------------------------
+
+PASS: every depth compared against python-chess matched exactly
