@@ -1,0 +1,140 @@
+agent.py: Numba search successfully imported and active.
+agent.py: Numba search successfully imported and active.
+engine snapshot: /Users/dannybudiada/Desktop/AIChessHackathon/aichessathon/snapshots/v11-wip
+  7d29bc31396ff3d2819d9dbdb6aa42ac1aa0c72e9a3010a554259167b04c35fa  agent.py
+  8db41e93b7d4efbb80fb3f987e1d8aca920ec41829762192a7701fac5dae8a37  search.py
+  8bb2fb8c0426a6de9223bb3a94eaca2584280603c5e6242865926f0b02e56d3f  nsearch.py
+  d6bb8861c91cd3f59bd4269b07140144482d87c84f4c72148117b8cf93140149  bitboard.py
+  c7776dff84ad726ef99787f7a3efb5acd0ee3d980edf5d590117282b2dbbee99  evaluation.py
+python 3.13.5  chess 1.11.2
+CHESSATHON_REQUIRE_NUMBA=1  USE_NUMBA_SEARCH=None
+Warming up Numba JIT...
+Warmup complete.
+import + JIT: 11.5s   rss 503 MB
+start fen : r2qkb1r/1p3ppp/p1npbn2/4p1B1/4P3/N1N2P2/PPP3PP/R2QKB1R b KQkq - 3 9
+ply cap   : 600   claim_draw=False
+numba     : white=True black=True
+
+ ply   mv side   clock_in   budget     used  ratio  clock_out   d     nodes  ttocc%     rss   cnt
+   0    9 black   120.00s    5800m    4323m   0.75    115.68s  11   9567749   5.55%    679M     1
+   1   10 white   120.00s    5800m    3345m   0.58    116.65s  10   6982350   4.30%    679M     1
+   2   10 black   116.18s    5628m    3321m   0.59    112.86s  11   7386240   8.34%    680M     2
+   3   11 white   117.15s    5672m    3332m   0.59    113.82s  11   6978117  12.17%    680M     2
+   4   11 black   113.36s    5501m    4677m   0.85    108.68s  11  10282240  17.27%    680M     3
+   5   12 white   114.32s    5545m    4714m   0.85    109.61s  12  10035462  22.26%    680M     3
+   6   12 black   109.18s    5313m    4517m   0.85    104.66s  12  10429184  26.93%    680M     4
+   7   13 white   110.11s    5355m    4553m   0.85    105.56s  12  10228736  31.65%    680M     4
+   8   13 black   105.16s    5132m    3170m   0.62    101.99s  10   7400950  34.64%    680M     5
+   9   14 white   106.06s    5172m    3307m   0.64    102.75s  11   7225975  37.72%    680M     5
+  10   14 black   102.49s    5012m    4261m   0.85     98.23s  11   9903872  41.44%    680M     6
+  11   15 white   103.25s    5046m    2839m   0.56    100.41s  11   6259235  43.77%    680M     6
+  20   19 black    85.07s    4228m    3595m   0.85     81.48s  11   8267016  67.59%    680M    11
+  30   24 black    72.44s    3660m    2379m   0.65     70.06s  11   5303962  80.27%    680M    16
+  40   29 black    61.81s    3182m    2705m   0.85     59.11s  13   6072580  86.73%    680M    21
+  50   34 black    52.51s    2763m    2349m   0.85     50.16s  14   5539584  90.40%    680M    26
+  60   39 black    45.19s    2433m    2069m   0.85     43.12s  14   4860169  93.04%    680M    31
+  70   44 black    39.32s    2169m    1845m   0.85     37.47s  13   4339719  94.65%    680M    36
+  80   49 black    33.49s    1907m    1622m   0.85     31.87s  14   3874816  95.92%    680M    41
+  90   54 black    28.74s    1693m     882m   0.52     27.86s  14   2082867  96.74%    680M    45
+ 100   59 black    25.25s    1536m    1019m   0.66     24.23s  14   2357308  97.39%    680M    50
+ 110   64 black    22.25s    1401m     775m   0.55     21.48s  14   1784988  97.83%    680M    55
+ 120   69 black    20.11s    1305m     921m   0.71     19.19s  14   2158071  98.17%    680M    59
+ 130   74 black    17.82s    1202m     673m   0.56     17.14s  14   1521783  98.42%    680M    64
+  -- the real referee would have stopped here: ply 136 threefold_repetition; the clock instrument continues
+ 140   79 black    15.70s    1106m     923m   0.83     14.78s  13   2138467  98.64%    680M    67
+ 150   84 black    13.82s    1022m     869m   0.85     12.95s  13   2065169  98.82%    677M    72
+ 160   89 black    12.60s     967m     577m   0.60     12.03s  15   1285741  98.97%    677M    77
+ 170   94 black    11.58s     921m     494m   0.54     11.09s  26   1234486  99.08%    644M    82
+ 180   99 black    12.52s     963m      33m   0.03     12.49s  64     74160  99.10%    644M    87
+ 190  104 black    14.92s    1071m       8m   0.01     14.91s  64     11828  99.10%    644M    92
+ 200  109 black    17.40s    1183m       2m   0.00     17.40s  64       451  99.10%    644M    93
+ 210  114 black    19.89s    1295m       2m   0.00     19.89s  64       324  99.10%    644M    93
+ 220  119 black    22.38s    1407m       2m   0.00     22.38s  64       451  99.10%    644M    93
+ 230  124 black    24.88s    1519m       2m   0.00     24.87s  64       324  99.10%    644M    93
+ 240  129 black    27.37s    1631m       2m   0.00     27.36s  64       451  99.10%    644M    93
+ 250  134 black    29.86s    1744m       2m   0.00     29.86s  64       324  99.10%    644M    93
+ 260  139 black    32.35s    1856m       2m   0.00     32.35s  64       451  99.10%    644M    93
+ 270  144 black    34.84s    1968m       2m   0.00     34.84s  64       324  99.10%    644M    93
+ 280  149 black    37.33s    2080m       2m   0.00     37.33s  64       320  99.10%    644M    96
+ 290  154 black    39.82s    2192m       1m   0.00     39.82s  64       192  99.10%    644M    99
+ 300  159 black    42.32s    2304m       2m   0.00     42.31s  64       320  99.10%    644M    99
+ 310  164 black    44.81s    2416m       1m   0.00     44.81s  64       192  99.10%    644M    99
+ 320  169 black    47.30s    2529m       2m   0.00     47.30s  64       320  99.10%    644M    99
+ 330  174 black    49.79s    2641m       1m   0.00     49.79s  64       192  99.10%    644M    99
+ 340  179 black    52.29s    2753m       2m   0.00     52.29s  64       320  99.10%    644M    99
+ 350  184 black    54.78s    2865m       1m   0.00     54.78s  64       192  99.10%    644M    99
+ 360  189 black    57.27s    2977m       2m   0.00     57.27s  64       320  99.10%    644M    99
+ 370  194 black    59.77s    3090m       1m   0.00     59.77s  64       192  99.10%    644M    99
+ 380  199 black    62.26s    3202m       2m   0.00     62.26s  64       320  99.10%    644M    99
+ 390  204 black    64.75s    3314m       1m   0.00     64.75s  64       192  99.10%    644M    99
+ 400  209 black    67.25s    3426m       2m   0.00     67.24s  64       320  99.10%    644M    99
+ 410  214 black    69.74s    3538m       1m   0.00     69.74s  64       192  99.10%    644M    99
+ 420  219 black    72.23s    3650m       2m   0.00     72.23s  64       320  99.10%    644M    99
+ 430  224 black    74.73s    3763m       1m   0.00     74.72s  64       192  99.10%    644M    99
+ 440  229 black    77.22s    3875m       2m   0.00     77.22s  64       320  99.10%    644M    99
+ 450  234 black    79.71s    3987m       1m   0.00     79.71s  64       192  99.10%    644M    99
+ 460  239 black    82.20s    4099m       2m   0.00     82.20s  64       320  99.10%    644M    99
+ 470  244 black    84.70s    4211m       1m   0.00     84.70s  64       192  99.10%    644M    99
+ 480  249 black    87.19s    4324m       2m   0.00     87.19s  64       320  99.10%    644M    99
+ 490  254 black    89.68s    4436m       1m   0.00     89.68s  64       192  99.10%    644M    99
+ 500  259 black    92.18s    4548m       2m   0.00     92.18s  64       320  99.10%    644M    99
+ 510  264 black    94.67s    4660m       1m   0.00     94.67s  64       192  99.10%    644M    99
+ 520  269 black    97.16s    4772m       2m   0.00     97.16s  64       320  99.10%    644M    99
+ 530  274 black    99.66s    4885m       1m   0.00     99.65s  64       192  99.10%    644M    99
+ 540  279 black   102.15s    4997m       2m   0.00    102.15s  64       320  99.10%    644M    99
+ 550  284 black   104.64s    5109m       1m   0.00    104.64s  64       192  99.10%    644M    99
+ 560  289 black   107.14s    5221m       2m   0.00    107.13s  64       320  99.10%    644M    99
+ 570  294 black   109.63s    5333m       1m   0.00    109.63s  64       192  99.10%    644M    99
+ 580  299 black   112.12s    5445m       2m   0.00    112.12s  64       320  99.10%    644M    99
+ 590  304 black   114.61s    5558m       1m   0.00    114.61s  64       192  99.10%    644M    99
+
+ended     : ply_cap   plies=600   result=1/2-1/2
+referee would have stopped at: (136, 'threefold_repetition')
+fell back to python mid-game: False
+  white: clock left  116.73s   min clock   10.48s   used  56.8% of 270.0s
+  black: clock left  117.11s   min clock   11.05s   used  56.6% of 270.0s
+worst overshoot ratio: 0.85x  at ply 144  used 913 ms against budget 1073 ms
+  fen: 5R2/8/3r4/p3k1p1/2Bp2Kp/1P5P/2Pb4/8 b - - 1 81
+tt occupancy end: 99.10%   white counter 97   black counter 99
+rss now 644 MB   peak rss 680 MB   ru_maxrss 680 MB   (limit 2048 MB)
+wrote /Users/dannybudiada/Desktop/AIChessHackathon/aichessathon/runs/2026-09-10-v11/trajectory-numba-lmr.csv
+
+position     clock   budget     used   ratio   overrun   d   move
+middlegame    3100     540m   471.7m    0.87  -2628.3m   9   f8e7
+middlegame    3000     535m   457.1m    0.85  -2542.9m   9   f8e7
+middlegame    2999     200m   229.8m    1.15  -2769.2m   8   f8e7
+middlegame    2000     200m   230.1m    1.15  -1769.9m   8   f8e7
+middlegame    1000     100m    89.0m    0.89   -911.0m   7   f8e7
+middlegame     500      50m    53.9m    1.08   -446.1m   6   f8e7
+middlegame     200      20m    27.8m    1.39   -172.2m   6   f8e7
+middlegame     100      10m    14.7m    1.47    -85.3m   5   f8e7
+middlegame      50       5m     6.3m    1.27    -43.7m   3   f8e7
+middlegame      10       1m     3.5m    3.54     -6.5m   2   c5d4
+middlegame       1       0m     2.3m   22.91     +1.3m   0   c5c4  FLAG
+middlegame       0       0m     2.2m     inf     +2.2m   0   c5c4  FLAG
+sharp         3100     540m   280.6m    0.52  -2819.4m   8   c3d5
+sharp         3000     535m   276.4m    0.52  -2723.6m   8   c3d5
+sharp         2999     200m   278.3m    1.39  -2720.7m   8   c3d5
+sharp         2000     200m   257.3m    1.29  -1742.7m   8   c3d5
+sharp         1000     100m    79.4m    0.79   -920.6m   6   c3d5
+sharp          500      50m    43.9m    0.88   -456.1m   5   c3d5
+sharp          200      20m    18.4m    0.92   -181.6m   4   c3d5
+sharp          100      10m    15.0m    1.50    -85.0m   4   c3d5
+sharp           50       5m     8.7m    1.74    -41.3m   4   c3d5
+sharp           10       1m     3.5m    3.54     -6.5m   2   c3d5
+sharp            1       0m     2.4m   24.33     +1.4m   0   a2a3  FLAG
+sharp            0       0m     2.3m     inf     +2.3m   0   a2a3  FLAG
+krk           3100     540m   349.1m    0.65  -2750.9m  13   e8e4
+krk           3000     535m   362.7m    0.68  -2637.3m  13   e8e4
+krk           2999     200m   243.3m    1.22  -2755.7m  12   e8e4
+krk           2000     200m   232.8m    1.16  -1767.2m  12   e8e4
+krk           1000     100m    91.7m    0.92   -908.3m  10   e8e4
+krk            500      50m    53.6m    1.07   -446.4m   9   e8e4
+krk            200      20m    27.7m    1.39   -172.3m   8   e8e4
+krk            100      10m    10.1m    1.01    -89.9m   6   e8e4
+krk             50       5m     6.5m    1.30    -43.5m   5   e8e4
+krk             10       1m     3.3m    3.25     -6.7m   3   e8d8
+krk              1       0m     2.4m   23.90     +1.4m   1   f5f6  FLAG
+krk              0       0m     2.2m     inf     +2.2m   0   e8e1  FLAG
+
+slowest small-clock reply: 471.7 ms  (middlegame @ 3100 ms)

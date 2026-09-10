@@ -1,0 +1,42 @@
+{
+  "label": "lmr-history",
+  "aggregate_nps": 2116664.835469933,
+  "mean_depth": 8.8,
+  "rows": [
+    {
+      "position": "opening",
+      "nodes": 621312,
+      "sec": 0.32239389419555664,
+      "nps": 1927182.9001300086,
+      "depth": 8
+    },
+    {
+      "position": "middlegame",
+      "nodes": 967172,
+      "sec": 0.4547908306121826,
+      "nps": 2126630.386760687,
+      "depth": 9
+    },
+    {
+      "position": "sharp",
+      "nodes": 688353,
+      "sec": 0.2911109924316406,
+      "nps": 2364572.3380289073,
+      "depth": 8
+    },
+    {
+      "position": "tactical",
+      "nodes": 832512,
+      "sec": 0.4547998905181885,
+      "nps": 1830501.759909078,
+      "depth": 7
+    },
+    {
+      "position": "endgame",
+      "nodes": 687077,
+      "sec": 0.2704930305480957,
+      "nps": 2540091.323638864,
+      "depth": 12
+    }
+  ]
+}

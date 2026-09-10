@@ -1,0 +1,12 @@
+=== RUN 1: v11 vs Stockfish UCI_Elo 2200, 30 games ===  Thu Sep 10 01:42:38 BST 2026
+agent.py: Numba search successfully imported and active.
+Warming up Numba JIT...
+Warmup complete.
+agent vs Stockfish  UCI_Elo=2200  threads=1
+engine: /Users/dannybudiada/Desktop/AIChessHackathon/aichessathon/baselines/stockfish/stockfish
+120s + 0.5s, 30 games, colours alternating, ply cap 600
+
+agent.py: Executing get_move using Numba search.
+game   1/30  W  King's Indian    draw  by threefold_repetition    94 plies  clock left   29.6s    256s  | +0 =1 -0  50.0%  Elo diff +0 +/- 491
+game   2/30  B  Nimzo-Indian     loss  by checkmate              128 plies  clock left   17.1s    283s  | +0 =1 -1  25.0%  Elo diff -191 +/- 328
+game   3/30  W  Dutch Stonewall  draw  by threefold_repetition   139 plies  clock left   17.2s    291s  | +0 =2 -1  33.3%  Elo diff -120 +/- 213
