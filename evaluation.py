@@ -85,10 +85,6 @@ def _pawn_structure(white_pawns: int, black_pawns: int) -> tuple[int, int]:
                 mg += CONNECTED_PASSED_BONUS_MG
                 eg += CONNECTED_PASSED_BONUS_EG
                 
-        if (white_pawns & FILE_MASKS[sq]).bit_count() > 1:
-            mg += DOUBLED_PAWN_MG
-            eg += DOUBLED_PAWN_EG
-            
         if not (white_pawns & ADJACENT_FILES_MASK[sq]):
             mg += ISOLATED_PAWN_MG
             eg += ISOLATED_PAWN_EG
@@ -102,13 +98,17 @@ def _pawn_structure(white_pawns: int, black_pawns: int) -> tuple[int, int]:
                 mg -= CONNECTED_PASSED_BONUS_MG
                 eg -= CONNECTED_PASSED_BONUS_EG
                 
-        if (black_pawns & FILE_MASKS[sq]).bit_count() > 1:
-            mg -= DOUBLED_PAWN_MG
-            eg -= DOUBLED_PAWN_EG
-            
         if not (black_pawns & ADJACENT_FILES_MASK[sq]):
             mg -= ISOLATED_PAWN_MG
             eg -= ISOLATED_PAWN_EG
+
+    for f in range(8):
+        if (white_pawns & FILE_MASKS[f]).bit_count() > 1:
+            mg += DOUBLED_PAWN_MG
+            eg += DOUBLED_PAWN_EG
+        if (black_pawns & FILE_MASKS[f]).bit_count() > 1:
+            mg -= DOUBLED_PAWN_MG
+            eg -= DOUBLED_PAWN_EG
                 
     if len(_pawn_cache) > 16384:
         _pawn_cache.clear()
