@@ -38,7 +38,16 @@ MVV-LVA + killers + history ordering, quiescence with stand-pat, null-move pruni
 capped at `ply < 2 * root_depth`, and no LMR on a quiet move that gives check.
 
 Evaluation: tapered PeSTO piece-square tables, passed pawns, tapered bishop pair,
-`_mate_drive` for bare-king endings. Syzygy WDL for <= 4 pieces (35 files, 1.3 MB).
+`_mate_drive` for bare-king endings.
+
+**Syzygy: the 35 shipped `.rtbw` files are inert in the build that plays.** `chess.syzygy`
+is imported in `search.py` and nowhere else, so the WDL probe at `<= 4` pieces exists only
+on the pure-Python fallback path. A runtime probe counter over four endgame positions
+recorded 0 calls with the numba search active and 57,793 with `USE_NUMBA_SEARCH=0`. The
+1.3 MB ships and does nothing. Also `search.py:16` opens the table set by the relative
+path `"weights"` under `contextlib.suppress(Exception)`, so if cwd is not the agent
+directory even the fallback silently runs with `tb = None`.
+See `runs/2026-09-09-tablebase/FINDINGS.md`.
 
 Measured: **~2.7 M nodes/sec, ~12.4 plies** at the tournament clock, against the Python
 search's ~60-90 k nodes/sec and ~8.4 plies.

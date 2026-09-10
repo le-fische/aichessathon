@@ -22,16 +22,18 @@ and they change, so fetch them before you rely on a number.
 - Your colour is the side to move in the fen. There is no other input.
 - The process starts once per game and stays alive between your moves. Module state survives to
   your next move in the same game, never to the next game.
-- Import time has a 60 second budget before the clock starts. Load weights there.
+- Import time has a 90 second budget before the clock starts. Load weights there.
 - 120 s + 0.5 s per move, per side, on wall time. One core, 2 GB, no network, no GPU.
 - Illegal move, malformed output, crash, out of memory, or flag fall loses that game. A move
-  reply over 4 KB counts as illegal. 300 plies without a result goes to material adjudication.
+  reply over 4 KB counts as illegal. A game still running at 600 plies is drawn.
 - Everything in the zip together stays under 50 MB unzipped.
-- Six uploads per team per day, and the latest one that passed validation is the one that plays.
+- Ten uploads per team per day, and the latest one that passed validation is the one that plays.
 - Rated games start from curated opening positions, not the standard start. The set is not
   published.
-- The process keeps its core while the opponent thinks, so pondering on their time is allowed.
-  Two of your games can run at once, in separate containers.
+- Your process is suspended while your opponent moves, so pondering is impossible: work you
+  leave running between your own moves does not run. Each side has the core to itself while it
+  thinks. Two of your games can run at once, in separate containers, and you are never asked
+  for two moves at once.
 
 ## Things that break agents here
 
@@ -50,8 +52,11 @@ and they change, so fetch them before you rely on a number.
 - numba is how Python gets fast here. Warm every jitted function once at import so compilation
   lands in the init budget, not on the clock. Cython does not work on the platform.
 - `print` is safe. The runner points file descriptor 1 at stderr before importing the agent, so
-  nothing you write can corrupt the protocol. It is discarded in rated games and shown in the
-  validation log.
+  nothing you write can corrupt the protocol. It is kept, up to 8 KB (the first 4 KB and the
+  last 4 KB), in the validation log and in a per-game log your dashboard offers alongside the
+  PGN after every rated game. That log also carries your init time, your time on every move and
+  the clock you had left, so it is a diagnostic channel worth not wasting: a per-move print can
+  push the 8 KB over and lose the part you wanted.
 
 ## Do not
 

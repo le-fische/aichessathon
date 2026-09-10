@@ -9,3 +9,4 @@ baselines/stockfish/
 data/
 *.npy
 _stage_*
+snapshots/
