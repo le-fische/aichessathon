@@ -1,5 +1,6 @@
 # ruff: noqa: E501
 # mypy: ignore-errors
+import math
 import time
 
 import chess
@@ -52,6 +53,20 @@ PIECE_VALUE = np.array([100, 320, 330, 500, 900, 0, 0], dtype=np.int32)
 # a free attacker and invert the swap-off. 10000 keeps it last in the ordering, and a
 # king capture into a still-defended square scores hugely negative, which is correct.
 SEE_VALUE = np.array([100, 320, 330, 500, 900, 10000, 0], dtype=np.int32)
+
+# Late move reduction depth, by (depth, move number). It was a flat 1 ply regardless of
+# either, which under-reduces late moves at high depth. Built once at import so the
+# search never calls log().
+LMR_MAX = 64
+LMR_TABLE = np.zeros((LMR_MAX, LMR_MAX), dtype=np.int32)
+for _d in range(1, LMR_MAX):
+    for _m in range(1, LMR_MAX):
+        LMR_TABLE[_d, _m] = int(0.75 + math.log(_d) * math.log(_m) / 2.25)
+
+# Bound on history_table entries. int32 with `depth * depth` bonuses reaches 4096 per
+# update; a hot from/to pair over a long game can accumulate past int32 and wrap, which
+# silently inverts move ordering. Clamping is cheaper than widening the table.
+HISTORY_MAX = 32768
 CONTEMPT = 0.0
 
 def clear_tt():
@@ -430,7 +445,11 @@ def negamax(pieces, colors, state, depth, ply, alpha, beta, prev_is_null,
     current_best_move = np.uint32(0)
     legal_moves_played = 0
     undo = np.zeros(4, dtype=np.uint64)
-    
+
+    # Quiets searched at this node, for the history penalty on a cutoff.
+    quiet_moves = np.zeros(64, dtype=np.uint32)
+    quiet_count = 0
+
     for i in range(count):
         move = moves[i]
         is_capture = ((move >> 18) & 0x7) != NONE
@@ -443,12 +462,24 @@ def negamax(pieces, colors, state, depth, ply, alpha, beta, prev_is_null,
             continue
             
         legal_moves_played += 1
+        if is_quiet and quiet_count < 64:
+            quiet_moves[quiet_count] = move
+            quiet_count += 1
         needs_full_search = True
         score = 0.0
         
         gives_check = in_check(pieces, colors, state)
         if legal_moves_played >= 4 and depth >= 3 and not is_ch and is_quiet and not gives_check:
-            reduced_score = -negamax(pieces, colors, state, depth - 2, ply + 1, -alpha - 1, -alpha, False,
+            # v11: reduction scales with depth and move number instead of a flat 1 ply.
+            d_idx = depth if depth < LMR_MAX else LMR_MAX - 1
+            m_idx = legal_moves_played if legal_moves_played < LMR_MAX else LMR_MAX - 1
+            r = LMR_TABLE[d_idx, m_idx]
+            if r < 1:
+                r = 1
+            reduced_depth = depth - 1 - r
+            if reduced_depth < 1:
+                reduced_depth = 1
+            reduced_score = -negamax(pieces, colors, state, reduced_depth, ply + 1, -alpha - 1, -alpha, False,
                                      path_keys, path_count, pos_counts_keys, pos_counts_vals,
                                      killers, history_table, start_time, budget_ms, max_nodes, nodes, panic,
                                      tt_keys, tt_depths, tt_scores, tt_flags, tt_moves, root_depth)
@@ -487,9 +518,26 @@ def negamax(pieces, colors, state, depth, ply, alpha, beta, prev_is_null,
                 if move != killers[ply, 0]:
                     killers[ply, 1] = killers[ply, 0]
                     killers[ply, 0] = move
+                bonus = depth * depth
                 fr = move & 0x3F
                 to = (move >> 6) & 0x3F
-                history_table[fr, to] += depth * depth
+                h = history_table[fr, to] + bonus
+                if h > HISTORY_MAX:
+                    h = HISTORY_MAX
+                history_table[fr, to] = h
+                # v11: penalise the quiets searched here that did not cut off. Rewarding
+                # only the cutoff move leaves every quiet that failed at its old score,
+                # so ordering never learns which ones are bad.
+                for qi in range(quiet_count):
+                    qm = quiet_moves[qi]
+                    if qm == move:
+                        continue
+                    qf = qm & 0x3F
+                    qt = (qm >> 6) & 0x3F
+                    hq = history_table[qf, qt] - bonus
+                    if hq < -HISTORY_MAX:
+                        hq = -HISTORY_MAX
+                    history_table[qf, qt] = hq
             break
             
     if legal_moves_played == 0:
