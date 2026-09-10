@@ -34,7 +34,7 @@ def search_once(fen: str, budget_ms: int) -> tuple[int, float, int]:
     _, _, nodes, depth = nsearch.numba_search(
         pieces, colors, state, budget_ms, EMPTY_KEYS, EMPTY_VALS, 0, start,
         nsearch.tt_keys, nsearch.tt_depths, nsearch.tt_scores,
-        nsearch.tt_flags, nsearch.tt_moves,
+        nsearch.tt_flags, nsearch.tt_moves, 1,
     )
     return int(nodes), time.time() - start, int(depth)
 

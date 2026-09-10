@@ -49,6 +49,22 @@ tt_scores = np.zeros(TT_SIZE, dtype=np.float32)
 tt_flags = np.zeros(TT_SIZE, dtype=np.uint8)
 tt_moves = np.zeros(TT_SIZE, dtype=np.uint32)
 
+# Generation is packed into the SPARE BITS OF tt_flags rather than a separate array.
+# tt_flags only ever holds 0, 1 or 2, so the low two bits are the flag and the high six
+# are which search wrote the entry. A separate array would have to be threaded through
+# negamax's signature and all six of its call sites; without that numba resolves the
+# module global to a READONLY constant array and the store fails to compile.
+#
+# Why aging at all: always-replace with no aging measured 99.71% occupancy by ply 280 in
+# the 600-ply endurance run. From about ply 80 every store evicts something, and a
+# shallow entry from the current search can throw out a deep one. It is also why PVS
+# costs 8.3% here instead of saving nodes -- PVS writes tighter bounds, which are worse
+# cutoff material once the table cannot hold on to the good entries.
+TT_FLAG_MASK = 3
+TT_GEN_SHIFT = 2
+TT_GEN_MODULO = 64
+_generation = 0
+
 PIECE_VALUE = np.array([100, 320, 330, 500, 900, 0, 0], dtype=np.int32)
 
 # SEE needs a king value: PIECE_VALUE has KING = 0, which would make the king look like
@@ -166,6 +182,7 @@ def tb_root_move(board: chess.Board, time_left_ms: int = 10 ** 9):
 
 def clear_tt():
     tt_keys.fill(0)
+    tt_flags.fill(0)
 
 @njit(cache=False)
 def get_draw_score(ply):
@@ -471,7 +488,7 @@ def negamax(pieces, colors, state, depth, ply, alpha, beta, prev_is_null,
     if tt_entry_key == hash_key:
         tt_depth = tt_depths[tt_idx]
         tt_score = tt_scores[tt_idx]
-        tt_flag = tt_flags[tt_idx]
+        tt_flag = tt_flags[tt_idx] & TT_FLAG_MASK
         tt_move = tt_moves[tt_idx]
         
         if tt_depth >= depth:
@@ -658,18 +675,28 @@ def negamax(pieces, colors, state, depth, ply, alpha, beta, prev_is_null,
     # child score and was stored here as an exact entry. With "always replace" and the
     # table 98% full by move 156, every timed-out search poisoned it with fake draws.
     if nodes[1] == 0:
-        tt_keys[tt_idx] = hash_key
-        tt_depths[tt_idx] = depth
-        tt_scores[tt_idx] = store_score
-        tt_flags[tt_idx] = flag
-        tt_moves[tt_idx] = current_best_move
+        # Depth-preferred with aging. Keep an entry only while it is BOTH from the
+        # current search and deeper than what we are about to write; anything else is
+        # fair game. nodes[2] carries the generation so no signature had to change.
+        gen = nodes[2] % TT_GEN_MODULO
+        stored_gen = tt_flags[tt_idx] >> TT_GEN_SHIFT
+        replace = (tt_keys[tt_idx] == np.uint64(0)
+                   or tt_keys[tt_idx] == hash_key
+                   or stored_gen != gen
+                   or depth >= tt_depths[tt_idx])
+        if replace:
+            tt_keys[tt_idx] = hash_key
+            tt_depths[tt_idx] = depth
+            tt_scores[tt_idx] = store_score
+            tt_flags[tt_idx] = np.uint8(flag | (gen << TT_GEN_SHIFT))
+            tt_moves[tt_idx] = current_best_move
     
     path_count -= 1
     return best_score
 
 @njit(cache=False)
 def numba_search(pieces, colors, state, time_left_ms, pos_counts_keys, pos_counts_vals, max_nodes, start_time, 
-                 tt_keys, tt_depths, tt_scores, tt_flags, tt_moves, max_depth=64):
+                 tt_keys, tt_depths, tt_scores, tt_flags, tt_moves, generation, max_depth=64):
     if time_left_ms < 3000:
         # v11: was min(200.0, time_left_ms * 0.1), which put a 2.7x cliff at the 3000 ms
         # boundary -- 535 ms of budget at 3000, 200 ms at 2999. 15% capped at 400 ms
@@ -683,7 +710,9 @@ def numba_search(pieces, colors, state, time_left_ms, pos_counts_keys, pos_count
         
     # nodes[0] = node count, nodes[1] = stop flag set when a search aborts on the
     # deadline. Carried in the existing array so no signature has to change.
-    nodes = np.zeros(2, dtype=np.int64)
+    # nodes[0] count, nodes[1] abort flag, nodes[2] transposition-table generation
+    nodes = np.zeros(3, dtype=np.int64)
+    nodes[2] = generation
     killers = np.zeros((128, 2), dtype=np.uint32)
     history_table = np.zeros((64, 64), dtype=np.int32)
     path_keys = np.zeros(256, dtype=np.uint64)
@@ -828,8 +857,10 @@ def get_move_with_info(board: chess.Board, time_left_ms: int, position_counts, m
     
     start_time = time.time()
     
+    global _generation
+    _generation = (_generation + 1) & 255
     best_move, score, nodes, completed_depth = numba_search(pieces, colors, state, time_left_ms, pos_keys, pos_vals, max_nodes, start_time,
-                                           tt_keys, tt_depths, tt_scores, tt_flags, tt_moves, max_depth)
+                                           tt_keys, tt_depths, tt_scores, tt_flags, tt_moves, _generation, max_depth)
     
     if best_move == 0:
         return next(iter(board.legal_moves)).uci(), score, nodes
@@ -852,7 +883,7 @@ _p, _c, _s = from_chess_board(_b)
 _pk = np.array([], dtype=np.uint64)
 _pv = np.array([], dtype=np.int32)
 clear_tt()
-numba_search(_p, _c, _s, 1000, _pk, _pv, 10, time.time(), tt_keys, tt_depths, tt_scores, tt_flags, tt_moves, 1)
+numba_search(_p, _c, _s, 1000, _pk, _pv, 10, time.time(), tt_keys, tt_depths, tt_scores, tt_flags, tt_moves, 0, 1)
 print("Warmup complete.")
 
 
