@@ -1,0 +1,92 @@
+=== RUN 1: v11 vs Stockfish UCI_Elo 2200, 30 games ===  Thu Sep 10 02:20:18 BST 2026
+Warming up Numba JIT...
+Warmup complete.
+agent.py: Numba search successfully imported and active.
+agent vs Stockfish  UCI_Elo=2200  threads=1
+engine: /Users/dannybudiada/Desktop/AIChessHackathon/aichessathon/baselines/stockfish/stockfish
+120s + 0.5s, 30 games, colours alternating, ply cap 600
+
+agent.py: Executing get_move using Numba search.
+game   1/30  W  King's Indian    win   by checkmate               58 plies  clock left   50.1s    217s  | +1 =0 -0  100.0%  Elo diff +0 +/- 491
+game   2/30  B  Nimzo-Indian     win   by checkmate               85 plies  clock left   33.0s    246s  | +2 =0 -0  100.0%  Elo diff +191 +/- 328
+game   3/30  W  Dutch Stonewall  win   by checkmate              110 plies  clock left   24.8s    268s  | +3 =0 -0  100.0%  Elo diff +280 +/- 295
+game   4/30  B  Sicilian Closed  win   by checkmate               94 plies  clock left   29.5s    253s  | +4 =0 -0  100.0%  Elo diff +338 +/- 281
+game   5/30  W  Queen's Indian   loss  by checkmate              167 plies  clock left   13.8s    306s  | +4 =0 -1  80.0%  Elo diff +241 +/- 194
+game   6/30  B  Reti             win   by checkmate               79 plies  clock left   37.2s    240s  | +5 =0 -1  83.3%  Elo diff +280 +/- 190
+game   7/30  W  King's Indian    draw  by threefold_repetition   138 plies  clock left   16.8s    292s  | +5 =1 -1  78.6%  Elo diff +226 +/- 160
+game   8/30  B  Nimzo-Indian     win   by checkmate               85 plies  clock left   32.1s    248s  | +6 =1 -1  81.2%  Elo diff +255 +/- 157
+game   9/30  W  Dutch Stonewall  loss  by checkmate               65 plies  clock left   43.4s    225s  | +6 =1 -2  72.2%  Elo diff +166 +/- 129
+game  10/30  B  Sicilian Closed  draw  by threefold_repetition    72 plies  clock left   37.6s    238s  | +6 =2 -2  70.0%  Elo diff +147 +/- 120
+game  11/30  W  Queen's Indian   loss  by checkmate              179 plies  clock left   10.7s    313s  | +6 =2 -3  63.6%  Elo diff +97 +/- 109
+game  12/30  B  Reti             win   by checkmate              101 plies  clock left   25.0s    263s  | +7 =2 -3  66.7%  Elo diff +120 +/- 106
+game  13/30  W  King's Indian    loss  by checkmate               49 plies  clock left   57.8s    196s  | +7 =2 -4  61.5%  Elo diff +82 +/- 99
+game  14/30  B  Nimzo-Indian     win   by checkmate               63 plies  clock left   48.6s    221s  | +8 =2 -4  64.3%  Elo diff +102 +/- 97
+game  15/30  W  Dutch Stonewall  win   by checkmate               66 plies  clock left   44.7s    226s  | +9 =2 -4  66.7%  Elo diff +120 +/- 95
+game  16/30  B  Sicilian Closed  win   by checkmate               68 plies  clock left   41.3s    230s  | +10 =2 -4  68.8%  Elo diff +137 +/- 94
+game  17/30  W  Queen's Indian   loss  by checkmate               87 plies  clock left   30.4s    249s  | +10 =2 -5  64.7%  Elo diff +105 +/- 88
+game  18/30  B  Reti             loss  by checkmate               64 plies  clock left   44.7s    221s  | +10 =2 -6  61.1%  Elo diff +79 +/- 84
+game  19/30  W  King's Indian    win   by checkmate               68 plies  clock left   41.3s    230s  | +11 =2 -6  63.2%  Elo diff +94 +/- 83
+game  20/30  B  Nimzo-Indian     win   by checkmate               65 plies  clock left   47.0s    222s  | +12 =2 -6  65.0%  Elo diff +108 +/- 81
+game  21/30  W  Dutch Stonewall  win   by checkmate               78 plies  clock left   36.6s    240s  | +13 =2 -6  66.7%  Elo diff +120 +/- 80
+game  22/30  B  Sicilian Closed  win   by checkmate               92 plies  clock left   30.7s    254s  | +14 =2 -6  68.2%  Elo diff +132 +/- 80
+game  23/30  W  Queen's Indian   win   by checkmate              116 plies  clock left   24.0s    272s  | +15 =2 -6  69.6%  Elo diff +144 +/- 79
+game  24/30  B  Reti             win   by checkmate               67 plies  clock left   43.2s    228s  | +16 =2 -6  70.8%  Elo diff +154 +/- 78
+game  25/30  W  King's Indian    draw  by threefold_repetition   109 plies  clock left   25.2s    269s  | +16 =3 -6  70.0%  Elo diff +147 +/- 76
+game  26/30  B  Nimzo-Indian     win   by checkmate               83 plies  clock left   34.9s    244s  | +17 =3 -6  71.2%  Elo diff +157 +/- 75
+game  27/30  W  Dutch Stonewall  win   by checkmate               66 plies  clock left   42.6s    228s  | +18 =3 -6  72.2%  Elo diff +166 +/- 75
+game  28/30  B  Sicilian Closed  win   by checkmate               84 plies  clock left   32.5s    248s  | +19 =3 -6  73.2%  Elo diff +175 +/- 74
+game  29/30  W  Queen's Indian   loss  by checkmate              169 plies  clock left   12.9s    300s  | +19 =3 -7  70.7%  Elo diff +153 +/- 71
+game  30/30  B  Reti             draw  by threefold_repetition   161 plies  clock left   13.7s    306s  | +19 =4 -7  70.0%  Elo diff +147 +/- 69
+
++19 =4 -7 over 30 games, score 70.0%
+terminations: checkmate 26, threefold_repetition 4
+Elo difference vs Stockfish 2200: +147 +/- 69
+implied absolute strength: 2347
+
+=== RUN 2: v11 vs frozen v10, 40 games at the real time control ===  Thu Sep 10 04:25:25 BST 2026
+game 1/40: draw by threefold_repetition
+game 2/40: draw by threefold_repetition
+game 3/40: white by flag
+game 4/40: white by checkmate
+game 5/40: draw by threefold_repetition
+game 6/40: draw by insufficient_material
+game 7/40: draw by insufficient_material
+game 8/40: draw by threefold_repetition
+game 9/40: draw by threefold_repetition
+game 10/40: draw by threefold_repetition
+game 11/40: white by checkmate
+game 12/40: draw by threefold_repetition
+game 13/40: draw by threefold_repetition
+game 14/40: draw by threefold_repetition
+game 15/40: draw by threefold_repetition
+game 16/40: draw by threefold_repetition
+game 17/40: draw by threefold_repetition
+game 18/40: draw by threefold_repetition
+game 19/40: draw by threefold_repetition
+game 20/40: black by checkmate
+game 21/40: white by checkmate
+game 22/40: black by flag
+game 23/40: draw by threefold_repetition
+game 24/40: black by checkmate
+game 25/40: white by checkmate
+game 26/40: black by checkmate
+game 27/40: white by checkmate
+game 28/40: draw by threefold_repetition
+game 29/40: white by checkmate
+game 30/40: black by checkmate
+game 31/40: draw by threefold_repetition
+game 32/40: draw by threefold_repetition
+game 33/40: draw by threefold_repetition
+game 34/40: draw by threefold_repetition
+game 35/40: white by checkmate
+game 36/40: draw by threefold_repetition
+game 37/40: draw by threefold_repetition
+game 38/40: white by checkmate
+game 39/40: draw by threefold_repetition
+game 40/40: draw by threefold_repetition
+
+/Users/dannybudiada/Desktop/AIChessHackathon/aichessathon/snapshots/v11 vs /Users/dannybudiada/Desktop/AIChessHackathon/aichessathon/snapshots/v10 over 40 games
++12 =26 -2, score 62.5%
+terminations: threefold_repetition 24, flag 2, checkmate 12, insufficient_material 2
+your agent failed to finish a game: flag 2
+=== DONE === Thu Sep 10 07:26:20 BST 2026

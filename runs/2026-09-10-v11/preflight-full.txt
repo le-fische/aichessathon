@@ -1,0 +1,61 @@
+preflight: repo /Users/dannybudiada/Desktop/AIChessHackathon/aichessathon
+preflight: HEAD c9ac4da on danny-test
+preflight: workdir /var/folders/pc/k042sdhs1fb48cr0jl18fjx40000gn/T/preflight-j1df7oxq
+preflight: python 3.13.5 at /Users/dannybudiada/Desktop/AIChessHackathon/pyenv/bin/python
+
+[PASS] C00  Limits are from the live docs and recently verified
+         init 90s | clock 120000ms+500ms | 50,000,000B unzipped | 2048MB RAM | 600-ply draw | 10 uploads/day
+         verified 2026-09-09 against agent-contract.md and rules.md
+         1 day(s) old
+[WARN] C00b  harness/rules.py agrees with the live docs
+         INIT_BUDGET_S = 60, live docs say 90 (harness is read-only; do not edit)
+         PLY_CAP = 300, live docs say 600 (harness is read-only; do not edit)
+[PASS] C01  agent.py sits at the zip root
+         agent.py is a top-level member
+[WARN] C02  Root .py inventory is exactly the expected set
+         7 root .py: agent.py, bitboard.py, evaluation.py, nnue.py, nsearch.py, nsearch_nnue.py, search.py
+         ships but is not imported by agent.py: nnue.py, nsearch_nnue.py (package.py globs every root *.py)
+[PASS] C03  No shipped file shadows a stdlib or permitted-package module
+         checked 7 .py names against 295 stdlib + permitted names
+[PASS] C04  No native binaries (magic bytes, not extension alone)
+         scanned 42 members; no ELF / Mach-O / PE headers, no binary extensions
+[PASS] C05  Unzipped size is under the 50 MB cap
+         1,379,544 bytes unzipped = 2.76% of 50,000,000
+         1,213,630 bytes compressed, 42 members
+[PASS] C06  Every import resolves to stdlib, a permitted package, or the zip
+         15 distinct top-level imports across 7 shipped modules
+           bitboard (shipped), chess (permitted), collections (stdlib), contextlib (stdlib), evaluation (shipped), math (stdlib), nsearch (shipped), numba (permitted), numpy (permitted), os (stdlib), search (shipped), sys (stdlib), time (stdlib), traceback (stdlib), typing (stdlib)
+[PASS] C07  Every file under weights/ is actually loaded by shipped code
+         scan: weights/ [.rtbw, .rtbz] from search.py:16
+         35/35 data files are reachable from shipped code
+[WARN] C08  No unguarded per-move output in get_move or anything it calls
+         rule: import-time output is fine (once per game, inside the 90 s init budget). Inside the per-move call graph an output call must be (a) behind an env flag that is FALSE when unset, (b) inside a once-per-game latch `if f: ... f = <const>`, or (c) inside an except handler whose latch an enclosing `if` tests. Unlatched except-handler output is a warning; anything else is a failure.
+         per-move call graph: 41 function(s) -- agent.get_move, agent.get_position_fen, nsearch.get_move, nsearch.get_move_with_info, bitboard.decode_move, nsearch.numba_search, nsearch.negamax, nsearch.get_draw_score, bitboard.unmake_move, nsearch.in_check, bitboard.is_square_attacked, bitboard.get_rook_attacks, bitboard.get_slider_attacks, bitboard.msb, bitboard.popcount, bitboard.lsb, bitboard.get_bishop_attacks, bitboard.make_move, nsearch.qsearch, nsearch.see, nsearch.least_valuable_attacker, bitboard.evaluate, bitboard.numba_pawn_structure, nsearch.insertion_sort, nsearch.score_moves, bitboard.generate_pseudo_legal_moves, bitboard.encode_move, bitboard.get_queen_attacks, bitboard.from_chess_board, bitboard.compute_zobrist, search.get_move, search.negamax, search.get_draw_score, search.qsearch, search.get_evaluation, evaluation.evaluate, evaluation._mate_drive, evaluation._pawn_structure, search.clear_tt_if_full, agent.on_game_start, nsearch.clear_tt
+         ok (once-latch): agent.py:56 print() in get_move()
+         ok (once-latch): agent.py:58 print() in get_move()
+         unlatched except-handler output (repeats if it keeps failing): agent.py:123 print() in get_move()
+         unlatched except-handler output (repeats if it keeps failing): agent.py:124 traceback.print_exc() in get_move()
+         ok (once-latch): agent.py:100 print() in get_move()
+         ok (once-latch): agent.py:101 traceback.print_exc() in get_move()
+         ok (env-guard): nsearch.py:740 print() in get_move_with_info()
+         ok (env-guard): search.py:473 print() in get_move()
+         16 import-time output call(s) -- once per game, not on the clock
+[WARN] C09/C10  import agent works, USE_NUMBA_SEARCH is True, cold import
+         local python is 3.13; the platform runs 3.12 -- import timing and syntax acceptance are not identical
+         probe env: no CHESSATHON_*, no USE_NUMBA_SEARCH, cwd=/var/folders/pc/k042sdhs1fb48cr0jl18fjx40000gn/T/preflight-j1df7oxq/unzipped
+         imported agent.py from the unzipped archive
+         agent.USE_NUMBA_SEARCH is True with no environment variable set
+         cold import 12.2s locally; judge/local ratio for v10 was 28.4/11.0 = 2.58x, so expect ~31.4s on the judge against a 90s budget (35%)
+[PASS] C11/C12  Smoke game (128 plies, base 120000 ms) and peak RSS
+         128 plies played from the HANDOFF opening position; clock left W 18,809 ms / B 18,229 ms
+         final outcome: None
+         peak RSS 674 MB of 2048 MB (32.9%); v10 measured 632 MB on the judge
+[FAIL] C13  Working tree matches HEAD for every shipped file
+         git status: D  nnue.py
+         git status: D  nsearch_nnue.py
+         nnue.py is in HEAD but missing from the working tree
+         nsearch_nnue.py is in HEAD but missing from the working tree
+
+13 checks: 8 pass, 4 warn, 1 fail, 0 skipped
+FAILED: C13
+Do not upload.
