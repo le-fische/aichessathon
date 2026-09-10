@@ -70,7 +70,7 @@ def main() -> int:
             pieces, colors, state, HUGE_CLOCK_MS, empty_keys, empty_vals, 0,
             __import__("time").time(),
             nsearch.tt_keys, nsearch.tt_depths, nsearch.tt_scores,
-            nsearch.tt_flags, nsearch.tt_moves, 1, args.depth,
+            nsearch.tt_flags, nsearch.tt_moves, args.depth,
         )
         from bitboard import decode_move  # noqa: PLC0415
         return decode_move(move), float(score), int(nodes), int(depth)
