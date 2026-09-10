@@ -117,6 +117,25 @@ def _tablebase():
 TB_MIN_CLOCK_MS = 1000
 
 
+# --- platform telemetry -------------------------------------------------------------
+# What depth do we actually reach on the judge's machine? Nobody knows. The depth log
+# below has always been behind CHESSATHON_DEPTH_LOG, which the judge never sets, so it has
+# never once fired in a rated game. Every statement we make about platform depth is
+# inferred from the ratio of init times (~32 s there against ~11.5 s here, so ~2.8x) and
+# JIT compile time may not scale like the search loop at all.
+#
+# The dashboard keeps 8 KB of stderr per game and we have been using 147 bytes of it.
+#
+# Why one latched line instead of a print per move: tools/preflight.py C08 fails any
+# unguarded per-move output in the get_move call graph, and it is right to. A per-move
+# print grows with game length, and the log keeps only the first and last 4 KB, so a long
+# game would silently lose whichever half mattered. Accumulating in memory and emitting
+# once bounds the output no matter how long the game runs.
+TELEMETRY_SAMPLES = 24
+_tele: list = []
+_tele_pending = True
+
+
 def tb_root_move(board: chess.Board, time_left_ms: int = 10 ** 9):
     """DTZ-optimal move when we are winning a position the tablebase covers, else None.
 
@@ -850,6 +869,17 @@ def get_move_with_info(board: chess.Board, time_left_ms: int, position_counts, m
     import os
     if os.environ.get('CHESSATHON_DEPTH_LOG') == '1':
         print(f"info depth {completed_depth} score cp {int(score)} nodes {nodes}", file=sys.stderr)
+
+    # See the TELEMETRY block above. One line, once, ~300 bytes.
+    global _tele_pending
+    if _tele_pending:
+        _tele.append((int(completed_depth), int(nodes), int((time.time() - start_time) * 1000)))
+        if len(_tele) >= TELEMETRY_SAMPLES:
+            d = ",".join(str(t[0]) for t in _tele)
+            k = ",".join(str(t[1] // 1000) for t in _tele)
+            m = ",".join(str(t[2]) for t in _tele)
+            print(f"tele d={d} kn={k} ms={m}", file=sys.stderr)
+            _tele_pending = False
     return uci, score, nodes
 
 def get_move(board: chess.Board, time_left_ms: int, position_counts) -> str:
