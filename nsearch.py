@@ -528,7 +528,11 @@ def negamax(pieces, colors, state, depth, ply, alpha, beta, prev_is_null,
 def numba_search(pieces, colors, state, time_left_ms, pos_counts_keys, pos_counts_vals, max_nodes, start_time, 
                  tt_keys, tt_depths, tt_scores, tt_flags, tt_moves, max_depth=64):
     if time_left_ms < 3000:
-        budget_ms = min(200.0, time_left_ms * 0.1)
+        # v11: was min(200.0, time_left_ms * 0.1), which put a 2.7x cliff at the 3000 ms
+        # boundary -- 535 ms of budget at 3000, 200 ms at 2999. 15% capped at 400 ms
+        # keeps a large reserve while making the boundary nearly continuous. The search
+        # still aborts at budget_ms * 0.85, so real spend here is ~340 ms at worst.
+        budget_ms = min(time_left_ms * 0.15, 400.0)
         panic = True
     else:
         budget_ms = min(time_left_ms * 0.045 + 400.0, time_left_ms * 0.25)
@@ -632,10 +636,16 @@ def numba_search(pieces, colors, state, time_left_ms, pos_counts_keys, pos_count
             
         prev_score = current_best_score
         best_move = current_best_move
-        
-        if panic:
-            break
-                    
+
+        # v11: `if panic: break` used to sit here, stopping after one iteration and --
+        # because it broke before `completed_depth = depth` below -- reporting depth 0
+        # for every move under 3 s of clock. The engine spent 2.4 ms of a 200 ms budget
+        # and played the first move iterative deepening happened to have.
+        #
+        # Removing it cannot cause a flag: the loop below only starts another iteration
+        # while less than half the budget is gone, and every iteration aborts at
+        # budget_ms * 0.85 like any other. It just stops discarding the budget.
+
         if max_nodes > 0:
             if nodes[0] >= max_nodes / 2:
                 break
