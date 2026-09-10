@@ -7,3 +7,43 @@ game 2/40: draw by threefold_repetition
 game 3/40: black by checkmate
 game 4/40: draw by threefold_repetition
 game 5/40: draw by insufficient_material
+game 6/40: draw by threefold_repetition
+game 7/40: draw by threefold_repetition
+game 8/40: black by checkmate
+game 9/40: black by checkmate
+game 10/40: draw by threefold_repetition
+game 11/40: draw by threefold_repetition
+game 12/40: draw by threefold_repetition
+game 13/40: draw by threefold_repetition
+game 14/40: draw by threefold_repetition
+game 15/40: white by checkmate
+game 16/40: draw by threefold_repetition
+game 17/40: white by checkmate
+game 18/40: draw by threefold_repetition
+game 19/40: draw by threefold_repetition
+game 20/40: white by checkmate
+game 21/40: draw by threefold_repetition
+game 22/40: draw by threefold_repetition
+game 23/40: draw by threefold_repetition
+game 24/40: draw by threefold_repetition
+game 25/40: black by checkmate
+game 26/40: draw by threefold_repetition
+game 27/40: draw by threefold_repetition
+game 28/40: black by checkmate
+game 29/40: draw by threefold_repetition
+game 30/40: draw by threefold_repetition
+game 31/40: draw by threefold_repetition
+game 32/40: white by checkmate
+game 33/40: draw by threefold_repetition
+game 34/40: draw by threefold_repetition
+game 35/40: draw by threefold_repetition
+game 36/40: draw by threefold_repetition
+game 37/40: black by checkmate
+game 38/40: draw by threefold_repetition
+game 39/40: white by checkmate
+game 40/40: draw by threefold_repetition
+
+/Users/dannybudiada/Desktop/AIChessHackathon/aichessathon/snapshots/gateA-pawns vs /Users/dannybudiada/Desktop/AIChessHackathon/aichessathon/snapshots/gateA-control over 40 games
++5 =29 -6, score 48.8%
+terminations: threefold_repetition 28, checkmate 11, insufficient_material 1
+=== GATE A DONE === Thu Sep 10 23:26:17 BST 2026

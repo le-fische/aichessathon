@@ -1,0 +1,17 @@
+=== GATE: adaptive LMR (7b41bcc) ON vs OFF, 40 games @ 120s+0.5s === Thu Sep 10 23:40:33 BST 2026
+    agent    = snapshots/lmr-on   (v12 HEAD, LMR scales with depth and move number)
+    opponent = snapshots/lmr-off  (identical, reduction forced flat r=1 as v10)
+    single variable: the history penalty from the same commit is in BOTH arms
+    CHESSATHON_REQUIRE_NUMBA=1
+  --- lmr-on sha256 ---
+    7d29bc31396ff3d2819d9dbdb6aa42ac1aa0c72e9a3010a554259167b04c35fa  agent.py
+    8db41e93b7d4efbb80fb3f987e1d8aca920ec41829762192a7701fac5dae8a37  search.py
+    b939e4e88ec59b8c026dba5fc438eee7b16271dee2e855922ef7c6c1be951a2c  evaluation.py
+    be1947a9daa822f407372d5dc15b954446907bf81af38c17a27eb4ae8db00bfe  bitboard.py
+    53c7984b81811ea913e5022a0b6b9e17692d7cc4ce48d62b7f85a6ae7b1d5beb  nsearch.py
+  --- lmr-off sha256 ---
+    7d29bc31396ff3d2819d9dbdb6aa42ac1aa0c72e9a3010a554259167b04c35fa  agent.py
+    8db41e93b7d4efbb80fb3f987e1d8aca920ec41829762192a7701fac5dae8a37  search.py
+    b939e4e88ec59b8c026dba5fc438eee7b16271dee2e855922ef7c6c1be951a2c  evaluation.py
+    be1947a9daa822f407372d5dc15b954446907bf81af38c17a27eb4ae8db00bfe  bitboard.py
+    092f80705df3d336b2f2b77e4af7831eb6d4172e82181f55c9900cfe12882a60  nsearch.py
