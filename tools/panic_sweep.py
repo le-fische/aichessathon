@@ -22,9 +22,13 @@ CLOCKS = [3100, 3000, 2999, 2000, 1000, 500, 200, 100, 50, 10, 1, 0]
 
 
 def budget_of(clock: int) -> float:
+    """Mirror of nsearch.numba_search's budget. MUST be updated with it -- a stale copy
+    changes this gate's verdict, not just its display. v12 moved the main coefficient
+    from 0.045 to 0.050.
+    """
     if clock < 3000:
         return min(clock * 0.15, 400.0)
-    return min(clock * 0.045 + 400.0, clock * 0.25)
+    return min(clock * 0.050 + 400.0, clock * 0.25)
 
 
 def main() -> int:

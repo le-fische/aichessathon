@@ -92,10 +92,16 @@ def load_agent(alias: str) -> types.ModuleType:
 
 def numba_budget_ms(time_left_ms: float) -> tuple[float, bool]:
     """The budget nsearch.numba_search computes. Copied, not imported: the value is
-    local to an njit function and cannot be read from outside."""
+    local to an njit function and cannot be read from outside.
+
+    MUST BE UPDATED WHENEVER nsearch.numba_search's budget changes. It had drifted twice
+    over: the panic branch was still v10's min(200, clock*0.1) after v11 replaced it with
+    min(clock*0.15, 400), and the main branch still had 0.045 after v12 moved to 0.050.
+    A stale copy here does not just mislabel a column -- it silently changes the pass/fail
+    verdict of the gate that is supposed to catch flags.
     if time_left_ms < 3000:
-        return min(200.0, time_left_ms * 0.1), True
-    return min(time_left_ms * 0.045 + 400.0, time_left_ms * 0.25), False
+        return min(time_left_ms * 0.15, 400.0), True
+    return min(time_left_ms * 0.050 + 400.0, time_left_ms * 0.25), False
 
 
 def python_budget_ms(time_left_ms: float) -> tuple[float, bool]:
