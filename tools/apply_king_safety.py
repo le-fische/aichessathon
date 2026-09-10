@@ -17,12 +17,14 @@ DST = pathlib.Path(sys.argv[2])   # build/ks   (candidate)
 
 # The device shell cannot delete files, so copy the members explicitly rather
 # than mirroring the directory and pruning it afterwards.
-MEMBERS = ("agent.py", "search.py", "evaluation.py", "bitboard.py", "nsearch.py")
-(DST / "weights").mkdir(parents=True, exist_ok=True)
-for name in MEMBERS:
-    shutil.copyfile(SRC / name, DST / name)
-for tb in sorted((SRC / "weights").glob("*.rtbw")):
-    shutil.copyfile(tb, DST / "weights" / tb.name)
+# MEMBERS = ("agent.py", "search.py", "evaluation.py", "bitboard.py", "nsearch.py")
+# (DST / "weights").mkdir(parents=True, exist_ok=True)
+# for name in MEMBERS:
+#     if (SRC / name).resolve() != (DST / name).resolve():
+#         shutil.copyfile(SRC / name, DST / name)
+# for tb in sorted((SRC / "weights").glob("*.rtbw")):
+#     if tb.resolve() != (DST / "weights" / tb.name).resolve():
+#         shutil.copyfile(tb, DST / "weights" / tb.name)
 
 # --------------------------------------------------------------------------
 # evaluation.py  (pure Python reference)
@@ -101,7 +103,7 @@ NB_HELPER = '''
 # bounds, same integer arithmetic. tests/test_evaluate.py compares the two over
 # a random walk; if this drifts from the Python version that test is the only
 # thing that will notice.
-FILE_MASKS = np.array(
+KS_FILE_MASKS = np.array(
     [np.uint64(0x0101010101010101) << np.uint64(f) for f in range(8)],
     dtype=np.uint64,
 )
@@ -145,7 +147,7 @@ def king_shelter_penalty(friendly_pawns, enemy_pawns, ksq, is_white):
         elif nearest == 3:
             penalty += SHELTER_FAR_3
 
-        if (enemy_pawns & FILE_MASKS[f]) == np.uint64(0):
+        if (enemy_pawns & KS_FILE_MASKS[f]) == np.uint64(0):
             penalty += SHELTER_OPEN_FILE
 
     if penalty > SHELTER_CAP:
@@ -165,14 +167,10 @@ NB_CALL = '''    white_pawns = pieces[PAWN] & colors[WHITE]
 '''
 
 text = (DST / "bitboard.py").read_text()
-# The pawn-terms commit (5963d9c) also defines FILE_MASKS in bitboard.py, as a
-# different shape indexed differently. Two module-level definitions of one name
-# means the later one silently wins, and numba does not bounds-check, so a build
-# carrying both would read out of bounds and score wrongly. Fail loudly here
-# instead. The shipped v12 is unaffected: it carries only this definition.
-assert "FILE_MASKS" not in text, (
-    "bitboard.py already defines FILE_MASKS -- combining king safety with the "
-    "pawn terms needs one of them renamed first"
+# The pawn-terms commit (5963d9c) also defines FILE_MASKS in bitboard.py. We use KS_FILE_MASKS
+# to avoid the collision.
+assert "KS_FILE_MASKS" not in text, (
+    "bitboard.py already defines KS_FILE_MASKS."
 )
 anchor = "@njit(cache=False)\ndef evaluate(pieces, colors, state):"
 assert text.count(anchor) == 1, "bitboard.py: evaluate anchor not unique"
