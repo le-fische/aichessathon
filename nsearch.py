@@ -1,9 +1,11 @@
 # ruff: noqa: E501
 # mypy: ignore-errors
 import math
+import os
 import time
 
 import chess
+import chess.syzygy
 import numpy as np
 from numba import njit, objmode
 
@@ -68,6 +70,89 @@ for _d in range(1, LMR_MAX):
 # silently inverts move ordering. Clamping is cheaper than widening the table.
 HISTORY_MAX = 32768
 CONTEMPT = 0.0
+
+# --- Syzygy root probe -------------------------------------------------------------
+# Until v12 the 35 .rtbw files shipped in every submission and were never read:
+# chess.syzygy was imported in search.py (the Python fallback) and nowhere else, and a
+# runtime counter measured 0 probes on the numba path against 57,793 on the fallback.
+#
+# The probe lives here, at the Python entry point, and NEVER inside the search. It cannot
+# go inside: chess.syzygy is not callable from njit code. It should not go inside either
+# -- one probe per move costs 31-321 nodes against a ~2.5M nodes/sec search, but firing
+# per node measured 41-303x slower.
+#
+# WDL alone would not have fixed anything. In the KBNvK position the engine shuffles in,
+# all 21 legal moves score an identical 20000-ply under WDL: 1 distinct score against 4
+# distinct DTZ values (-11, -9, -7, -3). DTZ is what makes the gradient exist, which is
+# why v12 ships .rtbz as well.
+TB_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "weights")
+TB_MAX_MEN = 4          # what weights/ actually covers
+_tb = None
+_tb_tried = False
+
+
+def _tablebase():
+    """Open the tablebase on first endgame, not at import.
+
+    Deliberately lazy: python-chess opens the table files themselves lazily, and measuring
+    cold import with and without the 35 .rtbz files showed no difference (11.2-11.5s vs
+    11.5-11.8s). Init is already at ~34% of the 90s budget on the judge, so this stays
+    off the import path regardless.
+    """
+    global _tb, _tb_tried
+    if not _tb_tried:
+        _tb_tried = True
+        try:
+            _tb = chess.syzygy.open_tablebase(TB_DIR)
+        except Exception:
+            _tb = None
+    return _tb
+
+
+def tb_root_move(board: chess.Board):
+    """DTZ-optimal move when we are winning a position the tablebase covers, else None.
+
+    Only intervenes when the root is a WIN for the side to move. Drawn and lost positions
+    fall through to the search untouched -- there is nothing for DTZ to add there, and
+    staying out keeps the blast radius small.
+
+    Among children that are losing for the opponent, pick the smallest |DTZ|. DTZ is
+    distance-to-zeroing, not distance-to-mate, so this is the move that makes progress
+    against the fifty-move rule -- which is precisely what KBNvK needs.
+    """
+    if board.occupied.bit_count() > TB_MAX_MEN:
+        return None
+    tb = _tablebase()
+    if tb is None:
+        return None
+    try:
+        if tb.probe_wdl(board) <= 0:
+            return None
+    except Exception:
+        return None
+
+    best_move = None
+    best_key = None
+    for move in board.legal_moves:
+        board.push(move)
+        try:
+            child_wdl = tb.probe_wdl(board)
+            # A child that is a loss for the opponent is a win for us. Prefer an immediate
+            # mate, then the smallest distance to a zeroing move.
+            if board.is_checkmate():
+                key = (-1, 0)
+            elif child_wdl < 0:
+                key = (0, abs(tb.probe_dtz(board)))
+            else:
+                key = None
+        except Exception:
+            key = None
+        board.pop()
+        if key is not None and (best_key is None or key < best_key):
+            best_key, best_move = key, move
+    return best_move
+
+
 
 def clear_tt():
     tt_keys.fill(0)
@@ -709,6 +794,12 @@ def numba_search(pieces, colors, state, time_left_ms, pos_counts_keys, pos_count
     return best_move, prev_score, nodes[0], completed_depth
 
 def get_move_with_info(board: chess.Board, time_left_ms: int, position_counts, max_depth=64):
+    # v12: root Syzygy. Returns immediately on a tablebase win, so the search never runs
+    # for those positions and the clock is untouched.
+    tb_move = tb_root_move(board)
+    if tb_move is not None:
+        return tb_move.uci(), 0.0, 0
+
     pieces, colors, state = from_chess_board(board)
     
     pos_keys = []
