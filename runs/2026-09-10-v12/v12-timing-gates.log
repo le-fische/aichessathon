@@ -1,0 +1,124 @@
+########## panic_sweep ##########
+position      clock   budget      used   ratio  depth  move
+middlegame     3100     540m    471.9m    0.87         c5d4
+middlegame     3000     535m    467.8m    0.87         c5d4
+middlegame     2999     400m    213.7m    0.53         c5d4
+middlegame     2000     300m    214.3m    0.71         c5d4
+middlegame     1000     150m    127.6m    0.85         c5d4
+middlegame      500      75m     63.9m    0.85         c5d4
+middlegame      200      30m     18.3m    0.61         c5d4
+middlegame      100      15m      8.8m    0.59         c5d4
+middlegame       50       8m      4.6m    0.61         c5d4
+middlegame       10       2m      1.4m    0.93         c5d4
+middlegame        1       0m      0.2m    1.27         c5c4
+middlegame        0       0m      0.1m     inf         c5c4
+sharp          3100     540m    471.9m    0.87         c3d5
+sharp          3000     535m    467.6m    0.87         c3d5
+sharp          2999     400m    253.9m    0.63         c3d5
+sharp          2000     300m    255.2m    0.85         c3d5
+sharp          1000     150m    109.6m    0.73         c3d5
+sharp           500      75m     56.5m    0.75         c3d5
+sharp           200      30m     16.7m    0.56         c3d5
+sharp           100      15m     12.8m    0.86         c3d5
+sharp            50       8m      6.5m    0.86         c3d5
+sharp            10       2m      1.4m    0.91         c3d5
+sharp             1       0m      0.2m    1.24         a2a3
+sharp             0       0m      0.1m     inf         a2a3
+krk            3100     540m     21.9m    0.04         e8e4
+krk            3000     535m     11.3m    0.02         e8e4
+krk            2999     400m     11.4m    0.03         e8e4
+krk            2000     300m     11.4m    0.04         e8e4
+krk            1000     150m     11.5m    0.08         e8e4
+krk             500      75m     54.0m    0.72         e8e4
+krk             200      30m     25.2m    0.84         e8e4
+krk             100      15m     12.8m    0.85         e8e4
+krk              50       8m      4.0m    0.54         e8e4
+krk              10       2m      1.0m    0.69         e8d8
+krk               1       0m      0.1m    0.66         f5f6
+krk               0       0m      0.0m     inf         e8e1
+
+PASS: every reply legal, and no move over budget at clocks >= 50 ms
+(below 50 ms the ~2 ms floor of python + numba entry dominates any budget)
+########## longgame ##########
+
+position     clock   budget     used   ratio   overrun   d   move
+middlegame    3100     540m   317.1m    0.59  -2782.9m   7   c5d4
+middlegame    3000     535m   284.5m    0.53  -2715.5m   7   c5d4
+middlegame    2999     200m     2.3m    0.01  -2996.7m   0   f8d6
+middlegame    2000     200m     2.3m    0.01  -1997.7m   0   f8d6
+middlegame    1000     100m     2.3m    0.02   -997.7m   0   f8d6
+middlegame     500      50m     2.3m    0.05   -497.7m   0   f8d6
+middlegame     200      20m     2.3m    0.11   -197.7m   0   f8d6
+middlegame     100      10m     2.3m    0.23    -97.7m   0   f8d6
+middlegame      50       5m     2.3m    0.46    -47.7m   0   f8d6
+middlegame      10       1m     2.3m    2.29     -7.7m   0   f8d6
+middlegame       1       0m     2.8m   27.51     +1.8m   0   c5c4  FLAG
+middlegame       0       0m     2.4m     inf     +2.4m   0   c5c4  FLAG
+sharp         3100     540m   279.4m    0.52  -2820.6m   7   c3d5
+sharp         3000     535m   271.2m    0.51  -2728.8m   7   c3d5
+sharp         2999     200m     2.4m    0.01  -2996.6m   0   c3d5
+sharp         2000     200m     2.3m    0.01  -1997.7m   0   c3d5
+sharp         1000     100m     2.3m    0.02   -997.7m   0   c3d5
+sharp          500      50m     2.2m    0.04   -497.8m   0   c3d5
+sharp          200      20m     2.2m    0.11   -197.8m   0   c3d5
+sharp          100      10m     2.3m    0.23    -97.7m   0   c3d5
+sharp           50       5m     2.2m    0.45    -47.8m   0   c3d5
+sharp           10       1m     2.2m    2.23     -7.8m   0   c3d5
+sharp            1       0m     2.2m   22.00     +1.2m   0   a2a3  FLAG
+sharp            0       0m     2.1m     inf     +2.1m   0   a2a3  FLAG
+krk           3100     540m   375.0m    0.70  -2725.0m  12   e8e4
+krk           3000     535m   377.4m    0.71  -2622.6m  12   e8e4
+krk           2999     200m     2.2m    0.01  -2996.8m   0   f5f6
+krk           2000     200m     2.2m    0.01  -1997.8m   0   f5f6
+krk           1000     100m     2.1m    0.02   -997.9m   0   f5f6
+krk            500      50m     2.1m    0.04   -497.9m   0   f5f6
+krk            200      20m     2.1m    0.11   -197.9m   0   f5f6
+krk            100      10m     2.1m    0.21    -97.9m   0   f5f6
+krk             50       5m     2.2m    0.44    -47.8m   0   f5f6
+krk             10       1m     2.1m    2.14     -7.9m   0   f5f6
+krk              1       0m     2.2m   21.80     +1.2m   0   f5f6  FLAG
+krk              0       0m     2.1m     inf     +2.1m   0   e8e1  FLAG
+
+slowest small-clock reply: 377.4 ms  (krk @ 3000 ms)
+########## preflight --full ##########
+         checked 5 .py names against 295 stdlib + permitted names
+[PASS] C04  No native binaries (magic bytes, not extension alone)
+         scanned 75 members; no ELF / Mach-O / PE headers, no binary extensions
+[PASS] C05  Unzipped size is under the 50 MB cap
+         4,443,043 bytes unzipped = 8.89% of 50,000,000
+         4,220,245 bytes compressed, 75 members
+[PASS] C06  Every import resolves to stdlib, a permitted package, or the zip
+         15 distinct top-level imports across 5 shipped modules
+           bitboard (shipped), chess (permitted), collections (stdlib), contextlib (stdlib), evaluation (shipped), math (stdlib), nsearch (shipped), numba (permitted), numpy (permitted), os (stdlib), search (shipped), sys (stdlib), time (stdlib), traceback (stdlib), typing (stdlib)
+[PASS] C07  Every file under weights/ is actually loaded by shipped code
+         scan: weights/ [.rtbw, .rtbz] from search.py:16
+         70/70 data files are reachable from shipped code
+[WARN] C08  No unguarded per-move output in get_move or anything it calls
+         rule: import-time output is fine (once per game, inside the 90 s init budget). Inside the per-move call graph an output call must be (a) behind an env flag that is FALSE when unset, (b) inside a once-per-game latch `if f: ... f = <const>`, or (c) inside an except handler whose latch an enclosing `if` tests. Unlatched except-handler output is a warning; anything else is a failure.
+         per-move call graph: 45 function(s) -- agent.get_move, agent.get_position_fen, nsearch.get_move, nsearch.get_move_with_info, bitboard.decode_move, nsearch.numba_search, nsearch.negamax, nsearch.get_draw_score, bitboard.unmake_move, nsearch.in_check, bitboard.is_square_attacked, bitboard.get_rook_attacks, bitboard.get_slider_attacks, bitboard.msb, bitboard.popcount, bitboard.lsb, bitboard.get_bishop_attacks, bitboard.make_move, nsearch.qsearch, nsearch.see, nsearch.least_valuable_attacker, bitboard.evaluate, bitboard.king_shelter_penalty, bitboard.numba_pawn_structure, nsearch.insertion_sort, nsearch.score_moves, bitboard.generate_pseudo_legal_moves, bitboard.encode_move, bitboard.get_queen_attacks, bitboard.from_chess_board, bitboard.compute_zobrist, nsearch.tb_root_move, nsearch._tablebase, search.get_move, search.negamax, search.get_draw_score, search.qsearch, search.get_evaluation, evaluation.evaluate, evaluation._mate_drive, evaluation._king_shelter_penalty, evaluation._pawn_structure, search.clear_tt_if_full, agent.on_game_start, nsearch.clear_tt
+         ok (once-latch): agent.py:56 print() in get_move()
+         ok (once-latch): agent.py:58 print() in get_move()
+         unlatched except-handler output (repeats if it keeps failing): agent.py:123 print() in get_move()
+         unlatched except-handler output (repeats if it keeps failing): agent.py:124 traceback.print_exc() in get_move()
+         ok (once-latch): agent.py:100 print() in get_move()
+         ok (once-latch): agent.py:101 traceback.print_exc() in get_move()
+         ok (env-guard): nsearch.py:852 print() in get_move_with_info()
+         ok (env-guard): search.py:473 print() in get_move()
+         13 import-time output call(s) -- once per game, not on the clock
+[WARN] C09/C10  import agent works, USE_NUMBA_SEARCH is True, cold import
+         local python is 3.13; the platform runs 3.12 -- import timing and syntax acceptance are not identical
+         probe env: no CHESSATHON_*, no USE_NUMBA_SEARCH, cwd=/var/folders/pc/k042sdhs1fb48cr0jl18fjx40000gn/T/preflight-9mmbl973/unzipped
+         imported agent.py from the unzipped archive
+         agent.USE_NUMBA_SEARCH is True with no environment variable set
+         cold import 11.6s locally; judge/local ratio for v10 was 28.4/11.0 = 2.58x, so expect ~29.9s on the judge against a 90s budget (33%)
+[PASS] C11/C12  Smoke game (128 plies, base 120000 ms) and peak RSS
+         61 plies played from the HANDOFF opening position; clock left W 38,457 ms / B 42,231 ms
+         final outcome: Outcome(termination=<Termination.THREEFOLD_REPETITION: 7>, winner=None)
+         game ended early with a real result, not a fault
+         peak RSS 614 MB of 2048 MB (30.0%); v10 measured 632 MB on the judge
+[PASS] C13  Working tree matches HEAD for every shipped file
+         75 shipped files, all byte-identical to HEAD, 0 drifted
+
+13 checks: 10 pass, 3 warn, 0 fail, 0 skipped
+No blocking failures. Read the warnings before uploading.
+=== TIMING GATES DONE Thu Sep 10 19:14:07 BST 2026 ===

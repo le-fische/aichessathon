@@ -1,0 +1,9 @@
+=== GATE A: doubled/isolated pawns (5963d9c) vs v12, 40 games @ 120s+0.5s === Thu Sep 10 20:12:27 BST 2026
+    agent    = snapshots/gateA-pawns   (v12 + doubled/isolated pawns)
+    opponent = snapshots/gateA-control (v12 exactly)
+    ship condition: 95% lower bound clears 50%
+game 1/40: draw by threefold_repetition
+game 2/40: draw by threefold_repetition
+game 3/40: black by checkmate
+game 4/40: draw by threefold_repetition
+game 5/40: draw by insufficient_material

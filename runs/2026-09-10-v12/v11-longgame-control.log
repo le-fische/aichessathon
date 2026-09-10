@@ -1,0 +1,5 @@
+  File [35m"/Users/dannybudiada/Desktop/AIChessHackathon/aichessathon/tools/longgame.py"[0m, line [35m275[0m
+    than the clock left is a flag.[1;31m"[0m""
+                                  [1;31m^[0m
+[1;35mSyntaxError[0m: [35munterminated triple-quoted string literal (detected at line 331)[0m
+=== CONTROL DONE Thu Sep 10 19:25:55 BST 2026 ===
