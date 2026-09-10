@@ -1,0 +1,44 @@
+v12 Kramnik -- archived release record
+archived 2026-09-10T17:51:12+00:00
+
+submission-v12-kramnik.zip  sha256 2bddf1a02d3b6f0f7088fb88a8ac746cb8ff7624366b0227337bfb455434d4c8
+  1,207,593 bytes packed, 1,351,969 unzipped, 5 .py + 35 .rtbw, no .npy/.npz
+
+shipped sources (sha256):
+  7d29bc31396ff3d2819d9dbdb6aa42ac1aa0c72e9a3010a554259167b04c35fa  agent.py         unchanged from v11
+  8db41e93b7d4efbb80fb3f987e1d8aca920ec41829762192a7701fac5dae8a37  search.py        unchanged from v11
+  b939e4e88ec59b8c026dba5fc438eee7b16271dee2e855922ef7c6c1be951a2c  evaluation.py    CHANGED from v11
+  be1947a9daa822f407372d5dc15b954446907bf81af38c17a27eb4ae8db00bfe  bitboard.py      CHANGED from v11
+  52d2c20018e9449bd14c0b1b62cdbeba17c0a2f270b5043c52845c5ed5dba37a  nsearch.py       CHANGED from v11
+
+provenance:
+  base            v11 (live, zip sha256 prefix 6ea013161efc)
+  evaluation.py   + king shelter term (pawn shelter and open files, tapered)
+  bitboard.py     + the same term, numba mirror
+  nsearch.py      + qsearch dummy-array hoist (QS_KILLERS / QS_HISTORY)
+  agent.py        unchanged
+  search.py       unchanged
+
+evidence:
+  king safety   60 games vs v11, +22 =24 -14, 56.7% +/- 4.9% (1 sigma),
+                lower bound 51.8%. runs/2026-09-10-king-safety/results.txt
+  qsearch hoist byte-identical node counts (5,535,686 both), 3,409,893 ->
+                3,677,693 nps in isolation. Cannot change move selection at
+                fixed nodes, so no strength gate applies.
+  agreement     8,944 random-walk positions, both evaluations agree exactly
+  smoke         numba active, 11.5s cold import, 24 plies, no illegal move,
+                no flag, worst move 1105ms, peak RSS 616 MB
+
+deliberately excluded (ungated or unverified at build time):
+  contempt 25cp        52.5% +/- 4.5% over 60 -- unmeasured, not shipped
+  Terms 3 and 4        never gated
+  Danny's panic path   frozen at snapshots/v11_panic, ungated
+  Danny's LMR+history  frozen at snapshots/v11_lmr, ungated
+  NNUE                 calibrated and working, but only in the old fork
+  root Syzygy probe    not present on any published branch
+
+rollback: re-upload versions/v11-kasparov if one exists, or the live v11 zip,
+sha256 prefix 6ea013161efc.
+
+reproduce: uv run python tools/make_snapshots.py, then rebuild from
+snapshots/v11_kingsafety (evaluation.py, bitboard.py) plus the qsearch hoist.

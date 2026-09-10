@@ -165,6 +165,15 @@ NB_CALL = '''    white_pawns = pieces[PAWN] & colors[WHITE]
 '''
 
 text = (DST / "bitboard.py").read_text()
+# The pawn-terms commit (5963d9c) also defines FILE_MASKS in bitboard.py, as a
+# different shape indexed differently. Two module-level definitions of one name
+# means the later one silently wins, and numba does not bounds-check, so a build
+# carrying both would read out of bounds and score wrongly. Fail loudly here
+# instead. The shipped v12 is unaffected: it carries only this definition.
+assert "FILE_MASKS" not in text, (
+    "bitboard.py already defines FILE_MASKS -- combining king safety with the "
+    "pawn terms needs one of them renamed first"
+)
 anchor = "@njit(cache=False)\ndef evaluate(pieces, colors, state):"
 assert text.count(anchor) == 1, "bitboard.py: evaluate anchor not unique"
 text = text.replace(anchor, NB_HELPER.lstrip("\n") + anchor)

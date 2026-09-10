@@ -1,0 +1,2 @@
+v11 Kasparov -- the live build before v12, kept for rollback
+submission-v11-kasparov.zip  sha256 6ea013161efcf570ea6fec22d34f30da8a21f529b38254576c23479fb8d96ebc
