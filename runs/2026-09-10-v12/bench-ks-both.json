@@ -1,0 +1,42 @@
+{
+  "label": "ks-both",
+  "aggregate_nps": 2106807.6325237406,
+  "mean_depth": 8.6,
+  "rows": [
+    {
+      "position": "opening",
+      "nodes": 634070,
+      "sec": 0.32512712478637695,
+      "nps": 1950221.7799164322,
+      "depth": 8
+    },
+    {
+      "position": "middlegame",
+      "nodes": 839650,
+      "sec": 0.3881978988647461,
+      "nps": 2162943.185564604,
+      "depth": 8
+    },
+    {
+      "position": "sharp",
+      "nodes": 753327,
+      "sec": 0.3276233673095703,
+      "nps": 2299368.9558418575,
+      "depth": 8
+    },
+    {
+      "position": "tactical",
+      "nodes": 804869,
+      "sec": 0.4548671245574951,
+      "nps": 1769459.599400582,
+      "depth": 7
+    },
+    {
+      "position": "endgame",
+      "nodes": 686885,
+      "sec": 0.269320011138916,
+      "nps": 2550441.7480723434,
+      "depth": 12
+    }
+  ]
+}

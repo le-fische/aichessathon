@@ -133,7 +133,14 @@ def main() -> int:
     parser.add_argument("--engine", default=None)
     parser.add_argument("--ply-cap", type=int, default=600)
     parser.add_argument("--threads", type=int, default=1)
+    parser.add_argument("--snapshot", type=Path, default=None,
+                        help="frozen engine directory to play instead of the working tree")
     args = parser.parse_args()
+
+    # Load a frozen snapshot ahead of the working tree, so an anchor run measures the
+    # build it names rather than whatever happens to be checked out.
+    if args.snapshot:
+        sys.path.insert(0, str(args.snapshot.resolve()))
 
     if os.environ.get("CHESSATHON_REQUIRE_NUMBA") != "1":
         print("WARNING: CHESSATHON_REQUIRE_NUMBA is not 1; a silent fallback to the "
