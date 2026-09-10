@@ -109,7 +109,15 @@ def _tablebase():
     return _tb
 
 
-def tb_root_move(board: chess.Board):
+# Below this much clock the root probe is skipped entirely. The probe costs a fixed
+# ~11 ms (up to 3.7 ms per child on KBNvK, times the legal moves), which is free against
+# a normal budget and ruinous against a panic one: measured 11.3 ms against an 8 ms
+# budget at a 50 ms clock, a 1.50x overshoot on a build whose whole point is never
+# exceeding budget. Below 1 s the panic search plays a fast legal move instead.
+TB_MIN_CLOCK_MS = 1000
+
+
+def tb_root_move(board: chess.Board, time_left_ms: int = 10 ** 9):
     """DTZ-optimal move when we are winning a position the tablebase covers, else None.
 
     Only intervenes when the root is a WIN for the side to move. Drawn and lost positions
@@ -120,6 +128,8 @@ def tb_root_move(board: chess.Board):
     distance-to-zeroing, not distance-to-mate, so this is the move that makes progress
     against the fifty-move rule -- which is precisely what KBNvK needs.
     """
+    if time_left_ms < TB_MIN_CLOCK_MS:
+        return None
     if board.occupied.bit_count() > TB_MAX_MEN:
         return None
     tb = _tablebase()
@@ -796,7 +806,7 @@ def numba_search(pieces, colors, state, time_left_ms, pos_counts_keys, pos_count
 def get_move_with_info(board: chess.Board, time_left_ms: int, position_counts, max_depth=64):
     # v12: root Syzygy. Returns immediately on a tablebase win, so the search never runs
     # for those positions and the clock is untouched.
-    tb_move = tb_root_move(board)
+    tb_move = tb_root_move(board, time_left_ms)
     if tb_move is not None:
         return tb_move.uci(), 0.0, 0
 
