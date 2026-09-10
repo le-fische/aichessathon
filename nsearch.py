@@ -678,7 +678,18 @@ def numba_search(pieces, colors, state, time_left_ms, pos_counts_keys, pos_count
         budget_ms = min(time_left_ms * 0.15, 400.0)
         panic = True
     else:
-        budget_ms = min(time_left_ms * 0.045 + 400.0, time_left_ms * 0.25)
+        # v12: 0.050, not 0.045. This was the entire v9 change and it landed in the wrong
+        # file: search.py:358 carries 0.050 with the tools/clocktraj.py table behind it,
+        # while nsearch.py -- the path that actually plays every rated game -- kept the
+        # pre-v9 coefficient. The measurement that justified it (mean completed depth by
+        # phase over a 70-move game) already exists; this applies it where it runs.
+        #
+        # Modest by construction: 11% more budget is ~0.09 ply at our measured in-game
+        # EBF of 3.23, so a few Elo, and below what a 40-game gate can resolve. It is
+        # taken on the strength of the v9 measurement, not on a new one. The reason it is
+        # safe is that the abort machinery is proven -- v11 put 0 of 167 rated moves over
+        # budget -- so raising the budget cannot reach a flag on its own.
+        budget_ms = min(time_left_ms * 0.050 + 400.0, time_left_ms * 0.25)
         panic = False
         
     # nodes[0] = node count, nodes[1] = stop flag set when a search aborts on the

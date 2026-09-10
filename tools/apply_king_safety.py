@@ -21,7 +21,13 @@ MEMBERS = ("agent.py", "search.py", "evaluation.py", "bitboard.py", "nsearch.py"
 (DST / "weights").mkdir(parents=True, exist_ok=True)
 for name in MEMBERS:
     shutil.copyfile(SRC / name, DST / name)
-for tb in sorted((SRC / "weights").glob("*.rtbw")):
+# Both tablebase kinds, not just WDL. v12 ships 35 .rtbz (DTZ) files and DTZ is the
+# whole point of shipping them: on KBNvK every one of the 21 legal moves scores an
+# identical WDL against 4 distinct DTZ values, so WDL alone gives the root probe no
+# gradient to pick a move by. Globbing "*.rtbw" alone silently drops the DTZ set and the
+# probe goes dead in exactly the endings it was added for -- a failure that no test in
+# the suite would catch, because the engine still plays legal moves.
+for tb in sorted((SRC / "weights").glob("*.rtb*")):
     shutil.copyfile(tb, DST / "weights" / tb.name)
 
 # --------------------------------------------------------------------------

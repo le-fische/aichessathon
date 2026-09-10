@@ -930,6 +930,52 @@ for color in [chess.WHITE, chess.BLACK]:
                 TABLE_EG[color][pt][sq] = -val_eg
 
 
+# King shelter. The piece-square tables reward a castled king's square but say
+# nothing about the pawns in front of it, so the search happily walks into a
+# position where the shelter is gone and only notices the mate past its
+# horizon. Penalise, per file of the three around the king: no friendly pawn
+# in front of it, a friendly pawn that has advanced too far to shelter, and a
+# file with no enemy pawn on it at all, which is the file a rook or queen
+# arrives on. Middlegame only -- the taper takes it to zero as pieces come off,
+# which is correct, an exposed king is an asset in the endgame.
+_FILE_MASKS = [0x0101010101010101 << f for f in range(8)]
+
+_SHELTER_NO_PAWN = 26
+_SHELTER_FAR = {2: 10, 3: 18}
+_SHELTER_OPEN_FILE = 18
+_SHELTER_CAP = 120
+
+
+def _king_shelter_penalty(friendly_pawns, enemy_pawns, ksq, is_white):
+    king_file = ksq % 8
+    king_rank = ksq // 8
+
+    # Three-file window centred on the king, clamped so a king on the a or h
+    # file still looks at three real files rather than falling off the board.
+    first_file = min(max(king_file - 1, 0), 5)
+
+    penalty = 0
+    for f in range(first_file, first_file + 3):
+        nearest = 0  # rank distance to the closest sheltering pawn, 0 = none
+        for d in range(1, 4):
+            r = king_rank + d if is_white else king_rank - d
+            if r < 0 or r > 7:
+                break
+            if friendly_pawns & (1 << (r * 8 + f)):
+                nearest = d
+                break
+
+        if nearest == 0:
+            penalty += _SHELTER_NO_PAWN
+        else:
+            penalty += _SHELTER_FAR.get(nearest, 0)
+
+        if not (enemy_pawns & _FILE_MASKS[f]):
+            penalty += _SHELTER_OPEN_FILE
+
+    return min(penalty, _SHELTER_CAP)
+
+
 def evaluate(board: chess.Board) -> float:
     mg_diff = 0
     eg_diff = 0
@@ -948,6 +994,13 @@ def evaluate(board: chess.Board) -> float:
     if (board.bishops & board.occupied_co[chess.BLACK]).bit_count() >= 2:
         mg_diff -= 30
         eg_diff -= 50
+
+    white_pawns = board.pawns & board.occupied_co[chess.WHITE]
+    black_pawns = board.pawns & board.occupied_co[chess.BLACK]
+    white_king = (board.kings & board.occupied_co[chess.WHITE]).bit_length() - 1
+    black_king = (board.kings & board.occupied_co[chess.BLACK]).bit_length() - 1
+    mg_diff -= _king_shelter_penalty(white_pawns, black_pawns, white_king, True)
+    mg_diff += _king_shelter_penalty(black_pawns, white_pawns, black_king, False)
 
     for pt, mask in [
         (chess.PAWN, board.pawns),
