@@ -33,24 +33,34 @@ and do not have on the platform.
 
 ## Where the 400 Elo actually is, in measured order
 
-### 1. The search tree is barely pruned -- this is the big one
+### 1. The search tree is under-pruned -- still the big one, but smaller than first stated
 
-    position      depth      nodes    EBF    depth at EBF 2.5
-    opening           8    621,312   5.30    14.6   (+6.6 ply)
-    middlegame        9  1,005,827   4.64    15.1   (+6.1 ply)
-    sharp             8    688,353   5.37    14.7   (+6.7 ply)
-    tactical          7    833,907   7.01    14.9   (+7.9 ply)
-    endgame          13  1,180,679   2.93    15.3   (+2.3 ply)
+> **CORRECTED 10 Sept 18:20.** The first version of this section reported EBF 4.6-7.0 and
+> depth 7-9 from `tools/bench_v11.py`. Both were artefacts of the tool.
+> `bench_v11.py` passes its `--ms` value as the engine's **`time_left_ms`**, not as the
+> search budget. `numba_search` then computes
+> `budget_ms = min(3000*0.045+400, 3000*0.25) = 535 ms` and aborts at 85% of it, so those
+> "3-second" benchmarks actually ran **0.29-0.45 s**. EBF is high on a truncated search
+> because the shallow iterations dominate. The numbers below come from the 600-ply
+> endurance trajectory instead -- real games, real budgets, 299 measured plies.
+
+    source                             depth        EBF
+    bench_v11.py (0.29-0.45 s)          7-9      4.64-7.01   <- ARTEFACT, do not cite
+    real games (299 plies)             11-15      3.23 mean
+                                                  3.31 median
 
 Effective branching factor is `nodes^(1/depth)`. A well-pruned engine sits near **2.0-2.5**.
-We are at **4.6-7.0 in the middlegame.**
+We are at **3.23**, and we reach **depth 11-15** in real games -- up to 23 in endgames.
 
-We are already spending 2.2M nodes/sec. We are **spending them badly**: the same node
-count at EBF 2.5 would reach **depth 14-15 instead of 7-9**. On the platform, at 2.8x
-slower, our real rated depth is more like **6-8**.
+So the search is **mediocre, not broken**. At a constant node count:
 
-Note the endgame row: EBF 2.93, depth 13. The pruning is fine when there are few pieces.
-The failure is specifically the middlegame, where the branching is widest.
+    EBF 3.23 -> depth 13.0     (where we are)
+    EBF 3.00 -> depth 13.8     (+0.9 ply)
+    EBF 2.50 -> depth 16.6     (+3.6 ply)
+    EBF 2.00 -> depth 21.9     (+9.0 ply)
+
+Realistically this item is worth **about +3 ply**, not the +6-8 first claimed. It is still
+the largest lever on this list, and the correction does not change its rank.
 
 What a strong engine has that `nsearch.py` does **not** (verified by reading the file):
 
@@ -64,12 +74,13 @@ What a strong engine has that `nsearch.py` does **not** (verified by reading the
     futility pruning        ABSENT
     late move pruning       ABSENT
     razoring                ABSENT
-    check extensions        ABSENT
+    check extensions        PRESENT (nsearch.py:448, `ply < 2*root_depth`) -- CORRECTED
     internal iterative deep ABSENT
     singular extensions     ABSENT
     SEE pruning in main     ABSENT
 
-Eight standard techniques missing. Each is small and independently gateable -- exactly
+Seven standard techniques missing (check extensions were wrongly listed as absent in the
+first version of this document; they are at `nsearch.py:448`). Each is small and independently gateable -- exactly
 the "little by little" shape this project has been working in. **This is where the Elo
 is, and it is the cheapest Elo on the board.**
 
@@ -84,7 +95,7 @@ The entire shipped evaluation (`bitboard.evaluate`) is:
 **That is all.** Absent: mobility, doubled pawns, isolated pawns, backward pawns, rook on
 open/semi-open file, rook on 7th, knight outposts, threats, space, tempo. King safety was
 built today and reverted after failing its A/B -- and the reason it failed is instructive:
-it cost 0.40 ply, and *at EBF 5, a ply is expensive*. **Fixing the search first makes
+it cost 0.40 ply, and a ply is expensive here. **Fixing the search first makes
 evaluation terms cheaper to afford.** That ordering matters.
 
 Le's unpushed doubled/isolated pawn work (`5963d9c`) belongs here.
@@ -124,7 +135,7 @@ may still turn out worse than PeSTO once wired correctly, and a 256-neuron accum
 one core has a real speed cost to prove -- but that is an open question, not a closed one.
 This is the single largest *unexplored* item we have.
 
-### 4. Time management: we leave a fifth of the clock unused
+### 4. Time management: real, but worth far less than it looks -- DEMOTED
 
     across 95 rated games
       mean clock left at end   28.8 s   (median 23.3 s)
@@ -132,12 +143,24 @@ This is the single largest *unexplored* item we have.
       -> 19.5% of our clock is never spent
       games ending under 10 s left: 15/95 (16%)
 
-We are not in danger of flagging (v11: 0 of 167 moves over budget). We are being too
-careful. A fifth of the thinking time is thrown away, and at EBF 5 buying even one extra
-ply costs ~5x the nodes -- so unspent time is expensive here specifically.
+> **DEMOTED 10 Sept 18:20.** The first version ranked this "medium Elo". Priced properly
+> against the corrected EBF it is worth almost nothing, and a 40-game A/B could not detect
+> it. 19.5% *sounds* large; depth is logarithmic in nodes.
 
-There is no time-management *model* in the engine, just a fraction of the remaining clock.
-A real one spends more in complex positions and near-instantly in forced ones.
+    extra nodes    extra ply at EBF 3.23
+           20%          0.15            <- all our unspent clock
+          100%          0.59
+          200%          0.94
+
+**Spending every second we currently leave on the table buys 0.15 ply.** To gain one ply
+from time alone we would need **3.23x the clock**, which does not exist. Compare item 1:
+fixing the branching factor is +3.6 ply. That is a **20x** difference, and it is why
+pruning outranks this by so much.
+
+What might still be worth something is *redistribution* rather than volume -- there is no
+time-management model, just a fraction of the remaining clock, and spending 2x on critical
+positions is a different change from spending 20% more everywhere. That needs a model and
+a way to detect complexity, so it is v13 work at best.
 
 ### 5. We are flying blind on the platform
 
@@ -176,21 +199,24 @@ answer of anything examined today.
 
 ## Ranked, by Elo per unit of risk
 
-    1. search pruning (8 missing techniques)  LARGE   low risk, individually gateable
-    2. stderr instrumentation                 none    zero risk -- but unblocks everything
-    3. time management model                  MEDIUM  low risk, pure clock arithmetic
-    4. evaluation terms (pawns, mobility)     MEDIUM  low risk, cheaper AFTER item 1
-    5. NNUE with the loader fixed             UNKNOWN medium risk, largest upside
-    6. 5-man tablebases                       ZERO    measured -- do not do this
+    1. search pruning (7 missing techniques)  ~+3 ply  low risk, individually gateable
+    2. stderr instrumentation                 none     zero risk -- but unblocks everything
+    3. evaluation terms (pawns, mobility)     MEDIUM   low risk, cheaper AFTER item 1
+    4. NNUE with the loader fixed             UNKNOWN  medium risk, largest upside
+    5. time management                        ~0.15ply DEMOTED -- undetectable in 40 games
+    6. 5-man tablebases                       ZERO     measured -- do not do this
 
-Items 1 and 3 are almost pure profit: they do not change what the engine *believes*, only
-how deeply and for how long it looks. Item 4 is where king safety failed, and it failed
-partly because item 1 had not been done first.
+Item 1 is the closest thing to pure profit: it does not change what the engine *believes*,
+only how deep it gets for the same nodes. Item 3 is where king safety failed, and it
+failed partly because item 1 had not been done first -- an evaluation term has to be paid
+for in ply, so the cheaper a ply gets, the more evaluation we can afford.
 
 ## Honest caveats
 
-- The EBF figures come from 5 bench positions at 3 s each, on this Mac. They are a strong
-  signal, not a tuned measurement.
+- The EBF figure of 3.23 comes from the 600-ply endurance trajectory: 299 plies of one
+  self-play game on this Mac. It replaces the earlier bench_v11 figure, which was an
+  artefact of that tool passing `--ms` as `time_left_ms` (see item 1). One game is a
+  strong signal, not a tuned measurement across many.
 - "~2.8x slower" is inferred from **JIT compile time**, not search throughput. Compilation
   is LLVM work and may not scale identically to the search loop. **Item 5 (stderr) would
   replace this inference with a measurement**, which is the main reason it is ranked so high.
