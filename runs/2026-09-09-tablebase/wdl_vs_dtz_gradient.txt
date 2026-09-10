@@ -1,0 +1,77 @@
+
+KBNvK, engine's shuffle
+  7k/4BK2/8/5N2/8/8/8/8 w - - 80 41
+  move        WDL-only score   child dtz
+  f7e8                 19995         -11
+  f7g6                 19995          -3
+  f7f8                 19995          -7
+  f7f6                 19995          -7
+  e7f8                 19995          -7
+  e7d8                 19995          -7
+  e7f6                 19995          -7
+  e7d6                 19995          -7
+  e7g5                 19995          -7
+  e7c5                 19995          -7
+  e7h4                 19995          -7
+  e7b4                 19995          -7
+  e7a3                 19995          -7
+  f5g7                 19995          -7
+  f5h6                 19995          -7
+  f5d6                 19995          -7
+  f5h4                 19995          -7
+  f5d4                 19995          -7
+  f5g3                 19995          -7
+  f5e3                 19995          -7
+  f7e6                 19995          -9
+  distinct WDL-only scores: 1   distinct dtz: 4
+
+KBNvK, start
+  8/8/8/4k3/8/8/8/1KBN4 w - - 0 1
+  move        WDL-only score   child dtz
+  d1e3                 19995         -57
+  d1c3                 19995         -57
+  c1e3                 19995         -57
+  c1b2                 19995         -57
+  b1c2                 19995         -57
+  b1b2                 19995         -57
+  d1f2                 19995         -59
+  d1b2                 19995         -59
+  c1h6                 19995         -59
+  c1g5                 19995         -59
+  c1a3                 19995         -59
+  c1d2                 19995         -59
+  b1a2                 19995         -59
+  b1a1                 19995         -59
+  c1f4              0 (draw)           0
+  distinct WDL-only scores: 2   distinct dtz: 3
+
+KQvKR, Philidor-ish
+  8/8/8/3k4/7r/8/4Q3/4K3 w - - 0 1
+  move        WDL-only score   child dtz
+  e2b5                 19995         -46
+  e2f3                 19995         -50
+  e2g2                 19995         -50
+  e2f2                 19995         -50
+  e2a2                 19995         -50
+  e1d2                 19995         -50
+  e2a6                 19995         -52
+  e2d3                 19995         -52
+  e2d2                 19995         -52
+  e2f1                 19995         -52
+  e2d1                 19995         -52
+  e1f1                 19995         -54
+  e1d1                 19995         -54
+  e2e8              0 (draw)           0
+  e2e7              0 (draw)           0
+  e2e3              0 (draw)           0
+  e2c2              0 (draw)           0
+  e2b2              0 (draw)           0
+  e1f2              0 (draw)           0
+  e2e6                -19995           1
+  e2h5                -19995           1
+  e2e5                -19995           1
+  e2g4                -19995           1
+  e2e4                -19995           1
+  e2c4                -19995           1
+  e2h2                -19995           1
+  distinct WDL-only scores: 3   distinct dtz: 6

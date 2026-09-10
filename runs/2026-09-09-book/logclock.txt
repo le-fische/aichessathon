@@ -1,0 +1,13 @@
+log                                                date  mv  first6 s  avg s  used s  left s
+aichessathon-round-14-rudra.log              2026.09.04 141      20.3   1.31   184.5     6.0
+aichessathon-round-17-noob.log               2026.09.05  75      24.0   1.89   142.0    15.5
+aichessathon-round-21-ags.log                2026.09.05  81      11.4   1.77   142.9    17.6
+aichessathon-round-23-the-good-team.log      2026.09.05  30      11.2   2.26    67.7    67.3
+aichessathon-round-31-chesstosterone.log     2026.09.06  37      22.0   2.67    98.9    39.6
+aichessathon-round-32-0x88.log               2026.09.06  20      24.0   3.42    68.5    61.5
+aichessathon-round-4-sillycats.log           2026.09.04  66      26.4   2.08   137.3    15.7
+aichessathon-round-6-zagreus-2-3-1.log       2026.09.04  56      26.1   2.27   127.1    20.9
+aichessathon-round-7-obligatory-en-passant.log 2026.09.04  37      24.5   2.83   104.5    34.0
+
+mean first-6-move spend over 9 rated games: 21.1 s
+mean clock LEFT UNSPENT at end          : 30.9 s

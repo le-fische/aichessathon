@@ -1,0 +1,18 @@
+time_left_ms=10000 -> nsearch budget 850 ms per move
+max_plies=80
+
+DTZ reference: /Users/dannybudiada/Desktop/AIChessHackathon/aichessathon/weights + /Users/dannybudiada/Desktop/AIChessHackathon/tb-scratch/dtz34
+
+position            wdl   dtz  opt plies  engine plies  quiet  outcome
+----------------------------------------------------------------------
+Warming up Numba JIT...
+Warmup complete.
+KRvK-round17          2    21         21            23     23  Outcome(termination=<Termination.CHECKMATE: 1>, winner=True)  [28s]
+KRvK-centre           2    27         27            31     31  Outcome(termination=<Termination.CHECKMATE: 1>, winner=True)  [23s]
+KQvK-centre           2    13         13            13     13  Outcome(termination=<Termination.CHECKMATE: 1>, winner=True)  [10s]
+KPvK-won              0     0         32            26     21  Outcome(termination=<Termination.INSUFFICIENT_MATERIAL: 3>, winner=None)  [81s]
+KBNvK-corner          2    58         59            80     80  SHUFFLED, no result  [60s]
+                  final: 7k/4BK2/8/5N2/8/8/8/8 w - - 80 41
+KRvKP-won             2     7         25            27     26  Outcome(termination=<Termination.CHECKMATE: 1>, winner=True)  [21s]
+KQvKR-won             2    47         47            51     50  Outcome(termination=<Termination.CHECKMATE: 1>, winner=True)  [57s]
+KRPvKR-r31shape   (MissingTableError)(MissingTableError)          -            52     46  Outcome(termination=<Termination.INSUFFICIENT_MATERIAL: 3>, winner=None)  [39s]

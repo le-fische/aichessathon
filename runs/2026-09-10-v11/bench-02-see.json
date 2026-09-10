@@ -1,0 +1,42 @@
+{
+  "label": "item2a-see",
+  "aggregate_nps": 2591026.2542460826,
+  "mean_depth": 8.4,
+  "rows": [
+    {
+      "position": "opening",
+      "nodes": 1195222,
+      "sec": 0.47740602493286133,
+      "nps": 2503575.442241406,
+      "depth": 8
+    },
+    {
+      "position": "middlegame",
+      "nodes": 1293353,
+      "sec": 0.4998898506164551,
+      "nps": 2587275.973707129,
+      "depth": 8
+    },
+    {
+      "position": "sharp",
+      "nodes": 1322753,
+      "sec": 0.4713101387023926,
+      "nps": 2806544.759766453,
+      "depth": 8
+    },
+    {
+      "position": "tactical",
+      "nodes": 577599,
+      "sec": 0.2956080436706543,
+      "nps": 1953935.3287812432,
+      "depth": 6
+    },
+    {
+      "position": "endgame",
+      "nodes": 1182925,
+      "sec": 0.40622806549072266,
+      "nps": 2911972.60969901,
+      "depth": 12
+    }
+  ]
+}

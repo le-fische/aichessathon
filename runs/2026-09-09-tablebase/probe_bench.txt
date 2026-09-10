@@ -1,0 +1,76 @@
+tablebase dir: /Users/dannybudiada/Desktop/AIChessHackathon/aichessathon/weights
+extra tablebase dir: /Users/dannybudiada/Desktop/AIChessHackathon/tb-scratch/five
+
+--- 4-man shipped WDL: warm probe_wdl latency (2000 reps each) ---
+endgame      median us   mean us    p95 us   wdl
+KRvK              7.08      7.14      7.29     2
+KQvK              7.42      7.59      7.79     2
+KPvK             24.08     24.17     24.54     0
+KBNvK            45.04     45.26     46.58     2
+KRvKP            40.46     40.79     43.38     2
+KPvKP            13.67     13.69     13.92     0
+KQvKR            73.88     74.06     75.88     2
+KRvKN            39.38     39.98     43.08     0
+
+--- 5-man WDL: warm probe_wdl latency (2000 reps each) ---
+endgame      median us   mean us    p95 us   wdl
+KRPvKR           37.96     38.26     40.17     0
+KRRvKR           55.12     55.48     58.04     2
+KBBvKN           23.42     23.62     25.04     2
+KQRvKQ           32.92     33.65     36.58     2
+
+--- first touch, fresh Tablebase object per class (weights/ (4-man)) ---
+endgame      open ms   1st probe us   2nd probe us
+KRvK            0.63         4380.9           16.9
+KQvK            0.40         4516.2           13.6
+KPvK            0.34         4599.8           32.5
+KBNvK           0.39         4565.6           51.2
+KRvKP           0.34         6248.5           48.0
+KPvKP           0.34         6542.0           20.8
+KQvKR           0.33         3873.2           79.3
+KRvKN           0.32         5045.5           46.6
+
+--- first touch, fresh Tablebase object per class (weights/ + extra (5-man)) ---
+endgame      open ms   1st probe us   2nd probe us
+KRPvKR          0.38        13294.9           46.7
+KRRvKR          0.38         3887.9           67.1
+KBBvKN          0.38         4839.0           43.3
+KQRvKQ          0.41         4033.3           47.0
+
+--- probe_dtz latency, wdl=/Users/dannybudiada/Desktop/AIChessHackathon/aichessathon/weights + dtz=/Users/dannybudiada/Desktop/AIChessHackathon/tb-scratch/dtz34 ---
+endgame      median us     dtz
+KRvK             78.21      21
+KQvK            183.88      13
+KPvK             24.21       0
+KBNvK          3656.38      58
+KRvKP            72.04       7
+KPvKP            13.17       0
+KQvKR           290.96      47
+KRvKN            38.58       0
+
+--- node rate, numba search, LOCAL MACHINE (time_left_ms=30000) ---
+Warming up Numba JIT...
+Warmup complete.
+position               nodes   seconds     nodes/sec
+opening            3,556,701      1.35     2,629,912
+middlegame         2,841,094      1.09     2,605,650
+rook-endgame       5,410,879      1.60     3,377,827
+5-man KRPvKR       6,385,023      1.97     3,245,363
+4-man KRvKP        4,708,088      1.32     3,554,813
+3-man KRvK         4,492,415      1.03     4,348,734
+
+--- probe cost expressed in nodes of search (LOCAL) ---
+reference node rate: 4,348,734 nodes/sec (3-man KRvK, local)
+endgame     probe us     = nodes
+KRvK            7.08          31
+KQvK            7.42          32
+KPvK           24.08         105
+KBNvK          45.04         196
+KRvKP          40.46         176
+KPvKP          13.67          59
+KQvKR          73.88         321
+KRvKN          39.38         171
+KRPvKR         37.96         165
+KRRvKR         55.12         240
+KBBvKN         23.42         102
+KQRvKQ         32.92         143

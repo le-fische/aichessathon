@@ -1,0 +1,36 @@
+ rnd stm us  1st  ply  hm  cast  ep  pc  term          fen
+  14   b  W  opp   17   3  KQkq   -  30  unterminated  r2qkb1r/1p3ppp/p1npbn2/4p1B1/4P3/N1N2P2/PPP3PP/R2QKB1R b KQkq - 3 9
+  17   b  W  opp   13   0    KQ   -  30  unterminated  rnbq1rk1/ppp2ppp/4pn2/8/1bBP4/2N1P2P/PP3PP1/R1BQK1NR b KQ - 0 7
+  21   b  B   us   11   0    kq   -  32  unterminated  rnbqk2r/ppp3pp/3bpn2/3p1p2/2PP4/5NP1/PP2PPBP/RNBQ1RK1 b kq - 0 6
+  23   w  B  opp   16   3    KQ   -  32  unterminated  r1bq1rk1/pp2npbp/2np2p1/2p1p3/4P3/P1NP2PP/1PP1NPB1/R1BQK2R w KQ - 3 9
+  31   b  B   us   11   0  KQkq   -  32  unterminated  rnbqk2r/ppp1bppp/4pn2/8/2Pp4/4PNP1/PPQP1PBP/RNB1K2R b KQkq - 0 6
+  32   b  B   us   15   0     -   -  32  illegal       rn1q1rk1/pbp1bppp/1p1ppn2/8/2PP4/PP3NP1/4PPBP/RNBQ1RK1 b - - 0 8
+   4   b  W  opp   15   0    KQ   -  32  unterminated  rnbq1rk1/1pp2pbp/3p1np1/p2Pp3/2P1P3/2N2N1P/PP2BPP1/R1BQK2R b KQ - 0 8
+   6   b  B   us   15   2  KQkq   -  30  unterminated  rnbqk2r/ppp2ppp/3b4/3p4/3Pn3/2P2N1P/PP2BPP1/RNBQK2R b KQkq - 2 8
+  61   b  W  opp   11   0  KQkq   -  32  checkmate     r1bqkb1r/pp3ppp/2n1pn2/2pp4/3P1B2/P1P1P3/1P1N1PPP/R2QKBNR b KQkq - 0 6
+   7   b  W  opp   13   1  KQkq   -  32  unterminated  r1bqk1nr/pp3pbp/2npp1p1/2p5/4P3/2NPB1P1/PPP1NPBP/R2QK2R b KQkq - 1 7
+
+games=10  distinct full FEN=10  distinct pos-key(4 fields)=10
+we move first in 4/10; opponent moves first in 6/10
+we are White in 5/10
+black-to-move in 9/10
+plies: min 11 max 17 mean 13.7  odd 9/10
+
+How big must the curated pool be to see 0 collisions in 10 draws?
+     N   P(no collision)
+    10            0.0004
+    15            0.0189
+    20            0.0655
+    25            0.1244
+    30            0.1846
+    40            0.2933
+    50            0.3817
+    60            0.4525
+    80            0.5564
+   100            0.6282
+   150            0.7360
+   200            0.7956
+   400            0.8928
+  1000            0.9559
+one-sided 95% lower bound on pool size N: 19
+pool size at which a collision is 50/50: 69

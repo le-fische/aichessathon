@@ -1,0 +1,26 @@
+Warming up Numba JIT...
+Warmup complete.
+budget model: min(0.045*t + 400, 0.25*t) ms.  SAVED = 29 s
+  clock    30s -> budget 1.75s | clock    59s -> budget 3.06s
+  clock    45s -> budget 2.42s | clock    74s -> budget 3.73s
+  clock    60s -> budget 3.10s | clock    89s -> budget 4.41s
+  clock    91s -> budget 4.50s | clock   120s -> budget 5.80s
+
+ rnd        30->59s        45->74s        60->89s       91->120s
+  14       8->9  +1       9->9  +0       9->9  +0       9->10 +1
+  17       8->9  +1       9->9  +0       9->9  +0       9->10 +1
+  21       9->10 +1      10->10 +0      10->10 +0      10->10 +0
+  23      10->10 +0      10->11 +1      10->11 +1      11->11 +0
+  31       9->10 +1      10->11 +1      10->11 +1      11->11 +0
+  32       9->10 +1      10->11 +1      10->11 +1      11->11 +0
+   4      10->10 +0      10->11 +1      10->11 +1      11->11 +0
+   6       8->9  +1       9->9  +0       9->9  +0       9->10 +1
+  61       9->9  +0       9->10 +1      10->10 +0      10->10 +0
+   7       9->10 +1      10->10 +0      10->10 +0      10->10 +0
+
+clock 30s -> 59s : mean depth gain +0.70 ply (sd 0.48, n=10, gained on 7/10)
+clock 45s -> 74s : mean depth gain +0.50 ply (sd 0.53, n=10, gained on 5/10)
+clock 60s -> 89s : mean depth gain +0.40 ply (sd 0.52, n=10, gained on 4/10)
+clock 91s -> 120s : mean depth gain +0.30 ply (sd 0.48, n=10, gained on 3/10)
+
+over all 40 paired probes: mean depth gain +0.475 ply, sd 0.51, SE 0.080

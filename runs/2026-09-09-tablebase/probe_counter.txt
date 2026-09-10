@@ -1,0 +1,30 @@
+=== numba active (the live build) ===
+Warming up Numba JIT...
+Warmup complete.
+agent.py: Numba search successfully imported and active.
+agent.USE_NUMBA_SEARCH = True
+cwd = /Users/dannybudiada/Desktop/AIChessHackathon/aichessathon
+
+position    move    probes
+agent.py: Executing get_move using Numba search.
+KRvK        e8e4         0
+KPvK        e1d1         0
+KRvKP       e1e2         0
+KQvKR       e2b5         0
+
+total probe_wdl calls: 0
+
+=== USE_NUMBA_SEARCH=0 (the python fallback) ===
+Warming up Numba JIT...
+Warmup complete.
+agent.USE_NUMBA_SEARCH = False
+cwd = /Users/dannybudiada/Desktop/AIChessHackathon/aichessathon
+
+position    move    probes
+agent.py: Executing get_move using Python search.
+KRvK        e8g8     17484
+KPvK        e1f2      3807
+KRvKP       e1e2     20387
+KQvKR       e2b5     16115
+
+total probe_wdl calls: 57793

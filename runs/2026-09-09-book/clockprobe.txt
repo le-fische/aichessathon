@@ -1,0 +1,24 @@
+Warming up Numba JIT...
+Warmup complete.
+clock 120s + 0.5s/move, numba search, our first 6 moves
+ rnd  we            m1            m2            m3            m4            m5            m6  our sum s  meandepth
+  14   W   5.54s/d11     5.75s/d10     6.09s/d10     3.11s/d10     5.58s/d11     4.91s/d11       30.99s      10.50
+  17   W   4.82s/d11     4.90s/d11     4.64s/d11     4.53s/d11     4.42s/d11     4.36s/d11       27.68s      11.00
+  21   B   3.43s/d10     4.20s/d11     4.45s/d11    11.44s/d11     4.13s/d11     3.34s/d10       30.99s      10.67
+  23   B   4.93s/d11     6.22s/d11     5.81s/d11     3.78s/d11     4.98s/d10     4.56s/d11       30.28s      10.83
+  31   B   4.16s/d11     4.44s/d12     4.73s/d12     4.49s/d11     5.23s/d11     4.20s/d11       27.26s      11.33
+  32   B   4.92s/d11     2.88s/d11     4.87s/d12     4.54s/d12     4.42s/d12     4.74s/d11       26.37s      11.50
+   4   W   3.62s/d11     5.33s/d11     4.69s/d11     4.48s/d11     6.29s/d12     5.90s/d11       30.31s      11.17
+   6   B   2.92s/d9      4.85s/d10     4.72s/d11     4.55s/d11     4.96s/d11     4.53s/d10       26.53s      10.33
+  61   W   3.76s/d10     3.46s/d11     5.55s/d11     4.25s/d12     8.48s/d12     3.79s/d10       29.29s      11.00
+   7   W   5.14s/d10     3.22s/d10     5.41s/d10     3.22s/d10     3.10s/d11     9.47s/d13       29.55s      10.67
+
+our first 6 moves cost, mean 28.92 s (sd 1.81, min 26.37, max 30.99) of a 120 s bank
+as a fraction of the 120 s base clock: 24.1%
+mean completed depth over those moves: 10.90
+  move 1: mean 4.32s  mean depth 10.50
+  move 2: mean 4.53s  mean depth 10.80
+  move 3: mean 5.10s  mean depth 11.00
+  move 4: mean 4.84s  mean depth 11.00
+  move 5: mean 5.16s  mean depth 11.20
+  move 6: mean 4.98s  mean depth 10.90

@@ -1,0 +1,22 @@
+ rnd  we move first  legal moves at root
+  14          False                   42
+  17          False                   35
+  21           True                   39
+  23          False                   32
+  31           True                   36
+  32           True                   31
+   4          False                   31
+   6           True                   47
+  61          False                   35
+   7          False                   40
+
+mean legal moves at a curated root: 36.8
+book entries needed to answer our first 6 moves from ONE root,
+if the opponent moves first and we must answer every reply they might play:
+  opponent branching kept to  1.0 moves ->            6 stored replies per root
+  opponent branching kept to  2.0 moves ->          126 stored replies per root
+  opponent branching kept to  3.0 moves ->         1092 stored replies per root
+  opponent branching kept to  5.0 moves ->        19530 stored replies per root
+  opponent branching kept to 36.8 moves ->   2553005227 stored replies per root
+
+with a pool of N roots, multiply by N. 95% lower bound on N was 19.

@@ -1,0 +1,42 @@
+{
+  "label": "item6-panic",
+  "aggregate_nps": 2649072.784558897,
+  "mean_depth": 8.2,
+  "rows": [
+    {
+      "position": "opening",
+      "nodes": 618526,
+      "sec": 0.2720761299133301,
+      "nps": 2273356.358740591,
+      "depth": 7
+    },
+    {
+      "position": "middlegame",
+      "nodes": 1234436,
+      "sec": 0.4548051357269287,
+      "nps": 2714208.576442225,
+      "depth": 8
+    },
+    {
+      "position": "sharp",
+      "nodes": 1314055,
+      "sec": 0.45481395721435547,
+      "nps": 2889214.324134475,
+      "depth": 8
+    },
+    {
+      "position": "tactical",
+      "nodes": 577599,
+      "sec": 0.2789750099182129,
+      "nps": 2070432.7608746558,
+      "depth": 6
+    },
+    {
+      "position": "endgame",
+      "nodes": 1182925,
+      "sec": 0.3994300365447998,
+      "nps": 2961532.413117169,
+      "depth": 12
+    }
+  ]
+}

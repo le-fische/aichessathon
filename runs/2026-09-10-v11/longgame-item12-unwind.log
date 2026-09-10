@@ -1,0 +1,93 @@
+agent.py: Numba search successfully imported and active.
+agent.py: Numba search successfully imported and active.
+engine snapshot: /Users/dannybudiada/Desktop/AIChessHackathon/aichessathon/snapshots/v11-wip
+  7d29bc31396ff3d2819d9dbdb6aa42ac1aa0c72e9a3010a554259167b04c35fa  agent.py
+  8db41e93b7d4efbb80fb3f987e1d8aca920ec41829762192a7701fac5dae8a37  search.py
+  292927666a896bbdd63610aacbdbddaed23c5a2c8c1d869fcd49ce0c03884bf9  nsearch.py
+  d6bb8861c91cd3f59bd4269b07140144482d87c84f4c72148117b8cf93140149  bitboard.py
+  c7776dff84ad726ef99787f7a3efb5acd0ee3d980edf5d590117282b2dbbee99  evaluation.py
+python 3.13.5  chess 1.11.2
+CHESSATHON_REQUIRE_NUMBA=1  USE_NUMBA_SEARCH=None
+Warming up Numba JIT...
+Warmup complete.
+import + JIT: 10.7s   rss 489 MB
+start fen : r2qkb1r/1p3ppp/p1npbn2/4p1B1/4P3/N1N2P2/PPP3PP/R2QKB1R b KQkq - 3 9
+ply cap   : 600   claim_draw=False
+numba     : white=True black=True
+
+ ply   mv side   clock_in   budget     used  ratio  clock_out   d     nodes  ttocc%     rss   cnt
+   0    9 black   120.00s    5800m    3220m   0.56    116.78s   9   7479502   3.84%    666M     1
+   1   10 white   120.00s    5800m    3718m   0.64    116.28s  10   9121243   4.30%    666M     1
+   2   10 black   117.28s    5678m    4827m   0.85    112.45s  10  11683593   9.69%    666M     2
+   3   11 white   116.78s    5655m    4808m   0.85    111.97s  10  11701529  14.96%    666M     2
+   4   11 black   112.95s    5483m    4379m   0.80    108.58s  10  10785863  19.26%    666M     3
+   5   12 white   112.47s    5461m    3674m   0.67    108.80s  10   9316119  22.57%    666M     3
+   6   12 black   109.08s    5308m    2746m   0.52    106.33s  10   6797179  24.88%    666M     4
+   7   13 white   109.30s    5319m    4522m   0.85    104.78s  10  10910213  28.51%    666M     4
+   8   13 black   106.83s    5207m    3565m   0.68    103.26s  10   8683555  31.38%    666M     5
+   9   14 white   105.28s    5138m    4368m   0.85    100.91s  10  10623240  34.65%    666M     5
+  10   14 black   103.76s    5069m    4310m   0.85     99.45s  11  10734856  37.95%    666M     6
+  11   15 white   101.41s    4963m    2611m   0.53     98.80s  10   6516048  39.73%    666M     6
+  20   19 black    88.15s    4367m    3713m   0.85     84.44s  11   9675274  59.31%    666M    11
+  30   24 black    73.27s    3697m    2639m   0.71     70.63s  10   6848460  73.23%    666M    16
+  40   29 black    61.66s    3175m    1893m   0.60     59.77s  10   5173308  81.99%    666M    21
+  50   34 black    53.01s    2785m    2076m   0.75     50.93s  11   5604493  87.55%    666M    26
+  60   39 black    44.61s    2407m    1937m   0.80     42.67s  12   5047617  91.09%    666M    31
+  70   44 black    38.25s    2121m    1803m   0.85     36.44s  12   4583168  93.52%    666M    36
+  80   49 black    32.21s    1849m    1572m   0.85     30.64s  17   4423431  95.00%    666M    41
+  90   54 black    28.16s    1667m    1417m   0.85     26.74s  16   4169226  95.94%    666M    46
+ 100   59 black    24.36s    1496m    1272m   0.85     23.09s  16   4110080  96.63%    666M    51
+ 110   64 black    20.78s    1335m    1136m   0.85     19.65s  14   3428611  97.21%    666M    56
+ 120   69 black    17.84s    1203m    1023m   0.85     16.82s   9   3152648  97.52%    666M    61
+  -- the real referee would have stopped here: ply 121 checkmate; the clock instrument continues
+
+ended     : checkmate   plies=121   result=0-1
+referee would have stopped at: (121, 'checkmate')
+fell back to python mid-game: False
+  white: clock left   18.50s   min clock   18.00s   used  87.7% of 150.2s
+  black: clock left   17.32s   min clock   16.82s   used  88.5% of 150.2s
+worst overshoot ratio: 0.85x  at ply 106  used 1188 ms against budget 1396 ms
+  fen: 8/6p1/8/8/8/5k1p/3N2r1/4K3 b - - 5 62
+tt occupancy end: 97.52%   white counter 60   black counter 61
+rss now 666 MB   peak rss 666 MB   ru_maxrss 666 MB   (limit 2048 MB)
+wrote /Users/dannybudiada/Desktop/AIChessHackathon/aichessathon/runs/2026-09-10-v11/trajectory-numba-item12-unwind.csv
+
+position     clock   budget     used   ratio   overrun   d   move
+middlegame    3100     540m   469.8m    0.87  -2630.2m   8   c5d4
+middlegame    3000     535m   457.2m    0.85  -2542.8m   8   c5d4
+middlegame    2999     200m     2.5m    0.01  -2996.5m   0   f8d6
+middlegame    2000     200m     2.3m    0.01  -1997.7m   0   f8d6
+middlegame    1000     100m     2.3m    0.02   -997.7m   0   f8d6
+middlegame     500      50m     2.3m    0.05   -497.7m   0   f8d6
+middlegame     200      20m     2.3m    0.12   -197.7m   0   f8d6
+middlegame     100      10m     2.2m    0.22    -97.8m   0   f8d6
+middlegame      50       5m     2.3m    0.46    -47.7m   0   f8d6
+middlegame      10       1m     2.3m    2.27     -7.7m   0   f8d6
+middlegame       1       0m     2.2m   22.01     +1.2m   0   c5c4  FLAG
+middlegame       0       0m     2.2m     inf     +2.2m   0   c5c4  FLAG
+sharp         3100     540m   460.9m    0.85  -2639.1m   8   c3d5
+sharp         3000     535m   457.0m    0.85  -2543.0m   8   c3d5
+sharp         2999     200m     2.3m    0.01  -2996.7m   0   c3d5
+sharp         2000     200m     2.3m    0.01  -1997.7m   0   c3d5
+sharp         1000     100m     2.3m    0.02   -997.7m   0   c3d5
+sharp          500      50m     2.3m    0.05   -497.7m   0   c3d5
+sharp          200      20m     2.2m    0.11   -197.8m   0   c3d5
+sharp          100      10m     2.2m    0.22    -97.8m   0   c3d5
+sharp           50       5m     2.2m    0.44    -47.8m   0   c3d5
+sharp           10       1m     2.2m    2.20     -7.8m   0   c3d5
+sharp            1       0m     2.1m   21.48     +1.1m   0   a2a3  FLAG
+sharp            0       0m     2.1m     inf     +2.1m   0   a2a3  FLAG
+krk           3100     540m   420.4m    0.78  -2679.6m  12   e8e4
+krk           3000     535m   419.9m    0.78  -2580.1m  12   e8e4
+krk           2999     200m     2.3m    0.01  -2996.7m   0   f5f6
+krk           2000     200m     2.3m    0.01  -1997.7m   0   f5f6
+krk           1000     100m     2.2m    0.02   -997.8m   0   f5f6
+krk            500      50m     2.2m    0.04   -497.8m   0   f5f6
+krk            200      20m     2.3m    0.11   -197.7m   0   f5f6
+krk            100      10m     2.3m    0.23    -97.7m   0   f5f6
+krk             50       5m     2.2m    0.45    -47.8m   0   f5f6
+krk             10       1m     2.2m    2.20     -7.8m   0   f5f6
+krk              1       0m     2.2m   22.07     +1.2m   0   f5f6  FLAG
+krk              0       0m     2.2m     inf     +2.2m   0   e8e1  FLAG
+
+slowest small-clock reply: 469.8 ms  (middlegame @ 3100 ms)

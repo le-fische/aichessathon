@@ -1,0 +1,51 @@
+archive: /Users/dannybudiada/Desktop/AIChessHackathon/voided-game-logs
+games: 10   plies: 1191
+
+plies by men on the board
+ men    plies  % of plies  games reaching
+   3       53        4.5%               2
+   4       32        2.7%               3
+   5      106        8.9%               4
+   6       10        0.8%               4
+   7       10        0.8%               4
+   8       64        5.4%               5
+   9       89        7.5%               6
+  10       36        3.0%               6
+  11       57        4.8%               7
+  12       41        3.4%               7
+  13       27        2.3%               7
+  14       46        3.9%               7
+  15       18        1.5%               7
+  16       30        2.5%               7
+  17       40        3.4%               8
+  18       72        6.0%               9
+  19       37        3.1%               9
+  20       42        3.5%               9
+  21       32        2.7%              10
+  22       37        3.1%              10
+  23       24        2.0%              10
+  24       33        2.8%              10
+  25       12        1.0%              10
+  26       32        2.7%              10
+  27       22        1.8%              10
+  28       68        5.7%              10
+  29       12        1.0%              10
+  30       58        4.9%              10
+  31        7        0.6%               7
+  32       44        3.7%               6
+
+plies with <= 4 men: 85 (7.14%)
+plies with <= 5 men: 191 (16.04%)
+
+material classes reached at <= 5 men
+class      men  plies  games       wdl B       dtz B
+KBPvKB       5     91      1  15,290,512   3,497,488
+KPvK         3     37      1       7,824       4,176
+KRNvK        4     30      1       2,320     295,632
+KRvK         3     16      1         208       7,632
+KPPvKN       5      9      1   7,707,472     699,472
+KRPvKN       5      3      1   9,449,680  12,376,144
+KRNvKP       5      2      1   6,367,376   9,350,416
+KQRvKN       5      1      1     250,832   1,878,608
+KRvKN        4      1      1     100,048      93,200
+KPvKN        4      1      1           0           0

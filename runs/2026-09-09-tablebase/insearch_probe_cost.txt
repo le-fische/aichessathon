@@ -1,0 +1,22 @@
+endgame   rebuild us   probe us   total us   wdl  check
+KRvK            2.62       7.00       9.88     2   True
+KPvK            2.38      23.58      26.21     0   True
+KRvKP           2.71      39.21      42.17     2   True
+KQvKR           2.92      71.92      75.12     2   True
+Warming up Numba JIT...
+Warmup complete.
+
+search node cost (KRvK, local): 4,492,415 nodes in 1.12 s = 248.5 ns/node = 4,023,385 nodes/sec
+
+in-search probe cost, in nodes
+endgame    total us   = nodes
+KRvK           9.88        40
+KPvK          26.21       105
+KRvKP         42.17       170
+KQvKR         75.12       302
+
+if a probe fired at EVERY node at <= 5 men, effective node rate would be:
+  KRvK          98,780 nodes/sec  (41x slower)
+  KPvK          37,798 nodes/sec  (106x slower)
+  KRvKP         23,576 nodes/sec  (171x slower)
+  KQvKR         13,267 nodes/sec  (303x slower)

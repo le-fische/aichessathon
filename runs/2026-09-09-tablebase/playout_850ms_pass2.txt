@@ -1,0 +1,13 @@
+time_left_ms=10000 -> nsearch budget 850 ms per move
+max_plies=100
+
+DTZ reference: /Users/dannybudiada/Desktop/AIChessHackathon/aichessathon/weights + /Users/dannybudiada/Desktop/AIChessHackathon/tb-scratch/dtz34
+
+position            wdl   dtz  opt plies  engine plies  quiet  outcome
+----------------------------------------------------------------------
+Warming up Numba JIT...
+Warmup complete.
+KPvK-reallywon        2     5         27            33     28  Outcome(termination=<Termination.CHECKMATE: 1>, winner=True)  [113s]
+KBBvK-corner          2    32         33            35     35  Outcome(termination=<Termination.CHECKMATE: 1>, winner=True)  [28s]
+KBNvK-b1start         2    56         57           100    100  SHUFFLED, no result  [80s]
+                  final: 8/8/8/8/3B4/4K3/8/Nk6 w - - 100 51
