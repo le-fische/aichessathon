@@ -9,16 +9,23 @@ from numba import njit, objmode
 import bitboard
 from bitboard import (
     BISHOP,
+    BLACK,
     KING,
+    KING_ATTACKS,
     KNIGHT,
+    KNIGHT_ATTACKS,
     NONE,
     PAWN,
+    PAWN_ATTACKS,
     QUEEN,
     ROOK,
+    WHITE,
     decode_move,
     evaluate,
     from_chess_board,
     generate_pseudo_legal_moves,
+    get_bishop_attacks,
+    get_rook_attacks,
     is_square_attacked,
     lsb,
     make_move,
@@ -40,6 +47,11 @@ tt_flags = np.zeros(TT_SIZE, dtype=np.uint8)
 tt_moves = np.zeros(TT_SIZE, dtype=np.uint32)
 
 PIECE_VALUE = np.array([100, 320, 330, 500, 900, 0, 0], dtype=np.int32)
+
+# SEE needs a king value: PIECE_VALUE has KING = 0, which would make the king look like
+# a free attacker and invert the swap-off. 10000 keeps it last in the ordering, and a
+# king capture into a still-defended square scores hugely negative, which is correct.
+SEE_VALUE = np.array([100, 320, 330, 500, 900, 10000, 0], dtype=np.int32)
 CONTEMPT = 0.0
 
 def clear_tt():
@@ -107,9 +119,117 @@ def insertion_sort(moves, scores, count):
         moves[j + 1] = key_move
 
 @njit(cache=False)
+def least_valuable_attacker(pieces, colors, occ, sq, side):
+    """Square and piece type of the cheapest `side` attacker of `sq`, given `occ`.
+
+    Slider attacks are recomputed against the live occupancy every call. That is what
+    makes x-rays work: once the front attacker is removed from `occ`, the slider behind
+    it shows up here on the next iteration without any special case.
+
+    Returns (-1, NONE) when `side` has no attacker left.
+    """
+    own = colors[side] & occ
+
+    # PAWN_ATTACKS is indexed by the attacking side's *opposite*: the squares a `side`
+    # pawn attacks sq from are the squares an opposing pawn on sq would attack.
+    bb = PAWN_ATTACKS[side ^ 1][sq] & pieces[PAWN] & own
+    if bb:
+        return lsb(bb), PAWN
+    bb = KNIGHT_ATTACKS[sq] & pieces[KNIGHT] & own
+    if bb:
+        return lsb(bb), KNIGHT
+
+    b_att = get_bishop_attacks(sq, occ)
+    bb = b_att & pieces[BISHOP] & own
+    if bb:
+        return lsb(bb), BISHOP
+
+    r_att = get_rook_attacks(sq, occ)
+    bb = r_att & pieces[ROOK] & own
+    if bb:
+        return lsb(bb), ROOK
+
+    bb = (b_att | r_att) & pieces[QUEEN] & own
+    if bb:
+        return lsb(bb), QUEEN
+
+    bb = KING_ATTACKS[sq] & pieces[KING] & own
+    if bb:
+        return lsb(bb), KING
+
+    return -1, NONE
+
+
+@njit(cache=False)
+def see(pieces, colors, state, move):
+    """Static exchange evaluation of a capture, in centipawns.
+
+    Positive means the capture wins material once both sides have exchanged everything
+    they profitably can on the target square. MVV-LVA cannot express this: it ranks QxP
+    on a defended pawn by victim value alone, so quiescence searches it and burns nodes
+    proving it was bad.
+
+    Returns 0 for moves the swap-off does not model -- quiet moves, promotions (the
+    moving piece changes value mid-exchange) and en passant (the captured pawn is not on
+    the target square). Neutral rather than negative, so the SEE < 0 filter never skips
+    them.
+    """
+    fr_sq = move & 0x3F
+    to_sq = (move >> 6) & 0x3F
+    promo = (move >> 12) & 0x7
+    piece_moved = (move >> 15) & 0x7
+    captured = (move >> 18) & 0x7
+    is_ep = (move >> 21) & 1
+
+    if captured == NONE or promo != NONE or is_ep:
+        return 0
+
+    gain = np.zeros(64, dtype=np.int32)
+    occ = colors[WHITE] | colors[BLACK]
+    side = np.int64(state[0])
+
+    gain[0] = SEE_VALUE[captured]
+    attacker = piece_moved
+    occ ^= np.uint64(1) << np.uint64(fr_sq)
+
+    d = 0
+    while d < 62:
+        d += 1
+        side ^= 1
+        # Value of the piece now standing on to_sq, less what the previous side won.
+        gain[d] = SEE_VALUE[attacker] - gain[d - 1]
+        # Even conceding the piece outright cannot improve either side's result.
+        if max(-gain[d - 1], gain[d]) < 0:
+            break
+        sq, piece = least_valuable_attacker(pieces, colors, occ, to_sq, side)
+        if sq < 0:
+            break
+        occ ^= np.uint64(1) << np.uint64(sq)
+        attacker = piece
+
+    # Negamax back down the swap list: each side stands pat if capturing is worse.
+    while d > 1:
+        d -= 1
+        gain[d - 1] = -max(-gain[d - 1], gain[d])
+
+    return gain[0]
+
+
+@njit(cache=False)
 def qsearch(pieces, colors, state, alpha, beta, ply, path_keys, path_count, start_time, budget_ms, nodes):
     nodes[0] += 1
-    
+
+    # v11: quiescence used to take start_time and budget_ms and read neither, so a large
+    # capture subtree ran past the deadline unchecked. Measured: 6,061 ms against a 648 ms
+    # budget at ply 155, clock to -0.55 s, game lost on time. Same cadence and same
+    # deadline negamax uses. nodes[1] is the shared stop flag; see numba_search.
+    if (nodes[0] & 255) == 0:
+        with objmode(curr_time='float64'):
+            curr_time = time.time()
+        if (curr_time - start_time) * 1000 > budget_ms * 0.85:
+            nodes[1] = 1
+            return alpha
+
     if ply >= 127:
         return evaluate(pieces, colors, state)
         
@@ -167,7 +287,14 @@ def qsearch(pieces, colors, state, alpha, beta, ply, path_keys, path_count, star
                 victim = captured if captured != NONE else PAWN
                 if stand_pat + PIECE_VALUE[victim] + 200 < alpha:
                     continue
-                    
+                # v11: skip captures that lose material outright. MVV-LVA cannot tell a
+                # winning capture from a losing one, so quiescence was searching QxP into
+                # a defended pawn and burning nodes proving it was bad. Only when not in
+                # check -- in check every evasion has to be searched.
+                if captured != NONE and see(pieces, colors, state, move) < 0:
+                    continue
+
+
         is_legal = make_move(pieces, colors, state, move, undo)
         if not is_legal:
             unmake_move(pieces, colors, state, move, undo)
@@ -176,7 +303,12 @@ def qsearch(pieces, colors, state, alpha, beta, ply, path_keys, path_count, star
         legal_moves_played += 1
         child_score = -qsearch(pieces, colors, state, -beta, -alpha, ply + 1, path_keys, path_count, start_time, budget_ms, nodes)
         unmake_move(pieces, colors, state, move, undo)
-        
+
+        # Same reason as in negamax: unwind immediately instead of starting the next
+        # capture, and do not let the abort value become best_score.
+        if nodes[1] != 0:
+            break
+
         if child_score > best_score:
             best_score = child_score
         if child_score > alpha:
@@ -200,6 +332,7 @@ def negamax(pieces, colors, state, depth, ply, alpha, beta, prev_is_null,
         with objmode(curr_time='float64'):
             curr_time = time.time()
         if (curr_time - start_time) * 1000 > budget_ms * 0.85:
+            nodes[1] = 1  # v11: mark the search aborted so no TT entry is written
             return 0.0 # Timeout
     is_ch = in_check(pieces, colors, state)
     if is_ch and ply < 2 * root_depth:
@@ -332,11 +465,20 @@ def negamax(pieces, colors, state, depth, ply, alpha, beta, prev_is_null,
                              tt_keys, tt_depths, tt_scores, tt_flags, tt_moves, root_depth)
                              
         unmake_move(pieces, colors, state, move, undo)
-        
+
+        # v11: stop the move loop the moment any descendant aborted on the deadline.
+        # Checking only at node entry is not enough: an aborted child returns after ~256
+        # nodes and the loop immediately starts the next one, so unwinding a depth-10
+        # tree costs ~35 moves x 256 nodes per level. Measured 5.8M nodes and 1,951 ms
+        # spent past the deadline before this check existed. `score` here is the
+        # fabricated abort value, so break before it can become best_score.
+        if nodes[1] != 0:
+            break
+
         if score > best_score:
             best_score = score
             current_best_move = move
-            
+
         if score > alpha:
             alpha = score
             
@@ -368,12 +510,16 @@ def negamax(pieces, colors, state, depth, ply, alpha, beta, prev_is_null,
     elif best_score >= beta:
         flag = TT_LOWER
         
-    # Always replace for now
-    tt_keys[tt_idx] = hash_key
-    tt_depths[tt_idx] = depth
-    tt_scores[tt_idx] = store_score
-    tt_flags[tt_idx] = flag
-    tt_moves[tt_idx] = current_best_move
+    # Always replace for now -- but never with the result of an aborted search.
+    # v11: on timeout negamax returns a fabricated 0.0 which propagated up as a real
+    # child score and was stored here as an exact entry. With "always replace" and the
+    # table 98% full by move 156, every timed-out search poisoned it with fake draws.
+    if nodes[1] == 0:
+        tt_keys[tt_idx] = hash_key
+        tt_depths[tt_idx] = depth
+        tt_scores[tt_idx] = store_score
+        tt_flags[tt_idx] = flag
+        tt_moves[tt_idx] = current_best_move
     
     path_count -= 1
     return best_score
@@ -388,7 +534,9 @@ def numba_search(pieces, colors, state, time_left_ms, pos_counts_keys, pos_count
         budget_ms = min(time_left_ms * 0.045 + 400.0, time_left_ms * 0.25)
         panic = False
         
-    nodes = np.zeros(1, dtype=np.int64)
+    # nodes[0] = node count, nodes[1] = stop flag set when a search aborts on the
+    # deadline. Carried in the existing array so no signature has to change.
+    nodes = np.zeros(2, dtype=np.int64)
     killers = np.zeros((128, 2), dtype=np.uint32)
     history_table = np.zeros((64, 64), dtype=np.int32)
     path_keys = np.zeros(256, dtype=np.uint64)

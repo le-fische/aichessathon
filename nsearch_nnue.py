@@ -10,11 +10,17 @@ from numba import njit, objmode
 import os
 import numpy as np
 
-# Load weights if available
-if os.path.exists("weights.npy"):
-    weights = np.load("weights.npy")
-    biases = np.load("biases.npy")
-    weights2 = np.load("weights2.npy")
+# Load weights relative to this file, from weights/, which is where
+# tools/train_nnue.py writes them and where the packaged zip carries them.
+# The previous version looked for root-level files in the process working
+# directory. They were never there, so the fallback below ran every time and
+# every NNUE gate measured an all-zero network.
+_HERE = os.path.dirname(os.path.abspath(__file__))
+_W = os.path.join(_HERE, "weights", "weights.npy")
+if os.path.exists(_W):
+    weights = np.load(_W)
+    biases = np.load(os.path.join(_HERE, "weights", "biases.npy"))
+    weights2 = np.load(os.path.join(_HERE, "weights", "weights2.npy"))
 else:
     weights = np.zeros((768, 256), dtype=np.int16)
     biases = np.zeros(256, dtype=np.int16)
@@ -55,18 +61,18 @@ def extract_diffs(move, turn, diffs):
             cap_sq = to - 8 if turn == 0 else to + 8
         diffs[count, 0] = -1; diffs[count, 1] = opp; diffs[count, 2] = 0 if ep else captured; diffs[count, 3] = cap_sq; count += 1
     if castle:
-        if to == 62:
-            diffs[count, 0] = -1; diffs[count, 1] = 0; diffs[count, 2] = 3; diffs[count, 3] = 63; count+=1
-            diffs[count, 0] = 1; diffs[count, 1] = 0; diffs[count, 2] = 3; diffs[count, 3] = 61; count+=1
-        elif to == 58:
-            diffs[count, 0] = -1; diffs[count, 1] = 0; diffs[count, 2] = 3; diffs[count, 3] = 56; count+=1
-            diffs[count, 0] = 1; diffs[count, 1] = 0; diffs[count, 2] = 3; diffs[count, 3] = 59; count+=1
-        elif to == 6:
-            diffs[count, 0] = -1; diffs[count, 1] = 1; diffs[count, 2] = 3; diffs[count, 3] = 7; count+=1
-            diffs[count, 0] = 1; diffs[count, 1] = 1; diffs[count, 2] = 3; diffs[count, 3] = 5; count+=1
-        elif to == 2:
-            diffs[count, 0] = -1; diffs[count, 1] = 1; diffs[count, 2] = 3; diffs[count, 3] = 0; count+=1
-            diffs[count, 0] = 1; diffs[count, 1] = 1; diffs[count, 2] = 3; diffs[count, 3] = 3; count+=1
+        if to == 62:  # g8, Black kingside: rook h8 -> f8
+            diffs[count, 0] = -1; diffs[count, 1] = 1; diffs[count, 2] = 3; diffs[count, 3] = 63; count+=1
+            diffs[count, 0] = 1; diffs[count, 1] = 1; diffs[count, 2] = 3; diffs[count, 3] = 61; count+=1
+        elif to == 58:  # c8, Black queenside: rook a8 -> d8
+            diffs[count, 0] = -1; diffs[count, 1] = 1; diffs[count, 2] = 3; diffs[count, 3] = 56; count+=1
+            diffs[count, 0] = 1; diffs[count, 1] = 1; diffs[count, 2] = 3; diffs[count, 3] = 59; count+=1
+        elif to == 6:  # g1, White kingside: rook h1 -> f1
+            diffs[count, 0] = -1; diffs[count, 1] = 0; diffs[count, 2] = 3; diffs[count, 3] = 7; count+=1
+            diffs[count, 0] = 1; diffs[count, 1] = 0; diffs[count, 2] = 3; diffs[count, 3] = 5; count+=1
+        elif to == 2:  # c1, White queenside: rook a1 -> d1
+            diffs[count, 0] = -1; diffs[count, 1] = 0; diffs[count, 2] = 3; diffs[count, 3] = 0; count+=1
+            diffs[count, 0] = 1; diffs[count, 1] = 0; diffs[count, 2] = 3; diffs[count, 3] = 3; count+=1
     return count
 
 @njit(cache=False)
