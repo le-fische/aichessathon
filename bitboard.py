@@ -104,6 +104,49 @@ def init_tables():
 
 KNIGHT_ATTACKS, KING_ATTACKS, PAWN_ATTACKS, RAYS = init_tables()
 
+
+FILE_MASKS = np.zeros(8, dtype=np.uint64)
+for _f in range(8):
+    _m = 0
+    for _r in range(8):
+        _m |= 1 << (_r * 8 + _f)
+    FILE_MASKS[_f] = np.uint64(_m)
+
+# Squares in front of a king on the three files around it, two ranks deep. White looks
+# up the board, black looks down.
+KING_SHELTER_W = np.zeros(64, dtype=np.uint64)
+KING_SHELTER_B = np.zeros(64, dtype=np.uint64)
+for _sq in range(64):
+    _f, _r = _sq % 8, _sq // 8
+    _w, _b = 0, 0
+    for _df in (-1, 0, 1):
+        _ff = _f + _df
+        if _ff < 0 or _ff > 7:
+            continue
+        for _dr in (1, 2):
+            if _r + _dr <= 7:
+                _w |= 1 << ((_r + _dr) * 8 + _ff)
+            if _r - _dr >= 0:
+                _b |= 1 << ((_r - _dr) * 8 + _ff)
+    KING_SHELTER_W[_sq] = np.uint64(_w)
+    KING_SHELTER_B[_sq] = np.uint64(_b)
+
+# --- King safety, half 1: pawn shelter and open files ------------------------------
+# Until v12 the evaluation had NO king-safety term of any kind: tapered PeSTO tables,
+# pawn structure, bishop pair and a bare-king mate drive, and nothing else. Round 93 was
+# lost to an 1835 because of it -- we castled queenside, the opponent opened the b-file,
+# and no term in the evaluation could see it coming.
+#
+# Middlegame only. The penalties go into mg_diff and never into eg_diff, so the existing
+# taper retires the term as pieces come off: with no queens, a king on an open file is
+# a feature rather than a liability.
+KS_MISSING_PAWN = 12     # per missing pawn in the three files in front of the king
+KS_SEMI_OPEN_ADJ = 12    # no friendly pawn on an adjacent file, enemy pawn present
+KS_SEMI_OPEN_KING = 18   # ... on the king's own file
+KS_OPEN_ADJ = 22         # no pawn of either colour on an adjacent file
+KS_OPEN_KING = 33        # ... on the king's own file: the round 93 shape
+
+
 ROOK_DIRS = np.array([0, 1, 2, 3], dtype=np.int32)
 ROOK_POS = np.array([True, True, False, False], dtype=np.bool_)
 BISHOP_DIRS = np.array([4, 5, 6, 7], dtype=np.int32)
@@ -657,6 +700,50 @@ def numba_pawn_structure(white_pawns, black_pawns):
 
 
 @njit(cache=False)
+def king_safety_mg(pieces, colors):
+    """Middlegame king-safety delta, white minus black.
+
+    Positive means white's king is safer. Mirrors evaluation.king_safety_mg exactly --
+    the two evaluations have silently diverged twice, so any change here goes in both
+    files in the same commit and the 7,663-position random walk is the gate.
+    """
+    w_pawns = pieces[PAWN] & colors[WHITE]
+    b_pawns = pieces[PAWN] & colors[BLACK]
+
+    penalty = np.zeros(2, dtype=np.int64)
+    for c in range(2):
+        king_bb = pieces[KING] & colors[c]
+        if king_bb == 0:
+            continue
+        ksq = lsb(king_bb)
+        own_pawns = w_pawns if c == WHITE else b_pawns
+        shelter = KING_SHELTER_W[ksq] if c == WHITE else KING_SHELTER_B[ksq]
+
+        present = popcount(own_pawns & shelter)
+        if present > 3:
+            present = 3
+        pen = (3 - present) * KS_MISSING_PAWN
+
+        kf = ksq % 8
+        for df in range(-1, 2):
+            f = kf + df
+            if f < 0 or f > 7:
+                continue
+            fm = FILE_MASKS[f]
+            own_on_file = (own_pawns & fm) != 0
+            if own_on_file:
+                continue
+            enemy_pawns = b_pawns if c == WHITE else w_pawns
+            if (enemy_pawns & fm) != 0:
+                pen += KS_SEMI_OPEN_KING if df == 0 else KS_SEMI_OPEN_ADJ
+            else:
+                pen += KS_OPEN_KING if df == 0 else KS_OPEN_ADJ
+        penalty[c] = pen
+
+    return penalty[BLACK] - penalty[WHITE]
+
+
+@njit(cache=False)
 def evaluate(pieces, colors, state):
     mg_diff = 0
     eg_diff = 0
@@ -668,6 +755,8 @@ def evaluate(pieces, colors, state):
     )
     mg_diff += pawn_mg
     eg_diff += pawn_eg
+
+    mg_diff += king_safety_mg(pieces, colors)
 
     if popcount(pieces[BISHOP] & colors[WHITE]) >= 2:
         mg_diff += 30

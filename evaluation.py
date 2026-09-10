@@ -41,6 +41,78 @@ for sq in range(64):
     WHITE_PASSED_PAWN_MASKS[sq] = w_mask
     BLACK_PASSED_PAWN_MASKS[sq] = b_mask
 
+FILE_MASKS_EV = [0] * 8
+for _f in range(8):
+    _m = 0
+    for _r in range(8):
+        _m |= 1 << (_r * 8 + _f)
+    FILE_MASKS_EV[_f] = _m
+
+# Squares in front of a king on the three files around it, two ranks deep.
+KING_SHELTER_W_EV = [0] * 64
+KING_SHELTER_B_EV = [0] * 64
+for _sq in range(64):
+    _f, _r = _sq % 8, _sq // 8
+    _w, _b = 0, 0
+    for _df in (-1, 0, 1):
+        _ff = _f + _df
+        if _ff < 0 or _ff > 7:
+            continue
+        for _dr in (1, 2):
+            if _r + _dr <= 7:
+                _w |= 1 << ((_r + _dr) * 8 + _ff)
+            if _r - _dr >= 0:
+                _b |= 1 << ((_r - _dr) * 8 + _ff)
+    KING_SHELTER_W_EV[_sq] = _w
+    KING_SHELTER_B_EV[_sq] = _b
+
+# --- King safety, half 1: pawn shelter and open files ------------------------------
+# Must stay identical to bitboard.king_safety_mg. The two evaluations have silently
+# diverged twice; the 7,663-position random walk in tests/test_evaluate.py is the gate.
+# Middlegame only -- penalties go into mg_diff and never eg_diff, so the existing taper
+# retires the term as pieces come off.
+KS_MISSING_PAWN = 12
+KS_SEMI_OPEN_ADJ = 12
+KS_SEMI_OPEN_KING = 18
+KS_OPEN_ADJ = 22
+KS_OPEN_KING = 33
+
+
+def king_safety_mg(board: chess.Board) -> int:
+    """Middlegame king-safety delta, white minus black. Positive = white safer."""
+    w_pawns = board.pawns & board.occupied_co[chess.WHITE]
+    b_pawns = board.pawns & board.occupied_co[chess.BLACK]
+
+    penalty = [0, 0]
+    for c in (chess.WHITE, chess.BLACK):
+        king_bb = board.kings & board.occupied_co[c]
+        if not king_bb:
+            continue
+        ksq = (king_bb & -king_bb).bit_length() - 1
+        own_pawns = w_pawns if c == chess.WHITE else b_pawns
+        enemy_pawns = b_pawns if c == chess.WHITE else w_pawns
+        shelter = KING_SHELTER_W_EV[ksq] if c == chess.WHITE else KING_SHELTER_B_EV[ksq]
+
+        present = min(3, (own_pawns & shelter).bit_count())
+        pen = (3 - present) * KS_MISSING_PAWN
+
+        kf = ksq % 8
+        for df in (-1, 0, 1):
+            f = kf + df
+            if f < 0 or f > 7:
+                continue
+            fm = FILE_MASKS_EV[f]
+            if own_pawns & fm:
+                continue
+            if enemy_pawns & fm:
+                pen += KS_SEMI_OPEN_KING if df == 0 else KS_SEMI_OPEN_ADJ
+            else:
+                pen += KS_OPEN_KING if df == 0 else KS_OPEN_ADJ
+        penalty[c] = pen
+
+    return penalty[chess.BLACK] - penalty[chess.WHITE]
+
+
 PASSED_PAWN_MG = [0, 5, 10, 20, 35, 60, 100, 0]
 PASSED_PAWN_EG = [0, 10, 25, 45, 75, 120, 170, 0]
 CONNECTED_PASSED_BONUS_MG = 15
@@ -942,6 +1014,8 @@ def evaluate(board: chess.Board) -> float:
     mg_diff += pawn_mg
     eg_diff += pawn_eg
     
+    mg_diff += king_safety_mg(board)
+
     if (board.bishops & board.occupied_co[chess.WHITE]).bit_count() >= 2:
         mg_diff += 30
         eg_diff += 50
