@@ -146,6 +146,25 @@ KS_SEMI_OPEN_KING = 18   # ... on the king's own file
 KS_OPEN_ADJ = 22         # no pawn of either colour on an adjacent file
 KS_OPEN_KING = 33        # ... on the king's own file: the round 93 shape
 
+# --- King safety, half 2: attacker count -------------------------------------------
+# Half 1 asks "is the king's cover intact". This asks "how much is aimed at it", which
+# is the half Le flagged as holding the rest of the Elo. It costs node rate because
+# slider attacks have to be generated per enemy piece.
+#
+# Weight per attacking piece type, and a non-linear ramp indexed by accumulated units:
+# two attackers is uncomfortable, four is usually decisive. A linear term badly
+# under-rates the difference, which is the whole point of the table.
+KS_ATTACK_WEIGHT = np.array([0, 2, 2, 3, 5, 0, 0], dtype=np.int64)  # P N B R Q K none
+KS_SAFETY_MAX = 64
+KS_SAFETY_TABLE = np.zeros(KS_SAFETY_MAX, dtype=np.int64)
+for _u in range(KS_SAFETY_MAX):
+    # quadratic ramp saturating near 500 cp; shape follows the standard king-safety
+    # tables rather than anything tuned here.
+    # Gentler than the textbook ramp on purpose. Every other term here is modest
+    # (bishop pair is 30), so a term that can reach 500 would dominate the evaluation
+    # and make the engine panic rather than defend. Untuned -- Texel would fix it.
+    KS_SAFETY_TABLE[_u] = min(400, (_u * _u) // 4)
+
 
 ROOK_DIRS = np.array([0, 1, 2, 3], dtype=np.int32)
 ROOK_POS = np.array([True, True, False, False], dtype=np.bool_)
@@ -738,6 +757,40 @@ def king_safety_mg(pieces, colors):
                 pen += KS_SEMI_OPEN_KING if df == 0 else KS_SEMI_OPEN_ADJ
             else:
                 pen += KS_OPEN_KING if df == 0 else KS_OPEN_ADJ
+        # --- half 2: how much enemy material is aimed at the king zone ---
+        enemy = c ^ 1
+        zone = KING_ATTACKS[ksq] | (np.uint64(1) << np.uint64(ksq))
+        occ = colors[WHITE] | colors[BLACK]
+        units = 0
+        attackers = 0
+
+        for pt in range(1, 5):            # knight, bishop, rook, queen
+            bb = pieces[pt] & colors[enemy]
+            while bb:
+                sq = lsb(bb)
+                bb &= bb - np.uint64(1)
+                if pt == KNIGHT:
+                    att = KNIGHT_ATTACKS[sq]
+                elif pt == BISHOP:
+                    att = get_bishop_attacks(sq, occ)
+                elif pt == ROOK:
+                    att = get_rook_attacks(sq, occ)
+                else:
+                    att = get_bishop_attacks(sq, occ) | get_rook_attacks(sq, occ)
+                hit = att & zone
+                if hit:
+                    attackers += 1
+                    # Weight per attacking PIECE, plus one per zone square it covers.
+                    # Multiplying weight by squares lets a single queen max the table.
+                    units += KS_ATTACK_WEIGHT[pt] + popcount(hit)
+
+        # A lone attacker is not an attack. Requiring two keeps the term from firing on
+        # every developed knight, which is what makes it a safety term and not noise.
+        if attackers >= 2:
+            if units >= KS_SAFETY_MAX:
+                units = KS_SAFETY_MAX - 1
+            pen += KS_SAFETY_TABLE[units]
+
         penalty[c] = pen
 
     return penalty[BLACK] - penalty[WHITE]

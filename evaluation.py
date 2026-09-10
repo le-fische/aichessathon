@@ -77,6 +77,27 @@ KS_SEMI_OPEN_KING = 18
 KS_OPEN_ADJ = 22
 KS_OPEN_KING = 33
 
+# --- King safety, half 2: attacker count -------------------------------------------
+# Must stay identical to bitboard.king_safety_mg's half 2. Weight per attacking piece,
+# then a non-linear ramp: two attackers is uncomfortable, four is usually decisive, and
+# a linear term badly under-rates that difference.
+KS_ATTACK_WEIGHT = [0, 2, 2, 3, 5, 0, 0]      # index by chess piece type - 1
+KS_SAFETY_MAX = 64
+# Gentler than the textbook ramp on purpose: every other term here is modest (bishop
+# pair is 30), so a 500 cp king-safety term would dominate. Untuned; Texel would fix it.
+KS_SAFETY_TABLE = [min(400, (_u * _u) // 4) for _u in range(KS_SAFETY_MAX)]
+
+
+def _diag_attacks(sq: int, occ: int) -> int:
+    """Bishop attacks from sq given occupancy, using python-chess's attack tables."""
+    return chess.BB_DIAG_ATTACKS[sq][occ & chess.BB_DIAG_MASKS[sq]]
+
+
+def _line_attacks(sq: int, occ: int) -> int:
+    """Rook attacks from sq given occupancy: rank and file components combined."""
+    return (chess.BB_RANK_ATTACKS[sq][occ & chess.BB_RANK_MASKS[sq]]
+            | chess.BB_FILE_ATTACKS[sq][occ & chess.BB_FILE_MASKS[sq]])
+
 
 def king_safety_mg(board: chess.Board) -> int:
     """Middlegame king-safety delta, white minus black. Positive = white safer."""
@@ -108,6 +129,36 @@ def king_safety_mg(board: chess.Board) -> int:
                 pen += KS_SEMI_OPEN_KING if df == 0 else KS_SEMI_OPEN_ADJ
             else:
                 pen += KS_OPEN_KING if df == 0 else KS_OPEN_ADJ
+        # --- half 2: how much enemy material is aimed at the king zone ---
+        enemy = not c
+        zone = chess.BB_KING_ATTACKS[ksq] | chess.BB_SQUARES[ksq]
+        occ = board.occupied
+        units = 0
+        attackers = 0
+
+        for pt, mask in ((chess.KNIGHT, board.knights), (chess.BISHOP, board.bishops),
+                         (chess.ROOK, board.rooks), (chess.QUEEN, board.queens)):
+            bb = mask & board.occupied_co[enemy]
+            for sq in chess.scan_forward(bb):
+                if pt == chess.KNIGHT:
+                    att = chess.BB_KNIGHT_ATTACKS[sq]
+                elif pt == chess.BISHOP:
+                    att = _diag_attacks(sq, occ)
+                elif pt == chess.ROOK:
+                    att = _line_attacks(sq, occ)
+                else:
+                    att = _diag_attacks(sq, occ) | _line_attacks(sq, occ)
+                hit = att & zone
+                if hit:
+                    attackers += 1
+                    # Weight per attacking PIECE, plus one per zone square covered.
+                    units += KS_ATTACK_WEIGHT[pt - 1] + chess.popcount(hit)
+
+        # A lone attacker is not an attack. Requiring two stops the term firing on every
+        # developed knight, which is what makes it a safety term rather than noise.
+        if attackers >= 2:
+            pen += KS_SAFETY_TABLE[min(units, KS_SAFETY_MAX - 1)]
+
         penalty[c] = pen
 
     return penalty[chess.BLACK] - penalty[chess.WHITE]
