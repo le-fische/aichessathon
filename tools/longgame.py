@@ -44,9 +44,15 @@ import sys
 import time
 import types
 
+# Default to the repo working tree, NOT tools/scratch/longgame-snap. That directory is
+# a leftover v10 freeze (nsearch.py 88d79da4), so the old default meant every run without
+# an explicit LG_SNAP silently measured v10 -- an engine without the v11 flag fix. It
+# reported 43.7% of moves over budget, a 6.15x worst overshoot and an outright flag, and
+# those numbers read as a catastrophic regression in whatever build you thought you were
+# testing. The banner below always prints the path and the sha256 of every file; read it.
 SNAP = os.environ.get(
     "LG_SNAP",
-    os.path.join(os.path.dirname(os.path.abspath(__file__)), "scratch", "longgame-snap"),
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
 )
 OUT = os.environ.get(
     "LG_OUT",
@@ -99,6 +105,7 @@ def numba_budget_ms(time_left_ms: float) -> tuple[float, bool]:
     min(clock*0.15, 400), and the main branch still had 0.045 after v12 moved to 0.050.
     A stale copy here does not just mislabel a column -- it silently changes the pass/fail
     verdict of the gate that is supposed to catch flags.
+    """
     if time_left_ms < 3000:
         return min(time_left_ms * 0.15, 400.0), True
     return min(time_left_ms * 0.050 + 400.0, time_left_ms * 0.25), False
