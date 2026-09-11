@@ -21,6 +21,8 @@ class Outcome:
     result: Result
     termination: str
     pgn: str
+    white_clock: float = 0.0
+    black_clock: float = 0.0
 
 
 def play_match(
@@ -49,32 +51,32 @@ def _play(
     if white_failure is not None and black_failure is not None:
         return _outcome(board, "void", "both_failed")
     if white_failure is not None:
-        return _outcome(board, "black", white_failure)
+        return _outcome(board, "black", white_failure, 0.0, 0.0)
     if black_failure is not None:
-        return _outcome(board, "white", black_failure)
+        return _outcome(board, "white", black_failure, 0.0, 0.0)
 
     clock = {chess.WHITE: float(base_ms), chess.BLACK: float(base_ms)}
 
     while True:
         finish = board.outcome(claim_draw=True)
         if finish is not None:
-            return _outcome(board, _decide(finish), finish.termination.name.lower())
+            return _outcome(board, _decide(finish), finish.termination.name.lower(), clock.get(chess.WHITE, 0.0), clock.get(chess.BLACK, 0.0))
         if len(board.move_stack) >= ply_cap:
-            return _outcome(board, _adjudicate(board), "adjudication")
+            return _outcome(board, _adjudicate(board), "adjudication", clock.get(chess.WHITE, 0.0), clock.get(chess.BLACK, 0.0))
 
         mover = board.turn
         started_at = time.monotonic()
         try:
             uci = agents[mover].move(board.fen(), int(clock[mover]))
         except AgentFailure as failure:
-            return _outcome(board, _opponent_wins(mover), failure.reason)
+            return _outcome(board, _opponent_wins(mover), failure.reason, clock.get(chess.WHITE, 0.0), clock.get(chess.BLACK, 0.0))
         clock[mover] -= (time.monotonic() - started_at) * 1000.0
         if clock[mover] < 0:
-            return _outcome(board, _opponent_wins(mover), "flag")
+            return _outcome(board, _opponent_wins(mover), "flag", clock.get(chess.WHITE, 0.0), clock.get(chess.BLACK, 0.0))
 
         move = _legal_move(board, uci)
         if move is None:
-            return _outcome(board, _opponent_wins(mover), "illegal")
+            return _outcome(board, _opponent_wins(mover), "illegal", clock.get(chess.WHITE, 0.0), clock.get(chess.BLACK, 0.0))
         board.push(move)
         clock[mover] += increment_ms
 
@@ -117,8 +119,8 @@ def _adjudicate(board: chess.Board) -> Decision:
     return "draw"
 
 
-def _outcome(board: chess.Board, result: Result, termination: str) -> Outcome:
+def _outcome(board: chess.Board, result: Result, termination: str, white_clock: float = 0.0, black_clock: float = 0.0) -> Outcome:
     game = chess.pgn.Game.from_board(board)
     game.headers["Result"] = RESULT_HEADERS[result]
     game.headers["Termination"] = termination
-    return Outcome(result=result, termination=termination, pgn=str(game))
+    return Outcome(result=result, termination=termination, pgn=str(game), white_clock=white_clock, black_clock=black_clock)

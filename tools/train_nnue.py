@@ -51,7 +51,6 @@ class ChessDataset(Dataset):
         if turn == chess.WHITE:
             return torch.tensor(w_feat), torch.tensor(b_feat), torch.tensor([target], dtype=torch.float32)
         else:
-            target = 1.0 - target
             return torch.tensor(b_feat), torch.tensor(w_feat), torch.tensor([target], dtype=torch.float32)
 
 class PieceSquareNNUE(nn.Module):
@@ -94,13 +93,13 @@ def run():
     
     fc2_w = torch.round(model.fc2.weight.data * 87.538).to(torch.int8).numpy()
     
-    np.save("weights.npy", fc1_w.T) 
-    np.save("biases.npy", fc1_b)    
-    np.save("weights2.npy", fc2_w[0])  
+    np.save("weights/weights.npy", fc1_w.T) 
+    np.save("weights/biases.npy", fc1_b)    
+    np.save("weights/weights2.npy", fc2_w[0])  
     print("Exported weights.npy, biases.npy, weights2.npy")
     
     import hashlib
-    with open("weights.npy", "rb") as f:
+    with open("weights/weights.npy", "rb") as f:
         sha = hashlib.sha256(f.read()).hexdigest()
         print(f"Weights SHA256: {sha}")
 

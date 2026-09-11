@@ -1,15 +1,96 @@
 Starting 60 games match at 120s + 500ms
-New Numba (A): 8307e25a agent.py
-d6bb8861 bitboard.py
-c7776dff evaluation.py
-62035417 nnue.py
-88d79da4 nsearch.py
-8db41e93 search.py
+New Numba (A): 7d29bc31396ff3d2819d9dbdb6aa42ac1aa0c72e9a3010a554259167b04c35fa  agent.py
+d6bb8861c91cd3f59bd4269b07140144482d87c84f4c72148117b8cf93140149  bitboard.py
+c7776dff84ad726ef99787f7a3efb5acd0ee3d980edf5d590117282b2dbbee99  evaluation.py
+620354173a4c4d3e84a50a66f1ad2a23091141fe20f5b58afa4fdebab6a4a31f  nnue.py
+88d79da47ab3ce15233b2153d522148b7a218e834875f28c0a96a55aeb0b16ee  nsearch.py
+24bfb78b2b5440d953b86163bd629729c29afe965c8f398cffe7cdfdcfacc5b4  nsearch_nnue.py
+8db41e93b7d4efbb80fb3f987e1d8aca920ec41829762192a7701fac5dae8a37  search.py
 
-Old Numba (B): 8307e25a agent.py
-d6bb8861 bitboard.py
-c7776dff evaluation.py
-62035417 nnue.py
-5c532fb6 nsearch.py
-8db41e93 search.py
+Old Numba (B): 7d29bc31396ff3d2819d9dbdb6aa42ac1aa0c72e9a3010a554259167b04c35fa  agent.py
+0bb35c07b24ef7b83dab675c2b9d7113a337bede2804cadb5af64fab0b980060  bitboard.py
+bf6352f243f816e139fb7c4f26dee5a76af8cd710e127d52e836f39afec3bb36  evaluation.py
+620354173a4c4d3e84a50a66f1ad2a23091141fe20f5b58afa4fdebab6a4a31f  nnue.py
+cefaef5e16f0d8b1c1c897764360715d05b3dbbd5a8ef1285d80b8d22367dcd2  nsearch.py
+8db41e93b7d4efbb80fb3f987e1d8aca920ec41829762192a7701fac5dae8a37  search.py
 
+Game 49/60: white by checkmate
+Game 50/60: white by checkmate
+Game 1/60: white by checkmate
+Game 2/60: draw by threefold_repetition
+Game 51/60: draw by threefold_repetition
+Game 3/60: white by checkmate
+Game 52/60: white by flag
+Game 4/60: white by checkmate
+Game 53/60: draw by threefold_repetition
+Game 5/60: white by checkmate
+Game 54/60: draw by threefold_repetition
+Game 6/60: white by checkmate
+Game 55/60: white by checkmate
+Game 7/60: black by checkmate
+Game 56/60: white by checkmate
+Game 8/60: draw by threefold_repetition
+Game 57/60: black by flag
+Game 9/60: white by checkmate
+Game 58/60: white by checkmate
+Game 10/60: draw by threefold_repetition
+Game 59/60: draw by threefold_repetition
+Game 11/60: white by checkmate
+Game 60/60: draw by threefold_repetition
+
+Match complete! +15 =29 -16
+Score: 49.2% +/- 4.6% (1 sigma)
+Match complete! +15 =29 -16
+Score: 49.2% +/- 4.6% (1 sigma)
+Game 12/60: black by checkmate
+Game 13/60: draw by threefold_repetition
+Game 14/60: white by checkmate
+Game 15/60: white by checkmate
+Game 16/60: white by checkmate
+Game 17/60: draw by threefold_repetition
+Game 18/60: black by checkmate
+Game 19/60: black by checkmate
+Game 20/60: draw by threefold_repetition
+Game 21/60: draw by threefold_repetition
+Game 22/60: draw by threefold_repetition
+Game 23/60: white by checkmate
+Game 24/60: draw by threefold_repetition
+Game 25/60: white by checkmate
+Game 26/60: draw by threefold_repetition
+Game 27/60: black by flag
+Game 28/60: black by checkmate
+Game 29/60: black by checkmate
+Game 30/60: white by checkmate
+Game 31/60: black by flag
+Game 32/60: draw by threefold_repetition
+Game 33/60: black by flag
+Game 34/60: draw by threefold_repetition
+Game 35/60: draw by threefold_repetition
+Game 36/60: black by checkmate
+Game 37/60: black by flag
+Game 38/60: black by checkmate
+Game 39/60: white by checkmate
+Game 40/60: black by checkmate
+Game 41/60: draw by threefold_repetition
+Game 42/60: draw by threefold_repetition
+Game 43/60: draw by threefold_repetition
+Game 44/60: white by checkmate
+Game 45/60: draw by insufficient_material
+Game 46/60: draw by threefold_repetition
+Game 47/60: draw by threefold_repetition
+Game 48/60: draw by threefold_repetition
+Game 49/60: black by flag
+Game 50/60: white by checkmate
+Game 51/60: black by flag
+Game 52/60: draw by threefold_repetition
+Game 53/60: white by checkmate
+Game 54/60: white by checkmate
+Game 55/60: draw by threefold_repetition
+Game 56/60: draw by threefold_repetition
+Game 57/60: white by checkmate
+Game 58/60: black by checkmate
+Game 59/60: white by checkmate
+Game 60/60: white by checkmate
+
+Match complete! +19 =23 -18
+Score: 50.8% +/- 5.1% (1 sigma)

@@ -167,10 +167,14 @@ NB_CALL = '''    white_pawns = pieces[PAWN] & colors[WHITE]
 '''
 
 text = (DST / "bitboard.py").read_text()
-# The pawn-terms commit (5963d9c) also defines FILE_MASKS in bitboard.py. We use KS_FILE_MASKS
-# to avoid the collision.
-assert "KS_FILE_MASKS" not in text, (
-    "bitboard.py already defines KS_FILE_MASKS."
+# The pawn-terms commit (5963d9c) also defines FILE_MASKS in bitboard.py, as a
+# different shape indexed differently. Two module-level definitions of one name
+# means the later one silently wins, and numba does not bounds-check. We use
+# KS_FILE_MASKS to avoid the collision. Guard against a future careless merge
+# reverting this rename and colliding with the pawn terms.
+assert "FILE_MASKS = np.array(\n    [np.uint64(0x0101010101010101)" not in text, (
+    "bitboard.py contains the unrenamed king safety FILE_MASKS which will collide "
+    "with the pawn terms. Please rename the king safety one to KS_FILE_MASKS."
 )
 anchor = "@njit(cache=False)\ndef evaluate(pieces, colors, state):"
 assert text.count(anchor) == 1, "bitboard.py: evaluate anchor not unique"

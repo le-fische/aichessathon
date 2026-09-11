@@ -263,7 +263,7 @@ def is_insufficient_material(pieces):
 def has_legal_moves(pieces, colors, state):
     moves = np.zeros(256, dtype=np.uint32)
     count = generate_pseudo_legal_moves(pieces, colors, state, moves)
-    undo = np.zeros(6, dtype=np.uint32)
+    undo = np.zeros(4, dtype=np.uint64)
     for i in range(count):
         if make_move(pieces, colors, state, moves[i], undo):
             unmake_move(pieces, colors, state, moves[i], undo)
@@ -293,10 +293,6 @@ def qsearch(pieces, colors, state, alpha, beta, ply, path_keys, path_count, star
         
     is_ch = in_check(pieces, colors, state)
     
-    if not has_legal_moves(pieces, colors, state):
-        if is_ch:
-            return -20000 + ply
-        return 0.0
         
     stand_pat = -1e9
     
