@@ -34,3 +34,21 @@ EVIDENCE: NONE. No games played. Static review only.
 
 ROLLBACK: v12 zip 2bddf1a02d3b0a... in versions/v12-kramnik/, ACTIVE
           throughout v13 validation.
+
+VALIDATION (site, 2026-09-11)
+  First queue attempt stalled at "[09:53:29Z] building" for ~30 min --
+  never reached the unzip step. Requeued at 10:23:29 and completed in
+  2m21s. Queue backlog at the lock, not a defect in the build.
+  [10:23:30] upload expands to 1,353,581 bytes
+  [10:24:49] ready in 31.8 s of the 90 s init budget
+  [10:24:49] played 10 moves, slowest 4.8 s
+  [10:25:50] ready in 31.7 s of the 90 s init budget
+  [10:25:50] played 8 moves, slowest 4.3 s
+  [10:25:50] valid  -> ACTIVE; v12 demoted to VALID
+
+  Init 31.8s/31.7s vs v12 31.1s/50.1s: the doubled numba specialization
+  cost nothing measurable, matching the +3.6% local import delta.
+  No "conversion verify" line in either smoke -- the re-search did not
+  fire, as expected: both smokes are opening positions with >14 pieces.
+  Slowest move 4.8s vs v12 4.6s, so the 32%-of-clock cap was never
+  approached in validation. It remains untested in its target regime.

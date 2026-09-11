@@ -45,30 +45,18 @@ from harness.referee import play_match
 from harness.sandbox import local
 from tools.ab_arena import build_book
 
-SCREEN_GAMES = 30
-FULL_GAMES = 60
+SCREEN_GAMES = 40
+FULL_GAMES = 40
 BASE_MS = 120_000
 INC_MS = 500
 SEED = 20260910
 
 GATES = [
     (
-        "contempt",
-        "score a draw at -25cp instead of 0, so a winning engine stops shuffling",
-        Path("snapshots/v11_contempt"),
-        Path("snapshots/v11_control"),
-    ),
-    (
-        "king-safety",
-        "king shelter in both evaluations",
-        Path("snapshots/v11_kingsafety"),
-        Path("snapshots/v11_control"),
-    ),
-    (
-        "terms34",
-        "rook on open file plus doubled and isolated pawns, both never measured",
-        Path("snapshots/v11_terms34"),
-        Path("snapshots/v11_control"),
+        "v13",
+        "v12 + clock 0.050 + contempt 25",
+        Path("snapshots/v13_candidate"),
+        Path("snapshots/v13_control"),
     ),
 ]
 
@@ -93,7 +81,7 @@ def emit(handle, line):
 
 
 def run_gate(name, description, candidate, control, book):
-    out = Path(f"runs/2026-09-10-{name}/results.txt")
+    out = Path(f"runs/2026-09-11-{name}/results.txt")
     out.parent.mkdir(parents=True, exist_ok=True)
 
     with out.open("w") as handle:
@@ -188,7 +176,7 @@ def main():
         # gate was started on its own before this queue existed; leaving its
         # result in place saves two hours of machine time on a question that
         # has already been answered.
-        done = Path(f"runs/2026-09-10-{name}/results.txt")
+        done = Path(f"runs/2026-09-11-{name}/results.txt")
         if done.exists() and "VERDICT:" in done.read_text():
             line = [x for x in done.read_text().splitlines() if x.startswith("VERDICT:")][-1]
             print(f"skipping {name}: already decided -- {line}", flush=True)
