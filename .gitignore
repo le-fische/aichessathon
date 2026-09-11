@@ -10,3 +10,6 @@ data/
 *.npy
 _stage_*
 snapshots/
+
+# build artefacts: reconstructible from git, and 14 MB of duplicated tablebases
+build/
