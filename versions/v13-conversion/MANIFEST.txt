@@ -1,0 +1,36 @@
+V13 -- "conversion verify"  (author: ChatGPT, uploaded by Le)
+uploaded    : 2026-09-11 10:53 BST (lock 11:00) -- inside window
+site hash   : aa780a379041
+
+zip sha256  : aa780a379041ba90531fc40ec29653b6a7aff1a90c98b83f7d4f4505f3b1ee04
+members     : 5 .py + 35 .rtbw (no .npy/.npz, no stray root files)
+
+SHIPPED SOURCE HASHES
+  agent.py       7d29bc31396ff3d2819d9dbdb6aa42ac1aa0c72e9a3010a554259167b04c35fa
+  search.py      8db41e93b7d4efbb80fb3f987e1d8aca920ec41829762192a7701fac5dae8a37
+  evaluation.py  b939e4e88ec59b8c026dba5fc438eee7b16271dee2e855922ef7c6c1be951a2c
+  bitboard.py    421259eb34668caf293126fc58d07c61b3b8a9414bf1c8c08f1fdfc74551c7d7
+  nsearch.py     32680a6f1215eecd75128fa6e85a8b927781f7b776ec07207ef3965cfb08802c
+
+PROVENANCE: v12 (2bddf1a02d3b) + two files
+  agent.py / search.py / evaluation.py  BYTE-IDENTICAL to v12
+  bitboard.py  generate_pseudo_legal_moves gains captures_only=False;
+               quiescence generates captures+promotions directly instead
+               of generating all moves then filtering. EP preserved
+               (emitted before the early return); castling excluded.
+  nsearch.py   budget_override_ms param; conversion re-search when
+               clock>=16s, 100<=score<1000, <=14 pieces, best move is a
+               rook/queen capture, >=6 plies since last fire. Total move
+               time capped at min(8000ms, clock*0.32). completed_depth
+               now also set before the panic break.
+
+EVIDENCE: NONE. No games played. Static review only.
+  verified: 5/5 files parse (3.12); numba path imports and plays 12 legal
+            plies; import 8.7s vs v12 8.4s (+3.6%), so the doubled numba
+            specialization does NOT threaten the 90s init budget
+            (v12 validator init was 31.1s and 50.1s).
+  NOT verified: strength. No gate was run. Motivated by the round-103
+            conversion failure in tools/probe/FINDINGS.md.
+
+ROLLBACK: v12 zip 2bddf1a02d3b0a... in versions/v12-kramnik/, ACTIVE
+          throughout v13 validation.
