@@ -30,6 +30,7 @@ from bitboard import (
     lsb,
     make_move,
     unmake_move,
+    popcount,
 )
 
 # Constants
@@ -201,10 +202,38 @@ def see(pieces, colors, state, move):
         # Even conceding the piece outright cannot improve either side's result.
         if max(-gain[d - 1], gain[d]) < 0:
             break
-        sq, piece = least_valuable_attacker(pieces, colors, occ, to_sq, side)
+        sq = -1
+        piece = 0
+        while True:
+            sq, piece = least_valuable_attacker(pieces, colors, occ, to_sq, side)
+            if sq < 0:
+                break
+            
+            is_legal = True
+            king_bb = pieces[KING] & colors[side]
+            if king_bb:
+                king_sq = lsb(king_bb)
+                new_occ = occ ^ (np.uint64(1) << np.uint64(sq))
+                opp = side ^ 1
+                enemy_rooks = (pieces[ROOK] | pieces[QUEEN]) & colors[opp]
+                enemy_bishops = (pieces[BISHOP] | pieces[QUEEN]) & colors[opp]
+                if piece == KING:
+                    if enemy_rooks and (get_rook_attacks(to_sq, new_occ) & enemy_rooks): is_legal = False
+                    elif enemy_bishops and (get_bishop_attacks(to_sq, new_occ) & enemy_bishops): is_legal = False
+                    elif side == WHITE and (PAWN_ATTACKS[BLACK][to_sq] & pieces[PAWN] & colors[BLACK]): is_legal = False
+                    elif side == BLACK and (PAWN_ATTACKS[WHITE][to_sq] & pieces[PAWN] & colors[WHITE]): is_legal = False
+                    elif KNIGHT_ATTACKS[to_sq] & pieces[KNIGHT] & colors[opp]: is_legal = False
+                    elif KING_ATTACKS[to_sq] & pieces[KING] & colors[opp]: is_legal = False
+                else:
+                    if enemy_rooks and (get_rook_attacks(king_sq, new_occ) & enemy_rooks): is_legal = False
+                    elif enemy_bishops and (get_bishop_attacks(king_sq, new_occ) & enemy_bishops): is_legal = False
+            
+            occ ^= np.uint64(1) << np.uint64(sq)
+            if is_legal:
+                break
+
         if sq < 0:
             break
-        occ ^= np.uint64(1) << np.uint64(sq)
         attacker = piece
 
     # Negamax back down the swap list: each side stands pat if capturing is worse.
@@ -214,6 +243,32 @@ def see(pieces, colors, state, move):
 
     return gain[0]
 
+
+# Read-only stand-ins passed to score_moves from quiescence, which has no
+# killers or history of its own and never writes to either.
+QS_KILLERS = np.zeros((1, 2), dtype=np.uint32)
+QS_HISTORY = np.zeros((64, 64), dtype=np.int32)
+
+
+@njit(cache=False)
+def is_insufficient_material(pieces):
+    if pieces[PAWN] or pieces[ROOK] or pieces[QUEEN]:
+        return False
+    knights = popcount(pieces[KNIGHT])
+    bishops = popcount(pieces[BISHOP])
+    return (knights + bishops) <= 1
+
+
+@njit(cache=False)
+def has_legal_moves(pieces, colors, state):
+    moves = np.zeros(256, dtype=np.uint32)
+    count = generate_pseudo_legal_moves(pieces, colors, state, moves)
+    undo = np.zeros(6, dtype=np.uint32)
+    for i in range(count):
+        if make_move(pieces, colors, state, moves[i], undo):
+            unmake_move(pieces, colors, state, moves[i], undo)
+            return True
+    return False
 
 @njit(cache=False)
 def qsearch(pieces, colors, state, alpha, beta, ply, path_keys, path_count, start_time, budget_ms, nodes):
@@ -233,7 +288,16 @@ def qsearch(pieces, colors, state, alpha, beta, ply, path_keys, path_count, star
     if ply >= 127:
         return evaluate(pieces, colors, state)
         
+    if is_insufficient_material(pieces):
+        return 0.0
+        
     is_ch = in_check(pieces, colors, state)
+    
+    if not has_legal_moves(pieces, colors, state):
+        if is_ch:
+            return -20000 + ply
+        return 0.0
+        
     stand_pat = -1e9
     
     if not is_ch:
@@ -267,10 +331,10 @@ def qsearch(pieces, colors, state, alpha, beta, ply, path_keys, path_count, star
             pass
         return stand_pat
 
-    # Fake killers and history for qsearch score
-    killers = np.zeros((1, 2), dtype=np.uint32)
-    history = np.zeros((64, 64), dtype=np.int32)
-    scores = score_moves(moves, count, 0, killers, 0, history)
+    # score_moves wants a killers array and a history table; quiescence has
+    # neither and writes to neither, so these are module-level read-only zeros
+    # rather than a fresh (1,2) array and a 16 KB table allocated at every node.
+    scores = score_moves(moves, count, 0, QS_KILLERS, 0, QS_HISTORY)
     insertion_sort(moves, scores, count)
     
     best_score = -1e9 if is_ch else stand_pat
@@ -337,6 +401,9 @@ def negamax(pieces, colors, state, depth, ply, alpha, beta, prev_is_null,
     is_ch = in_check(pieces, colors, state)
     if is_ch and ply < 2 * root_depth:
         depth += 1
+
+    if is_insufficient_material(pieces):
+        return 0.0
 
 
     hash_key = state[4]
@@ -443,26 +510,36 @@ def negamax(pieces, colors, state, depth, ply, alpha, beta, prev_is_null,
             continue
             
         legal_moves_played += 1
-        needs_full_search = True
-        score = 0.0
-        
         gives_check = in_check(pieces, colors, state)
-        if legal_moves_played >= 4 and depth >= 3 and not is_ch and is_quiet and not gives_check:
-            reduced_score = -negamax(pieces, colors, state, depth - 2, ply + 1, -alpha - 1, -alpha, False,
-                                     path_keys, path_count, pos_counts_keys, pos_counts_vals,
-                                     killers, history_table, start_time, budget_ms, max_nodes, nodes, panic,
-                                     tt_keys, tt_depths, tt_scores, tt_flags, tt_moves, root_depth)
-            if reduced_score > alpha:
-                needs_full_search = True
-            else:
-                score = reduced_score
-                needs_full_search = False
-                
-        if needs_full_search:
+        
+        if legal_moves_played == 1:
             score = -negamax(pieces, colors, state, depth - 1, ply + 1, -beta, -alpha, False,
                              path_keys, path_count, pos_counts_keys, pos_counts_vals,
                              killers, history_table, start_time, budget_ms, max_nodes, nodes, panic,
                              tt_keys, tt_depths, tt_scores, tt_flags, tt_moves, root_depth)
+        else:
+            needs_full_search = True
+            if legal_moves_played >= 4 and depth >= 3 and not is_ch and is_quiet and not gives_check:
+                reduced_score = -negamax(pieces, colors, state, depth - 2, ply + 1, -alpha - 1, -alpha, False,
+                                         path_keys, path_count, pos_counts_keys, pos_counts_vals,
+                                         killers, history_table, start_time, budget_ms, max_nodes, nodes, panic,
+                                         tt_keys, tt_depths, tt_scores, tt_flags, tt_moves, root_depth)
+                if reduced_score > alpha:
+                    needs_full_search = True
+                else:
+                    score = reduced_score
+                    needs_full_search = False
+                    
+            if needs_full_search:
+                score = -negamax(pieces, colors, state, depth - 1, ply + 1, -alpha - 1, -alpha, False,
+                                 path_keys, path_count, pos_counts_keys, pos_counts_vals,
+                                 killers, history_table, start_time, budget_ms, max_nodes, nodes, panic,
+                                 tt_keys, tt_depths, tt_scores, tt_flags, tt_moves, root_depth)
+                if score > alpha and score < beta:
+                    score = -negamax(pieces, colors, state, depth - 1, ply + 1, -beta, -alpha, False,
+                                     path_keys, path_count, pos_counts_keys, pos_counts_vals,
+                                     killers, history_table, start_time, budget_ms, max_nodes, nodes, panic,
+                                     tt_keys, tt_depths, tt_scores, tt_flags, tt_moves, root_depth)
                              
         unmake_move(pieces, colors, state, move, undo)
 
@@ -528,7 +605,11 @@ def negamax(pieces, colors, state, depth, ply, alpha, beta, prev_is_null,
 def numba_search(pieces, colors, state, time_left_ms, pos_counts_keys, pos_counts_vals, max_nodes, start_time, 
                  tt_keys, tt_depths, tt_scores, tt_flags, tt_moves, max_depth=64):
     if time_left_ms < 3000:
-        budget_ms = min(200.0, time_left_ms * 0.1)
+        # v11: was min(200.0, time_left_ms * 0.1), which put a 2.7x cliff at the 3000 ms
+        # boundary -- 535 ms of budget at 3000, 200 ms at 2999. 15% capped at 400 ms
+        # keeps a large reserve while making the boundary nearly continuous. The search
+        # still aborts at budget_ms * 0.85, so real spend here is ~340 ms at worst.
+        budget_ms = min(time_left_ms * 0.15, 400.0)
         panic = True
     else:
         budget_ms = min(time_left_ms * 0.045 + 400.0, time_left_ms * 0.25)
@@ -632,10 +713,18 @@ def numba_search(pieces, colors, state, time_left_ms, pos_counts_keys, pos_count
             
         prev_score = current_best_score
         best_move = current_best_move
-        
-        if panic:
-            break
-                    
+
+        # v11: `if panic: break` used to sit here, stopping after one iteration and --
+        # because it broke before `completed_depth = depth` below -- reporting depth 0
+        # for every move under 3 s of clock. The engine spent 2.4 ms of a 200 ms budget
+        # and played the first move iterative deepening happened to have.
+        #
+        # Removing it cannot cause a flag: the loop below only starts another iteration
+        # while less than half the budget is gone, and every iteration aborts at
+        # budget_ms * 0.85 like any other. It just stops discarding the budget.
+
+        completed_depth = depth
+
         if max_nodes > 0:
             if nodes[0] >= max_nodes / 2:
                 break
@@ -645,7 +734,6 @@ def numba_search(pieces, colors, state, time_left_ms, pos_counts_keys, pos_count
             if (curr_time - start_time) * 1000 > budget_ms / 2:
                 break
                 
-        completed_depth = depth
         depth += 1
         
     return best_move, prev_score, nodes[0], completed_depth
