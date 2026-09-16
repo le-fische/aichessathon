@@ -124,18 +124,48 @@ its `--ms` argument as the engine's remaining clock rather than as the search bu
 That produced a reported EBF of 4.64–7.01 and a claim of +6–8 plies available. Both were
 artefacts. The corrected figure is in `runs/2026-09-10-v12/`.
 
-### 3. The NNUE was never actually tested
+### 3. The NNUE was tested, and it was badly undertrained
 
-`nsearch_nnue.py` loaded its weights with `os.path.exists("weights.npy")` — a path relative
-to the working directory, while the files live in `weights/`. The check silently failed and
-the network initialised to all zeros. **Roughly 155 rated games were played by an engine
-whose neural evaluation returned a constant.**
+Danny trained a 768→256→1 network in PyTorch and gated it properly. It lost
+**+1 =0 −59 — a 1.7% score over 60 games** against the classical evaluation. That is not a
+marginal failure; it is the network being actively worse than the piece-square tables it
+replaced.
 
-Three bugs, found together and late: the path; inverted rook colours in all four castling
-branches of the accumulator update; and a double-applied quantization scale
-(`out // 64 // 64` where the correct derivation gives `out // 64`, since
-87.538 = 64 · 173.72/127). Once fixed, the network correlated **+0.957** with the classical
-evaluation — but by then there was no time left to train it properly or gate it honestly.
+The run record (`runs/2026-09-09-nnue/gate_results.txt`) says why:
+
+```
+Positions:          2,000,000
+Epochs:             5
+Stockfish Depth:    8
+Weights SHA256:     0fa32920aa12fbaa...
+```
+
+Two million positions labelled at **depth 8** is a small, shallow dataset. Depth-8
+evaluations are close to a quiescence score — they carry little of the positional judgement
+the network is supposed to learn — and two million samples across five epochs is nowhere
+near enough to fit 197 k parameters to something better than hand-tuned PSTs. Serious NNUE
+training runs use orders of magnitude more data at greater depth, and iterate by relabelling
+with the improved network.
+
+For scale, [an entrant that qualified near the top](https://github.com/TahaKhanM/AIChessathon)
+used a substantially larger evaluator: a
+512-channel accumulator over piece-square, threat and pawn-pair features, 12 non-uniform
+king buckets, and multiple hidden layers with auxiliary output heads, against our single
+256-wide hidden layer. Their repository is public but deliberately withholds the dataset
+and hyperparameters that produced the ranked checkpoint, so there is no honest numeric
+comparison to draw — only the observation that the architecture is a different class of
+thing, and that getting a network to beat a decent classical evaluation is much harder than
+it looks from the outside.
+
+Three separate bugs in the NNUE loader cost days of dev time and are worth recording, even
+though `nsearch_nnue.py` never shipped in v11, v12 or v13 and so never affected a rated
+game: weights loaded with `os.path.exists("weights.npy")`, a path relative to the working
+directory while the files live in `weights/`, which silently yields an all-zero network;
+inverted rook colours in all four castling branches of the accumulator update; and a
+double-applied quantization scale — `out // 64 // 64` where the derivation gives
+`out // 64`, since 87.538 = 64 · 173.72/127. Once fixed, the network correlated **+0.957**
+with the classical evaluation, confirming the plumbing was finally right. The training was
+still the problem.
 
 ### 4. The blunder theory was wrong, and measuring it said so
 
