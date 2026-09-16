@@ -42,3 +42,4 @@ tools/scratch/
 
 # runs/ is the evidence record and is never ignored, logs included.
 !runs/**
+runs/**/__pycache__/
