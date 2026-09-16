@@ -39,3 +39,6 @@ _stage_*
 
 # Scratch: one-off diagnostics and patchers. Kept on disk, not in the repo.
 tools/scratch/
+
+# runs/ is the evidence record and is never ignored, logs included.
+!runs/**

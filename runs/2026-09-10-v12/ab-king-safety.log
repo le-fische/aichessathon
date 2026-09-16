@@ -1,0 +1,48 @@
+=== A/B: king safety vs same build without it, 40 games at 120s+0.5s ===  Thu Sep 10 13:03:28 BST 2026
+    agent    = snapshots/v12-ks   (shelter + open files + attacker count)
+    opponent = snapshots/v12-base (identical in every other respect)
+game 1/40: black by checkmate
+game 2/40: draw by threefold_repetition
+game 3/40: draw by threefold_repetition
+game 4/40: black by checkmate
+game 5/40: draw by threefold_repetition
+game 6/40: black by checkmate
+game 7/40: draw by threefold_repetition
+game 8/40: black by checkmate
+game 9/40: black by checkmate
+game 10/40: black by checkmate
+game 11/40: draw by threefold_repetition
+game 12/40: draw by threefold_repetition
+game 13/40: white by checkmate
+game 14/40: black by checkmate
+game 15/40: draw by threefold_repetition
+game 16/40: draw by threefold_repetition
+game 17/40: black by checkmate
+game 18/40: draw by threefold_repetition
+game 19/40: draw by threefold_repetition
+game 20/40: draw by threefold_repetition
+game 21/40: black by checkmate
+game 22/40: white by checkmate
+game 23/40: black by checkmate
+game 24/40: draw by threefold_repetition
+game 25/40: draw by threefold_repetition
+game 26/40: white by checkmate
+game 27/40: draw by threefold_repetition
+game 28/40: draw by threefold_repetition
+game 29/40: white by checkmate
+game 30/40: black by checkmate
+game 31/40: draw by threefold_repetition
+game 32/40: draw by threefold_repetition
+game 33/40: draw by threefold_repetition
+game 34/40: draw by threefold_repetition
+game 35/40: draw by threefold_repetition
+game 36/40: black by checkmate
+game 37/40: draw by threefold_repetition
+game 38/40: white by checkmate
+game 39/40: black by checkmate
+game 40/40: white by checkmate
+
+/Users/dannybudiada/Desktop/AIChessHackathon/aichessathon/snapshots/v12-ks vs /Users/dannybudiada/Desktop/AIChessHackathon/aichessathon/snapshots/v12-base over 40 games
++9 =21 -10, score 48.8%
+terminations: checkmate 19, threefold_repetition 21
+=== DONE === Thu Sep 10 16:00:43 BST 2026

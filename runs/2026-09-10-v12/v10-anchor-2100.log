@@ -1,0 +1,33 @@
+=== v10 vs Stockfish UCI_Elo 2100, 16 games -- the rollback question ===  Thu Sep 10 16:40:21 BST 2026
+    v11 scored 78.1% (+11 =3 -2) on this identical anchor
+    snapshot: snapshots/v10-anchor  nsearch sha 88d79da4
+Warming up Numba JIT...
+Warmup complete.
+agent.py: Numba search successfully imported and active.
+agent vs Stockfish  UCI_Elo=2100  threads=1
+engine: /Users/dannybudiada/Desktop/AIChessHackathon/aichessathon/baselines/stockfish/stockfish
+120s + 0.5s, 16 games, colours alternating, ply cap 600
+
+agent.py: Executing get_move using Numba search.
+game   1/16  W  King's Indian    win   by checkmate               66 plies  clock left   18.7s    252s  | +1 =0 -0  100.0%  Elo diff +0 +/- 491
+game   2/16  B  Nimzo-Indian     win   by checkmate               85 plies  clock left   29.2s    251s  | +2 =0 -0  100.0%  Elo diff +191 +/- 328
+game   3/16  W  Dutch Stonewall  win   by checkmate               82 plies  clock left   29.4s    250s  | +3 =0 -0  100.0%  Elo diff +280 +/- 295
+game   4/16  B  Sicilian Closed  win   by checkmate               58 plies  clock left   43.3s    217s  | +4 =0 -0  100.0%  Elo diff +338 +/- 281
+game   5/16  W  Queen's Indian   win   by checkmate               60 plies  clock left   45.4s    222s  | +5 =0 -0  100.0%  Elo diff +382 +/- 273
+game   6/16  B  Reti             loss  by checkmate              108 plies  clock left   19.1s    270s  | +5 =0 -1  83.3%  Elo diff +280 +/- 190
+game   7/16  W  King's Indian    win   by checkmate               64 plies  clock left   39.2s    230s  | +6 =0 -1  85.7%  Elo diff +311 +/- 188
+game   8/16  B  Nimzo-Indian     win   by checkmate              113 plies  clock left   19.6s    275s  | +7 =0 -1  87.5%  Elo diff +338 +/- 186
+game   9/16  W  Dutch Stonewall  win   by checkmate               98 plies  clock left   25.8s    261s  | +8 =0 -1  88.9%  Elo diff +361 +/- 184
+game  10/16  B  Sicilian Closed  win   by checkmate               36 plies  clock left   64.5s    182s  | +9 =0 -1  90.0%  Elo diff +382 +/- 183
+game  11/16  W  Queen's Indian   win   by checkmate               86 plies  clock left   16.5s    263s  | +10 =0 -1  90.9%  Elo diff +400 +/- 182
+game  12/16  B  Reti             win   by checkmate               71 plies  clock left   40.3s    233s  | +11 =0 -1  91.7%  Elo diff +417 +/- 181
+game  13/16  W  King's Indian    win   by checkmate               60 plies  clock left   42.9s    226s  | +12 =0 -1  92.3%  Elo diff +432 +/- 181
+game  14/16  B  Nimzo-Indian     win   by checkmate               73 plies  clock left   35.1s    239s  | +13 =0 -1  92.9%  Elo diff +446 +/- 180
+game  15/16  W  Dutch Stonewall  win   by checkmate               68 plies  clock left   39.4s    231s  | +14 =0 -1  93.3%  Elo diff +458 +/- 180
+game  16/16  B  Sicilian Closed  win   by checkmate               44 plies  clock left   51.7s    197s  | +15 =0 -1  93.8%  Elo diff +470 +/- 179
+
++15 =0 -1 over 16 games, score 93.8%
+terminations: checkmate 16
+Elo difference vs Stockfish 2100: +470 +/- 179
+implied absolute strength: 2570
+=== DONE === Thu Sep 10 17:43:50 BST 2026

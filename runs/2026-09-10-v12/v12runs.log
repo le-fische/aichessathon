@@ -1,0 +1,206 @@
+=== A: 600-ply endurance with RSS, v12 (Syzygy build) ===  Thu Sep 10 09:32:19 BST 2026
+engine snapshot: /Users/dannybudiada/Desktop/AIChessHackathon/aichessathon/snapshots/v12
+  7d29bc31396ff3d2819d9dbdb6aa42ac1aa0c72e9a3010a554259167b04c35fa  agent.py
+  8db41e93b7d4efbb80fb3f987e1d8aca920ec41829762192a7701fac5dae8a37  search.py
+  f54a6bce8b608229c079a8a1cd58352dda8ca2168434e5e8a242048592b0c1f6  nsearch.py
+  d6bb8861c91cd3f59bd4269b07140144482d87c84f4c72148117b8cf93140149  bitboard.py
+  c7776dff84ad726ef99787f7a3efb5acd0ee3d980edf5d590117282b2dbbee99  evaluation.py
+python 3.13.5  chess 1.11.2
+CHESSATHON_REQUIRE_NUMBA=1  USE_NUMBA_SEARCH=None
+Warming up Numba JIT...
+Warmup complete.
+agent.py: Numba search successfully imported and active.
+agent.py: Numba search successfully imported and active.
+import + JIT: 11.8s   rss 504 MB
+start fen : r2qkb1r/1p3ppp/p1npbn2/4p1B1/4P3/N1N2P2/PPP3PP/R2QKB1R b KQkq - 3 9
+ply cap   : 600   claim_draw=False
+numba     : white=True black=True
+
+ ply   mv side   clock_in   budget     used  ratio  clock_out   d     nodes  ttocc%     rss   cnt
+   0    9 black   120.00s    5800m    4237m   0.73    115.76s  11   9567749   5.55%    680M     1
+   1   10 white   120.00s    5800m    3356m   0.58    116.64s  10   6982350   4.30%    681M     1
+   2   10 black   116.26s    5632m    3247m   0.58    113.02s  11   7386240   8.34%    677M     2
+   3   11 white   117.14s    5671m    3273m   0.58    113.87s  11   6978117  12.17%    676M     2
+   4   11 black   113.52s    5508m    4683m   0.85    108.83s  11  11124736  17.68%    653M     3
+   5   12 white   114.37s    5547m    4716m   0.85    109.65s  12  10632965  22.93%    650M     3
+   6   12 black   109.33s    5320m    4523m   0.85    104.81s  12  10593540  27.55%    604M     4
+   7   13 white   110.15s    5357m    4555m   0.85    105.60s  12  10420736  32.30%    604M     4
+   8   13 black   105.31s    5139m    2909m   0.57    102.40s  10   6969284  35.08%    604M     5
+   9   14 white   106.10s    5175m    4399m   0.85    101.70s  11   9633285  39.38%    604M     5
+  10   14 black   102.90s    5031m    4277m   0.85     98.62s  11  10125319  43.11%    604M     6
+  11   15 white   102.20s    4999m    2716m   0.54     99.48s  12   6069600  45.41%    604M     6
+  20   19 black    85.55s    4250m    2970m   0.70     82.58s  13   7667891  67.10%    604M    11
+  30   24 black    71.79s    3630m    3086m   0.85     68.70s  13   7267584  79.76%    604M    16
+  40   29 black    61.10s    3150m    1840m   0.58     59.26s  12   4342045  86.75%    604M    21
+  50   34 black    53.38s    2802m    2383m   0.85     51.00s  13   5833233  90.70%    603M    26
+  60   39 black    45.74s    2458m    1610m   0.66     44.13s  13   3932010  93.27%    603M    31
+  70   44 black    40.09s    2204m    1874m   0.85     38.22s  14   4407296  95.21%    603M    36
+  80   49 black    33.73s    1918m    1631m   0.85     32.10s  15   3994112  96.49%    388M    41
+  90   54 black    29.87s    1744m    1483m   0.85     28.39s  13   3372544  97.26%    389M    46
+ 100   59 black    25.69s    1556m     932m   0.60     24.76s  12   2302642  97.81%    390M    51
+ 110   64 black    22.47s    1411m    1092m   0.77     21.38s  11   2666897  98.19%    390M    56
+ 120   69 black    19.51s    1278m     945m   0.74     18.57s  12   2131316  98.47%    390M    61
+ 130   74 black    17.63s    1194m     714m   0.60     16.92s  12   1710441  98.66%    390M    66
+ 140   79 black    15.71s    1107m     942m   0.85     14.77s  11   2268928  98.83%    391M    71
+ 150   84 black    13.98s    1029m     828m   0.80     13.16s  10   1975790  98.97%    391M    75
+ 160   89 black    12.29s     953m     583m   0.61     11.70s  10   1339976  99.07%    391M    80
+ 170   94 black    11.48s     917m     780m   0.85     10.70s  11   1793792  99.15%    391M    85
+ 180   99 black    10.30s     864m     735m   0.85      9.57s  11   1801475  99.23%    391M    90
+ 190  104 black     9.22s     815m     412m   0.51      8.80s  11    943681  99.31%    391M    94
+ 200  109 black     8.58s     786m     412m   0.52      8.17s  13   1037276  99.37%    391M    99
+ 210  114 black     8.16s     767m     652m   0.85      7.50s  19   1562122  99.43%    392M   103
+  -- the real referee would have stopped here: ply 212 threefold_repetition; the clock instrument continues
+ 220  119 black     8.25s     771m     656m   0.85      7.59s  20   1635072  99.47%    392M   104
+ 230  124 black     7.52s     739m     525m   0.71      7.00s  16   1225680  99.51%    392M   104
+ 240  129 black     7.02s     716m     554m   0.77      6.46s  23   1367663  99.55%    392M   104
+ 250  134 black     6.56s     695m     591m   0.85      5.97s  20   1463299  99.58%    392M   104
+ 260  139 black     6.14s     676m     575m   0.85      5.56s  24   1460736  99.61%    393M   104
+ 270  144 black     5.94s     667m     567m   0.85      5.37s  20   1389056  99.64%    393M   104
+ 280  149 black     6.31s     684m     423m   0.62      5.89s   8   1006068  99.66%    393M   105
+ 290  154 black     6.07s     673m     573m   0.85      5.50s   9   1507840  99.69%    393M   110
+
+ended     : checkmate   plies=299   result=0-1
+referee would have stopped at: (212, 'threefold_repetition')
+fell back to python mid-game: False
+  white: clock left    5.87s   min clock    5.22s   used  97.0% of 194.8s
+  black: clock left    5.84s   min clock    5.32s   used  97.0% of 194.8s
+worst overshoot ratio: 0.85x  at ply 295  used 562 ms against budget 660 ms
+  fen: 8/5R2/8/4q3/8/7K/7r/3Bk3 w - - 14 157
+tt occupancy end: 99.71%   white counter 113   black counter 114
+rss now 393 MB   peak rss 681 MB   ru_maxrss 681 MB   (limit 2048 MB)
+wrote /Users/dannybudiada/Desktop/AIChessHackathon/aichessathon/runs/2026-09-10-v12/trajectory-numba-v12-endurance.csv
+
+position     clock   budget     used   ratio   overrun   d   move
+middlegame    3100     540m   474.0m    0.88  -2626.0m   9   f8e7
+middlegame    3000     535m   457.1m    0.85  -2542.9m   9   f8e7
+middlegame    2999     200m   235.8m    1.18  -2763.2m   8   f8e7
+middlegame    2000     200m   229.8m    1.15  -1770.2m   8   f8e7
+middlegame    1000     100m    86.3m    0.86   -913.7m   7   f8e7
+middlegame     500      50m    51.4m    1.03   -448.6m   6   f8e7
+middlegame     200      20m    27.7m    1.38   -172.3m   6   f8e7
+middlegame     100      10m    14.0m    1.40    -86.0m   5   f8e7
+middlegame      50       5m     6.1m    1.23    -43.9m   3   f8e7
+middlegame      10       1m     3.4m    3.44     -6.6m   2   c5d4
+middlegame       1       0m     2.3m   22.69     +1.3m   0   c5c4  FLAG
+middlegame       0       0m     2.2m     inf     +2.2m   0   c5c4  FLAG
+sharp         3100     540m   460.8m    0.85  -2639.2m   9   c3d5
+sharp         3000     535m   457.0m    0.85  -2543.0m   9   c3d5
+sharp         2999     200m   266.2m    1.33  -2732.8m   8   c3d5
+sharp         2000     200m   257.2m    1.29  -1742.8m   8   c3d5
+sharp         1000     100m   120.4m    1.20   -879.6m   7   c3d5
+sharp          500      50m    40.4m    0.81   -459.6m   5   c3d5
+sharp          200      20m    17.3m    0.87   -182.7m   4   c3d5
+sharp          100      10m    14.9m    1.49    -85.1m   4   c3d5
+sharp           50       5m     8.6m    1.72    -41.4m   4   c3d5
+sharp           10       1m     3.5m    3.45     -6.5m   2   c3d5
+sharp            1       0m     2.2m   22.47     +1.2m   0   a2a3  FLAG
+sharp            0       0m     2.1m     inf     +2.1m   0   a2a3  FLAG
+krk           3100     540m    22.8m    0.04  -3077.2m  -1   e8e4
+krk           3000     535m    13.7m    0.03  -2986.3m  -1   e8e4
+krk           2999     200m    13.3m    0.07  -2985.7m  -1   e8e4
+krk           2000     200m    13.2m    0.07  -1986.8m  -1   e8e4
+krk           1000     100m    13.2m    0.13   -986.8m  -1   e8e4
+krk            500      50m    13.4m    0.27   -486.6m  -1   e8e4
+krk            200      20m    13.2m    0.66   -186.8m  -1   e8e4
+krk            100      10m    13.8m    1.38    -86.2m  -1   e8e4
+krk             50       5m    13.4m    2.67    -36.6m  -1   e8e4
+krk             10       1m    13.1m   13.13     +3.1m  -1   e8e4  FLAG
+krk              1       0m    13.7m  136.88    +12.7m  -1   e8e4  FLAG
+krk              0       0m    13.5m     inf    +13.5m  -1   e8e4  FLAG
+
+slowest small-clock reply: 474.0 ms  (middlegame @ 3100 ms)
+
+=== B: calibration anchor UCI_Elo 1700, 16 games ===  Thu Sep 10 09:38:57 BST 2026
+Warming up Numba JIT...
+Warmup complete.
+agent.py: Numba search successfully imported and active.
+agent vs Stockfish  UCI_Elo=1700  threads=1
+engine: /Users/dannybudiada/Desktop/AIChessHackathon/aichessathon/baselines/stockfish/stockfish
+120s + 0.5s, 16 games, colours alternating, ply cap 600
+
+agent.py: Executing get_move using Numba search.
+game   1/16  W  King's Indian    win   by checkmate               38 plies  clock left   66.9s    170s  | +1 =0 -0  100.0%  Elo diff +0 +/- 491
+game   2/16  B  Nimzo-Indian     win   by checkmate               59 plies  clock left   49.5s    218s  | +2 =0 -0  100.0%  Elo diff +191 +/- 328
+game   3/16  W  Dutch Stonewall  win   by checkmate              136 plies  clock left   17.7s    288s  | +3 =0 -0  100.0%  Elo diff +280 +/- 295
+game   4/16  B  Sicilian Closed  win   by checkmate               60 plies  clock left   47.6s    213s  | +4 =0 -0  100.0%  Elo diff +338 +/- 281
+game   5/16  W  Queen's Indian   win   by checkmate               80 plies  clock left   37.3s    240s  | +5 =0 -0  100.0%  Elo diff +382 +/- 273
+game   6/16  B  Reti             win   by checkmate               59 plies  clock left   47.2s    220s  | +6 =0 -0  100.0%  Elo diff +417 +/- 268
+game   7/16  W  King's Indian    win   by checkmate               46 plies  clock left   59.7s    201s  | +7 =0 -0  100.0%  Elo diff +446 +/- 265
+game   8/16  B  Nimzo-Indian     win   by checkmate               63 plies  clock left   47.5s    222s  | +8 =0 -0  100.0%  Elo diff +470 +/- 262
+game   9/16  W  Dutch Stonewall  draw  by threefold_repetition   103 plies  clock left   27.3s    262s  | +8 =1 -0  94.4%  Elo diff +492 +/- 260
+game  10/16  B  Sicilian Closed  win   by checkmate               58 plies  clock left   50.1s    217s  | +9 =1 -0  95.0%  Elo diff +512 +/- 259
+game  11/16  W  Queen's Indian   win   by checkmate              114 plies  clock left   24.2s    271s  | +10 =1 -0  95.5%  Elo diff +529 +/- 257
+game  12/16  B  Reti             win   by checkmate               73 plies  clock left   39.7s    235s  | +11 =1 -0  95.8%  Elo diff +545 +/- 256
+game  13/16  W  King's Indian    win   by checkmate               56 plies  clock left   47.9s    217s  | +12 =1 -0  96.2%  Elo diff +559 +/- 256
+game  14/16  B  Nimzo-Indian     win   by checkmate              109 plies  clock left   24.1s    267s  | +13 =1 -0  96.4%  Elo diff +573 +/- 255
+game  15/16  W  Dutch Stonewall  win   by checkmate               72 plies  clock left   37.9s    236s  | +14 =1 -0  96.7%  Elo diff +585 +/- 254
+game  16/16  B  Sicilian Closed  win   by checkmate               88 plies  clock left   32.4s    251s  | +15 =1 -0  96.9%  Elo diff +597 +/- 254
+
++15 =1 -0 over 16 games, score 96.9%
+terminations: checkmate 15, threefold_repetition 1
+Elo difference vs Stockfish 1700: +597 +/- 254
+implied absolute strength: 2297
+
+=== B: calibration anchor UCI_Elo 1900, 16 games ===  Thu Sep 10 10:41:16 BST 2026
+Warming up Numba JIT...
+Warmup complete.
+agent.py: Numba search successfully imported and active.
+agent vs Stockfish  UCI_Elo=1900  threads=1
+engine: /Users/dannybudiada/Desktop/AIChessHackathon/aichessathon/baselines/stockfish/stockfish
+120s + 0.5s, 16 games, colours alternating, ply cap 600
+
+agent.py: Executing get_move using Numba search.
+game   1/16  W  King's Indian    win   by checkmate               58 plies  clock left   49.7s    217s  | +1 =0 -0  100.0%  Elo diff +0 +/- 491
+game   2/16  B  Nimzo-Indian     win   by checkmate               51 plies  clock left   53.9s    210s  | +2 =0 -0  100.0%  Elo diff +191 +/- 328
+game   3/16  W  Dutch Stonewall  win   by checkmate               48 plies  clock left   59.7s    203s  | +3 =0 -0  100.0%  Elo diff +280 +/- 295
+game   4/16  B  Sicilian Closed  draw  by insufficient_material  112 plies  clock left   25.7s    269s  | +3 =1 -0  87.5%  Elo diff +338 +/- 281
+game   5/16  W  Queen's Indian   draw  by threefold_repetition   121 plies  clock left   22.7s    275s  | +3 =2 -0  80.0%  Elo diff +241 +/- 194
+game   6/16  B  Reti             win   by checkmate               95 plies  clock left   31.4s    253s  | +4 =2 -0  83.3%  Elo diff +280 +/- 190
+game   7/16  W  King's Indian    win   by checkmate               62 plies  clock left   48.8s    220s  | +5 =2 -0  85.7%  Elo diff +311 +/- 188
+game   8/16  B  Nimzo-Indian     win   by checkmate               45 plies  clock left   59.2s    199s  | +6 =2 -0  87.5%  Elo diff +338 +/- 186
+game   9/16  W  Dutch Stonewall  win   by checkmate               84 plies  clock left   31.8s    248s  | +7 =2 -0  88.9%  Elo diff +361 +/- 184
+game  10/16  B  Sicilian Closed  win   by checkmate               52 plies  clock left   51.4s    212s  | +8 =2 -0  90.0%  Elo diff +382 +/- 183
+game  11/16  W  Queen's Indian   win   by checkmate               82 plies  clock left   37.6s    241s  | +9 =2 -0  90.9%  Elo diff +400 +/- 182
+game  12/16  B  Reti             win   by checkmate               55 plies  clock left   48.7s    216s  | +10 =2 -0  91.7%  Elo diff +417 +/- 181
+game  13/16  W  King's Indian    win   by checkmate               74 plies  clock left   38.4s    236s  | +11 =2 -0  92.3%  Elo diff +432 +/- 181
+game  14/16  B  Nimzo-Indian     win   by checkmate               53 plies  clock left   52.9s    211s  | +12 =2 -0  92.9%  Elo diff +446 +/- 180
+game  15/16  W  Dutch Stonewall  win   by checkmate               96 plies  clock left   29.1s    257s  | +13 =2 -0  93.3%  Elo diff +458 +/- 180
+game  16/16  B  Sicilian Closed  win   by checkmate               74 plies  clock left   39.3s    235s  | +14 =2 -0  93.8%  Elo diff +470 +/- 179
+
++14 =2 -0 over 16 games, score 93.8%
+terminations: checkmate 14, insufficient_material 1, threefold_repetition 1
+Elo difference vs Stockfish 1900: +470 +/- 179
+implied absolute strength: 2370
+
+=== B: calibration anchor UCI_Elo 2100, 16 games ===  Thu Sep 10 11:43:10 BST 2026
+Warming up Numba JIT...
+Warmup complete.
+agent.py: Numba search successfully imported and active.
+agent vs Stockfish  UCI_Elo=2100  threads=1
+engine: /Users/dannybudiada/Desktop/AIChessHackathon/aichessathon/baselines/stockfish/stockfish
+120s + 0.5s, 16 games, colours alternating, ply cap 600
+
+agent.py: Executing get_move using Numba search.
+game   1/16  W  King's Indian    win   by checkmate               90 plies  clock left   31.2s    251s  | +1 =0 -0  100.0%  Elo diff +0 +/- 491
+game   2/16  B  Nimzo-Indian     win   by checkmate              109 plies  clock left   25.6s    267s  | +2 =0 -0  100.0%  Elo diff +191 +/- 328
+game   3/16  W  Dutch Stonewall  win   by checkmate               62 plies  clock left   46.3s    223s  | +3 =0 -0  100.0%  Elo diff +280 +/- 295
+game   4/16  B  Sicilian Closed  win   by checkmate               72 plies  clock left   41.2s    232s  | +4 =0 -0  100.0%  Elo diff +338 +/- 281
+game   5/16  W  Queen's Indian   win   by checkmate               96 plies  clock left   29.3s    256s  | +5 =0 -0  100.0%  Elo diff +382 +/- 273
+game   6/16  B  Reti             draw  by threefold_repetition    93 plies  clock left   31.5s    254s  | +5 =1 -0  91.7%  Elo diff +417 +/- 268
+game   7/16  W  King's Indian    win   by checkmate               30 plies  clock left   74.7s    140s  | +6 =1 -0  92.9%  Elo diff +446 +/- 265
+game   8/16  B  Nimzo-Indian     win   by checkmate               55 plies  clock left   53.0s    212s  | +7 =1 -0  93.8%  Elo diff +470 +/- 262
+game   9/16  W  Dutch Stonewall  draw  by threefold_repetition    96 plies  clock left   29.2s    257s  | +7 =2 -0  88.9%  Elo diff +361 +/- 184
+game  10/16  B  Sicilian Closed  win   by checkmate               94 plies  clock left   30.1s    254s  | +8 =2 -0  90.0%  Elo diff +382 +/- 183
+game  11/16  W  Queen's Indian   loss  by checkmate              213 plies  clock left    9.0s    331s  | +8 =2 -1  81.8%  Elo diff +261 +/- 136
+game  12/16  B  Reti             win   by checkmate               67 plies  clock left   44.5s    227s  | +9 =2 -1  83.3%  Elo diff +280 +/- 135
+game  13/16  W  King's Indian    draw  by threefold_repetition   172 plies  clock left   11.6s    314s  | +9 =3 -1  80.8%  Elo diff +249 +/- 122
+game  14/16  B  Nimzo-Indian     win   by checkmate               75 plies  clock left   38.0s    237s  | +10 =3 -1  82.1%  Elo diff +265 +/- 121
+game  15/16  W  Dutch Stonewall  loss  by checkmate              125 plies  clock left   20.6s    278s  | +10 =3 -2  76.7%  Elo diff +207 +/- 106
+game  16/16  B  Sicilian Closed  win   by checkmate               68 plies  clock left   45.1s    227s  | +11 =3 -2  78.1%  Elo diff +221 +/- 105
+
++11 =3 -2 over 16 games, score 78.1%
+terminations: checkmate 13, threefold_repetition 3
+Elo difference vs Stockfish 2100: +221 +/- 105
+implied absolute strength: 2321
+
+=== DONE === Thu Sep 10 12:49:23 BST 2026

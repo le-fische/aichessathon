@@ -1,0 +1,42 @@
+{
+  "label": "v12-syzygy",
+  "aggregate_nps": 2204689.2547767027,
+  "mean_depth": 9.0,
+  "rows": [
+    {
+      "position": "opening",
+      "nodes": 621312,
+      "sec": 0.3130807876586914,
+      "nps": 1984510.147193479,
+      "depth": 8
+    },
+    {
+      "position": "middlegame",
+      "nodes": 1005827,
+      "sec": 0.45476412773132324,
+      "nps": 2211755.366496821,
+      "depth": 9
+    },
+    {
+      "position": "sharp",
+      "nodes": 688353,
+      "sec": 0.2865750789642334,
+      "nps": 2401998.814718677,
+      "depth": 8
+    },
+    {
+      "position": "tactical",
+      "nodes": 833907,
+      "sec": 0.4547848701477051,
+      "nps": 1833629.601022487,
+      "depth": 7
+    },
+    {
+      "position": "endgame",
+      "nodes": 1180679,
+      "sec": 0.45482611656188965,
+      "nps": 2595890.9504250977,
+      "depth": 13
+    }
+  ]
+}
