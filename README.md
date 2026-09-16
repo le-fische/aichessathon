@@ -11,6 +11,11 @@ says why in more detail than is comfortable.
 Built by [Houze Guo](https://github.com/le-fische) and Gede Danny Putra Budiada over nine
 days, from a standing start.
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/images/01-rating-trajectory-dark.png">
+  <img alt="Ladder rating across all 108 rated rounds, 1575 to a peak of 1835, finishing 1749" src="docs/images/01-rating-trajectory-light.png">
+</picture>
+
 ---
 
 ## What it is
@@ -38,6 +43,12 @@ versions/       every shipped release, with a manifest recording the zip's sha25
 ```
 
 ## How it plays
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/images/03-architecture-dark.png">
+  <img alt="Engine architecture: numba search with a pure-Python fallback, and the shared evaluation contract" src="docs/images/03-architecture-light.png">
+</picture>
+
 
 **Search** — negamax with alpha-beta, iterative deepening, transposition table,
 MVV-LVA capture ordering with killer and history heuristics, quiescence, null-move
@@ -71,6 +82,11 @@ CHESSATHON_REQUIRE_NUMBA=1 uv run python tools/run_gate_match.py
 Scores are reported as a percentage with a standard error. **If the interval crosses 50%,
 the change is unmeasured, not neutral.** Everything in `runs/` follows that rule, including
 where it went against us:
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/images/02-gate-results-dark.png">
+  <img alt="Seven gate results as score plus or minus one standard error against the 50% line" src="docs/images/02-gate-results-light.png">
+</picture>
 
 | Gate | Result | Verdict |
 |---|---|---|
@@ -196,6 +212,11 @@ near 98,000 and put the overall mean at 556.7 against a median of 1.0. Every mea
 garbage while every median was fine.
 
 ### 5. One position, diagnosed properly, showed the ceiling
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/images/04-round-103-dark.png">
+  <img alt="Round 103 position: Rxd3 played at 3.5M nodes, Rb3 the win at 24M nodes" src="docs/images/04-round-103-light.png">
+</picture>
 
 Round 103, a won endgame drawn. The engine played `Rxd3` where `Rb3` wins:
 
