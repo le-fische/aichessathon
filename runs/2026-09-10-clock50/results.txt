@@ -1,0 +1,122 @@
+Clock coefficient gate: v12 + 0.050 vs frozen published v12
+30 games; 120s + 0.5s; paired opening positions, colours swapped
+CHESSATHON_REQUIRE_NUMBA=1
+
+candidate SHA256:
+7d29bc31396ff3d2819d9dbdb6aa42ac1aa0c72e9a3010a554259167b04c35fa  agent.py
+be1947a9daa822f407372d5dc15b954446907bf81af38c17a27eb4ae8db00bfe  bitboard.py
+b939e4e88ec59b8c026dba5fc438eee7b16271dee2e855922ef7c6c1be951a2c  evaluation.py
+af44bebd2d9ed186b3e0f6a6cffd693df09099e8b6c225e9121523fa1945e681  nsearch.py
+8db41e93b7d4efbb80fb3f987e1d8aca920ec41829762192a7701fac5dae8a37  search.py
+3afa74fcfd6100df851c3b18ca255acd9d68c31c7c74cb02b2d5236ffd610ed6  weights/KBBvK.rtbw
+76958da65bc243f2f0a16ceb83f1c00cbc4fb6d6e2f43d052c2f9d65bf16fee8  weights/KBNvK.rtbw
+4714e6844d18eea21b9e7be3c8b2f5b04739638d74416ae18ab86e1fb4a12e4c  weights/KBPvK.rtbw
+bc0d8ab3560de9038460f0e8f61e3b7efd3e3d0327d19ae0387c0da7ddeb244d  weights/KBvK.rtbw
+f0bfff470a9775c0f6693d7c1b73a0879cfed64f9b50cb56872cc15dbe8336ad  weights/KBvKB.rtbw
+1d0c01bfb86b5167103f5e46eaa9cfda8b614424cd7749b5e02539c850594bda  weights/KBvKN.rtbw
+7ea5491c17771a47cb558bf3ac3d6fe6a85e2075daa34f8ec4fa91b4319c1fe5  weights/KBvKP.rtbw
+8b5195abd7f1d4be7aa4b4dca669e9075d61d1c6b02dec8b71f5e9ea21d9eced  weights/KNNvK.rtbw
+27ce7e0ea8f585dfbbb29e2cc1e04ac547818d547c17ad9b053b05eca6f5b479  weights/KNPvK.rtbw
+9d3518b12df3d2006441df758bce31e961346e70a11920aaad75c647003bb6e7  weights/KNvK.rtbw
+290b5d295f531ac680e35a3295ff265e89da864fc0363b5d7aca928c8e38faf6  weights/KNvKN.rtbw
+f21332cc4b380764847d6c32511dee16cbf56e65604596ca24e784f8e4c13bdb  weights/KNvKP.rtbw
+55aa91c460bc5eea322b8a6cde4f94d2e0a244b6fc14f6aca17e6ccfb2e56ef6  weights/KPPvK.rtbw
+02fd2bdcd92821c869458f019f63524def1c9e7a2862ca8d2b16dc7712b16183  weights/KPvK.rtbw
+6d21860e47a91d00841ccf63a657dc09b78f602e0ec005f925470e2449e1ae05  weights/KPvKP.rtbw
+55948e960dcdf6b4f02ebae87b1a1a7d14bff085aea17e6e6d4b7f75a2306493  weights/KQBvK.rtbw
+cd807df1b6f5966ddc9f481e01bd58b4653d67c77d9d450d348c9bca827b51b8  weights/KQNvK.rtbw
+e7cd0729a1b2662f289d423bf788634d60a0fb86e11b0b791da9ab88a36a8e6f  weights/KQPvK.rtbw
+b1c0d3eabf1226440b950fd468c4f30a13ea69ce38194bc65e07bd6b617226e0  weights/KQQvK.rtbw
+b018ece9cc195618981b027268f9cca929a1ed4c0bdd739874b7846640ef479a  weights/KQRvK.rtbw
+517667dff787162dbb1ed9d5d6484d30ee854e686ee0675c08d99ecf045d2d50  weights/KQvK.rtbw
+0c18bbcaec0e7c161d56392ff57a39258dd93acd0321e3bbb32f7c05636abeac  weights/KQvKB.rtbw
+ba07bd47c6eaa20904b595f43e171c6fc70fcc056cb33696fe12ed254c546100  weights/KQvKN.rtbw
+2f92788170e8a5c05608f44a47fd42f3f4fff372d0af64633c56bd081039d8f9  weights/KQvKP.rtbw
+571a85d86e635e48567997ea648fd1e90dde39c9b413b2fe968f5e7faeacfbb0  weights/KQvKQ.rtbw
+8cdbe3c8e098037875de5854c656f8afeadb8327c85b5b7b1cac81719afd3e2c  weights/KQvKR.rtbw
+9e6eced11a37cad71b4fc1a4f62a15e191e58883b51ce8c4c45f341051c6ae8e  weights/KRBvK.rtbw
+4f96cab9fc0005f2679eacb92cec32edf9c932db7bb29b5dc7659be0012d6c35  weights/KRNvK.rtbw
+6bc2aa9db5ee7fcc287e6c3b006ab6cfc2be4dff4ae7ca4a524a78520eea61db  weights/KRPvK.rtbw
+4c05ec32e6e43b690d235307de75432a3ceecdbc3d2659d8101ed15b48b8445d  weights/KRRvK.rtbw
+386fbde73308e49a4207836922c68b30b664e83c5a37f7fa37305a15cd16f2f1  weights/KRvK.rtbw
+69b247cb390ffcd729cf5fe5c40f8a24803190bf67b108b8f05b8b08b26a6a72  weights/KRvKB.rtbw
+a8cde902b010bf6c8763c97d19b5430b422e74db9cb8e9d5e67fa07373c13c5b  weights/KRvKN.rtbw
+3968c2bfced3a5ecfbb54166ec13d4e7b70f3b03c495af4ae87cad2ec75a0749  weights/KRvKP.rtbw
+797081b5b3fbac20c4baa5453d68bdae1425b63895f5c9a5ac5c68ea63a97712  weights/KRvKR.rtbw
+
+control SHA256:
+7d29bc31396ff3d2819d9dbdb6aa42ac1aa0c72e9a3010a554259167b04c35fa  agent.py
+be1947a9daa822f407372d5dc15b954446907bf81af38c17a27eb4ae8db00bfe  bitboard.py
+b939e4e88ec59b8c026dba5fc438eee7b16271dee2e855922ef7c6c1be951a2c  evaluation.py
+52d2c20018e9449bd14c0b1b62cdbeba17c0a2f270b5043c52845c5ed5dba37a  nsearch.py
+8db41e93b7d4efbb80fb3f987e1d8aca920ec41829762192a7701fac5dae8a37  search.py
+3afa74fcfd6100df851c3b18ca255acd9d68c31c7c74cb02b2d5236ffd610ed6  weights/KBBvK.rtbw
+76958da65bc243f2f0a16ceb83f1c00cbc4fb6d6e2f43d052c2f9d65bf16fee8  weights/KBNvK.rtbw
+4714e6844d18eea21b9e7be3c8b2f5b04739638d74416ae18ab86e1fb4a12e4c  weights/KBPvK.rtbw
+bc0d8ab3560de9038460f0e8f61e3b7efd3e3d0327d19ae0387c0da7ddeb244d  weights/KBvK.rtbw
+f0bfff470a9775c0f6693d7c1b73a0879cfed64f9b50cb56872cc15dbe8336ad  weights/KBvKB.rtbw
+1d0c01bfb86b5167103f5e46eaa9cfda8b614424cd7749b5e02539c850594bda  weights/KBvKN.rtbw
+7ea5491c17771a47cb558bf3ac3d6fe6a85e2075daa34f8ec4fa91b4319c1fe5  weights/KBvKP.rtbw
+8b5195abd7f1d4be7aa4b4dca669e9075d61d1c6b02dec8b71f5e9ea21d9eced  weights/KNNvK.rtbw
+27ce7e0ea8f585dfbbb29e2cc1e04ac547818d547c17ad9b053b05eca6f5b479  weights/KNPvK.rtbw
+9d3518b12df3d2006441df758bce31e961346e70a11920aaad75c647003bb6e7  weights/KNvK.rtbw
+290b5d295f531ac680e35a3295ff265e89da864fc0363b5d7aca928c8e38faf6  weights/KNvKN.rtbw
+f21332cc4b380764847d6c32511dee16cbf56e65604596ca24e784f8e4c13bdb  weights/KNvKP.rtbw
+55aa91c460bc5eea322b8a6cde4f94d2e0a244b6fc14f6aca17e6ccfb2e56ef6  weights/KPPvK.rtbw
+02fd2bdcd92821c869458f019f63524def1c9e7a2862ca8d2b16dc7712b16183  weights/KPvK.rtbw
+6d21860e47a91d00841ccf63a657dc09b78f602e0ec005f925470e2449e1ae05  weights/KPvKP.rtbw
+55948e960dcdf6b4f02ebae87b1a1a7d14bff085aea17e6e6d4b7f75a2306493  weights/KQBvK.rtbw
+cd807df1b6f5966ddc9f481e01bd58b4653d67c77d9d450d348c9bca827b51b8  weights/KQNvK.rtbw
+e7cd0729a1b2662f289d423bf788634d60a0fb86e11b0b791da9ab88a36a8e6f  weights/KQPvK.rtbw
+b1c0d3eabf1226440b950fd468c4f30a13ea69ce38194bc65e07bd6b617226e0  weights/KQQvK.rtbw
+b018ece9cc195618981b027268f9cca929a1ed4c0bdd739874b7846640ef479a  weights/KQRvK.rtbw
+517667dff787162dbb1ed9d5d6484d30ee854e686ee0675c08d99ecf045d2d50  weights/KQvK.rtbw
+0c18bbcaec0e7c161d56392ff57a39258dd93acd0321e3bbb32f7c05636abeac  weights/KQvKB.rtbw
+ba07bd47c6eaa20904b595f43e171c6fc70fcc056cb33696fe12ed254c546100  weights/KQvKN.rtbw
+2f92788170e8a5c05608f44a47fd42f3f4fff372d0af64633c56bd081039d8f9  weights/KQvKP.rtbw
+571a85d86e635e48567997ea648fd1e90dde39c9b413b2fe968f5e7faeacfbb0  weights/KQvKQ.rtbw
+8cdbe3c8e098037875de5854c656f8afeadb8327c85b5b7b1cac81719afd3e2c  weights/KQvKR.rtbw
+9e6eced11a37cad71b4fc1a4f62a15e191e58883b51ce8c4c45f341051c6ae8e  weights/KRBvK.rtbw
+4f96cab9fc0005f2679eacb92cec32edf9c932db7bb29b5dc7659be0012d6c35  weights/KRNvK.rtbw
+6bc2aa9db5ee7fcc287e6c3b006ab6cfc2be4dff4ae7ca4a524a78520eea61db  weights/KRPvK.rtbw
+4c05ec32e6e43b690d235307de75432a3ceecdbc3d2659d8101ed15b48b8445d  weights/KRRvK.rtbw
+386fbde73308e49a4207836922c68b30b664e83c5a37f7fa37305a15cd16f2f1  weights/KRvK.rtbw
+69b247cb390ffcd729cf5fe5c40f8a24803190bf67b108b8f05b8b08b26a6a72  weights/KRvKB.rtbw
+a8cde902b010bf6c8763c97d19b5430b422e74db9cb8e9d5e67fa07373c13c5b  weights/KRvKN.rtbw
+3968c2bfced3a5ecfbb54166ec13d4e7b70f3b03c495af4ae87cad2ec75a0749  weights/KRvKP.rtbw
+797081b5b3fbac20c4baa5453d68bdae1425b63895f5c9a5ac5c68ea63a97712  weights/KRvKR.rtbw
+
+game 1/30: draw by threefold_repetition  running +0 =1 -0  (50.0%)
+game 2/30: draw by threefold_repetition  running +0 =2 -0  (50.0%)
+game 3/30: black by checkmate  running +0 =2 -1  (33.3%)
+game 4/30: black by checkmate  running +1 =2 -1  (50.0%)
+game 5/30: white by checkmate  running +2 =2 -1  (60.0%)
+game 6/30: draw by threefold_repetition  running +2 =3 -1  (58.3%)
+game 7/30: draw by threefold_repetition  running +2 =4 -1  (57.1%)
+game 8/30: draw by threefold_repetition  running +2 =5 -1  (56.2%)
+game 9/30: draw by threefold_repetition  running +2 =6 -1  (55.6%)
+game 10/30: draw by threefold_repetition  running +2 =7 -1  (55.0%)
+game 11/30: white by checkmate  running +3 =7 -1  (59.1%)
+game 12/30: white by checkmate  running +3 =7 -2  (54.2%)
+game 13/30: white by checkmate  running +4 =7 -2  (57.7%)
+game 14/30: white by checkmate  running +4 =7 -3  (53.6%)
+game 15/30: black by checkmate  running +4 =7 -4  (50.0%)
+game 16/30: draw by threefold_repetition  running +4 =8 -4  (50.0%)
+game 17/30: white by checkmate  running +5 =8 -4  (52.9%)
+game 18/30: draw by threefold_repetition  running +5 =9 -4  (52.8%)
+game 19/30: draw by threefold_repetition  running +5 =10 -4  (52.6%)
+game 20/30: draw by threefold_repetition  running +5 =11 -4  (52.5%)
+game 21/30: draw by threefold_repetition  running +5 =12 -4  (52.4%)
+game 22/30: draw by threefold_repetition  running +5 =13 -4  (52.3%)
+resuming frozen gate at game 23/30; preserved +5 =13 -4
+game 23/30: draw by threefold_repetition  running +5 =14 -4  (52.2%)
+game 24/30: white by checkmate  running +5 =14 -5  (50.0%)
+game 25/30: draw by threefold_repetition  running +5 =15 -5  (50.0%)
+game 26/30: black by checkmate  running +6 =15 -5  (51.9%)
+game 27/30: draw by threefold_repetition  running +6 =16 -5  (51.9%)
+game 28/30: draw by threefold_repetition  running +6 =17 -5  (51.8%)
+game 29/30: black by checkmate  running +6 =17 -6  (50.0%)
+game 30/30: black by checkmate  running +7 =17 -6  (51.7%)
+
+final: +7 =17 -6  score 51.7% +/- 6.0% (1 sigma, 30 games)
+VERDICT: interval crosses 50%. UNMEASURED, not neutral.

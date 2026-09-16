@@ -1,0 +1,65 @@
+Starting 60 games match at 120s + 500ms
+Game 1/60: white by checkmate | A depth: 11.0, B depth: 0.0
+Game 2/60: black by checkmate | A depth: 11.2, B depth: 0.0
+Game 3/60: white by checkmate | A depth: 0.0, B depth: 0.0
+Game 4/60: draw by threefold_repetition | A depth: 0.0, B depth: 0.0
+Game 5/60: white by checkmate | A depth: 0.0, B depth: 0.0
+Game 6/60: white by checkmate | A depth: 0.0, B depth: 0.0
+Game 7/60: white by checkmate | A depth: 0.0, B depth: 0.0
+Game 8/60: black by checkmate | A depth: 0.0, B depth: 0.0
+Game 9/60: black by checkmate | A depth: 0.0, B depth: 0.0
+Game 10/60: black by checkmate | A depth: 0.0, B depth: 0.0
+Game 11/60: draw by threefold_repetition | A depth: 0.0, B depth: 0.0
+Game 12/60: white by checkmate | A depth: 0.0, B depth: 0.0
+Game 13/60: draw by threefold_repetition | A depth: 0.0, B depth: 0.0
+Game 14/60: draw by threefold_repetition | A depth: 0.0, B depth: 0.0
+Game 15/60: white by checkmate | A depth: 0.0, B depth: 0.0
+Game 16/60: white by checkmate | A depth: 0.0, B depth: 0.0
+Game 17/60: draw by threefold_repetition | A depth: 0.0, B depth: 0.0
+Game 18/60: draw by threefold_repetition | A depth: 0.0, B depth: 0.0
+Game 19/60: white by checkmate | A depth: 0.0, B depth: 0.0
+Game 20/60: white by checkmate | A depth: 0.0, B depth: 0.0
+Game 21/60: white by checkmate | A depth: 0.0, B depth: 0.0
+Game 22/60: black by checkmate | A depth: 0.0, B depth: 0.0
+Game 23/60: black by flag | A depth: 0.0, B depth: 0.0
+Game 24/60: white by checkmate | A depth: 0.0, B depth: 0.0
+Game 25/60: black by checkmate | A depth: 0.0, B depth: 0.0
+Game 26/60: draw by threefold_repetition | A depth: 0.0, B depth: 0.0
+Game 27/60: draw by threefold_repetition | A depth: 0.0, B depth: 0.0
+Game 28/60: draw by threefold_repetition | A depth: 0.0, B depth: 0.0
+Game 29/60: white by checkmate | A depth: 0.0, B depth: 0.0
+Game 30/60: black by checkmate | A depth: 0.0, B depth: 0.0
+Game 31/60: draw by threefold_repetition | A depth: 0.0, B depth: 0.0
+Game 32/60: black by checkmate | A depth: 0.0, B depth: 0.0
+Game 33/60: black by checkmate | A depth: 0.0, B depth: 0.0
+Game 34/60: black by checkmate | A depth: 0.0, B depth: 0.0
+Game 35/60: draw by threefold_repetition | A depth: 0.0, B depth: 0.0
+Game 36/60: draw by threefold_repetition | A depth: 0.0, B depth: 0.0
+Game 37/60: black by checkmate | A depth: 0.0, B depth: 0.0
+Game 38/60: draw by threefold_repetition | A depth: 0.0, B depth: 0.0
+Game 39/60: black by checkmate | A depth: 0.0, B depth: 0.0
+Game 40/60: draw by threefold_repetition | A depth: 0.0, B depth: 0.0
+Game 41/60: draw by threefold_repetition | A depth: 0.0, B depth: 0.0
+Game 42/60: black by checkmate | A depth: 0.0, B depth: 0.0
+Game 43/60: black by checkmate | A depth: 0.0, B depth: 0.0
+Game 44/60: white by checkmate | A depth: 0.0, B depth: 0.0
+Game 45/60: black by checkmate | A depth: 0.0, B depth: 0.0
+Game 46/60: draw by threefold_repetition | A depth: 0.0, B depth: 0.0
+Game 47/60: white by checkmate | A depth: 0.0, B depth: 0.0
+Game 48/60: white by checkmate | A depth: 0.0, B depth: 0.0
+Game 49/60: white by checkmate | A depth: 0.0, B depth: 0.0
+Game 50/60: white by checkmate | A depth: 0.0, B depth: 0.0
+Game 51/60: draw by threefold_repetition | A depth: 0.0, B depth: 0.0
+Game 52/60: white by checkmate | A depth: 0.0, B depth: 0.0
+Game 53/60: black by checkmate | A depth: 0.0, B depth: 0.0
+Game 54/60: draw by threefold_repetition | A depth: 0.0, B depth: 0.0
+Game 55/60: draw by threefold_repetition | A depth: 0.0, B depth: 0.0
+Game 56/60: white by checkmate | A depth: 0.0, B depth: 0.0
+Game 57/60: white by checkmate | A depth: 0.0, B depth: 0.0
+Game 58/60: white by flag | A depth: 0.0, B depth: 0.0
+Game 59/60: white by checkmate | A depth: 0.0, B depth: 0.0
+Game 60/60: black by checkmate | A depth: 0.0, B depth: 0.0
+
+Match complete! +21 =19 -20
+Score: 50.8% +/- 5.3% (1 sigma)
+Mean completed depth: Numba = 0.37, Python = 0.00

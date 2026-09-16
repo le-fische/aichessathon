@@ -1,0 +1,87 @@
+Starting 60 games match at 120s + 500ms
+New Numba (A): 7d29bc31396ff3d2819d9dbdb6aa42ac1aa0c72e9a3010a554259167b04c35fa agent.py
+66ca3025700d256acbaa5b65f173b53f4f8ff2b761d6aa0d2e8e079513b62e05 bitboard.py
+8237f96a498662c62cebdc5933631100b99d422e49bfece8edbc8a8e46c405fc evaluation.py
+620354173a4c4d3e84a50a66f1ad2a23091141fe20f5b58afa4fdebab6a4a31f nnue.py
+8db41e93b7d4efbb80fb3f987e1d8aca920ec41829762192a7701fac5dae8a37 search.py
+9b94e80abb5815cd3fd16d1b3150208af588fb0ebb9007872e4dcf1da3df745e nsearch.py
+0fa32920aa12fbaa0ab6312c24ebd249df614dc2bc1e67d4520765b2f49c5c18 weights/weights.npy
+61c69ccd3101929b408a969bc5f1a99431cb7990602de2f1d4550d8409b9d83b weights/biases.npy
+481a8b90334ea083b1451fb4417039bd0ae8733d395a805dcdb54e39c61d4b66 weights/weights2.npy
+
+Old Numba (B): 7d29bc31396ff3d2819d9dbdb6aa42ac1aa0c72e9a3010a554259167b04c35fa agent.py
+66ca3025700d256acbaa5b65f173b53f4f8ff2b761d6aa0d2e8e079513b62e05 bitboard.py
+8237f96a498662c62cebdc5933631100b99d422e49bfece8edbc8a8e46c405fc evaluation.py
+620354173a4c4d3e84a50a66f1ad2a23091141fe20f5b58afa4fdebab6a4a31f nnue.py
+8db41e93b7d4efbb80fb3f987e1d8aca920ec41829762192a7701fac5dae8a37 search.py
+88d79da47ab3ce15233b2153d522148b7a218e834875f28c0a96a55aeb0b16ee nsearch.py
+
+Game 1/60: black by checkmate (Clocks: W=46.6s, B=47.1s)
+Game 2/60: white by checkmate (Clocks: W=48.8s, B=43.7s)
+Game 3/60: black by checkmate (Clocks: W=70.8s, B=75.0s)
+Game 4/60: white by checkmate (Clocks: W=64.2s, B=58.8s)
+Game 5/60: black by checkmate (Clocks: W=64.4s, B=66.1s)
+Game 6/60: white by checkmate (Clocks: W=57.6s, B=48.1s)
+Game 7/60: black by checkmate (Clocks: W=63.3s, B=71.9s)
+Game 8/60: white by checkmate (Clocks: W=61.3s, B=52.7s)
+Game 9/60: black by checkmate (Clocks: W=72.2s, B=70.0s)
+Game 10/60: white by checkmate (Clocks: W=58.2s, B=66.6s)
+Game 11/60: black by checkmate (Clocks: W=61.5s, B=67.1s)
+Game 12/60: white by checkmate (Clocks: W=37.1s, B=38.2s)
+Game 13/60: black by checkmate (Clocks: W=43.7s, B=45.2s)
+Game 14/60: black by flag (Clocks: W=75.7s, B=71.5s)
+Game 15/60: black by checkmate (Clocks: W=67.3s, B=78.1s)
+Game 16/60: white by checkmate (Clocks: W=79.5s, B=58.0s)
+Game 17/60: black by checkmate (Clocks: W=48.3s, B=36.0s)
+Game 18/60: white by checkmate (Clocks: W=52.0s, B=51.3s)
+Game 19/60: black by checkmate (Clocks: W=63.6s, B=63.9s)
+Game 20/60: white by checkmate (Clocks: W=23.7s, B=37.6s)
+Game 21/60: black by checkmate (Clocks: W=63.6s, B=74.5s)
+Game 22/60: white by checkmate (Clocks: W=52.8s, B=60.4s)
+Game 23/60: black by checkmate (Clocks: W=52.8s, B=47.9s)
+Game 24/60: white by checkmate (Clocks: W=59.4s, B=55.2s)
+Game 25/60: black by checkmate (Clocks: W=49.0s, B=55.5s)
+Game 26/60: white by checkmate (Clocks: W=56.5s, B=56.8s)
+Game 27/60: black by checkmate (Clocks: W=60.7s, B=57.3s)
+Game 28/60: white by checkmate (Clocks: W=28.5s, B=20.4s)
+Game 29/60: black by checkmate (Clocks: W=37.2s, B=44.0s)
+Game 30/60: white by checkmate (Clocks: W=65.2s, B=61.1s)
+Game 31/60: black by checkmate (Clocks: W=46.4s, B=53.9s)
+Game 32/60: white by checkmate (Clocks: W=52.4s, B=55.6s)
+Game 33/60: black by checkmate (Clocks: W=62.1s, B=61.7s)
+Game 34/60: white by checkmate (Clocks: W=51.1s, B=59.6s)
+Game 35/60: black by checkmate (Clocks: W=42.0s, B=60.8s)
+Game 36/60: white by checkmate (Clocks: W=64.8s, B=70.3s)
+Game 37/60: black by checkmate (Clocks: W=54.1s, B=58.7s)
+Game 38/60: white by checkmate (Clocks: W=71.6s, B=74.4s)
+Game 39/60: black by flag (Clocks: W=45.5s, B=52.2s)
+Game 40/60: white by checkmate (Clocks: W=61.1s, B=71.0s)
+Game 41/60: black by checkmate (Clocks: W=55.1s, B=27.7s)
+Game 42/60: white by checkmate (Clocks: W=45.2s, B=50.2s)
+Game 43/60: black by checkmate (Clocks: W=23.7s, B=44.4s)
+Game 44/60: white by checkmate (Clocks: W=55.2s, B=57.4s)
+Game 45/60: black by checkmate (Clocks: W=66.7s, B=71.4s)
+Game 46/60: white by checkmate (Clocks: W=54.2s, B=54.4s)
+Game 47/60: black by checkmate (Clocks: W=52.1s, B=47.4s)
+Game 48/60: white by checkmate (Clocks: W=42.4s, B=61.9s)
+Game 49/60: black by checkmate (Clocks: W=51.4s, B=52.5s)
+Game 50/60: white by checkmate (Clocks: W=52.6s, B=64.9s)
+Game 51/60: black by checkmate (Clocks: W=64.9s, B=62.9s)
+Game 52/60: white by checkmate (Clocks: W=60.5s, B=56.4s)
+Game 53/60: black by checkmate (Clocks: W=64.2s, B=67.4s)
+Game 54/60: white by checkmate (Clocks: W=52.8s, B=42.7s)
+Game 55/60: black by checkmate (Clocks: W=39.9s, B=48.7s)
+Game 56/60: white by checkmate (Clocks: W=46.4s, B=49.6s)
+Game 57/60: black by checkmate (Clocks: W=58.9s, B=53.8s)
+Game 58/60: white by checkmate (Clocks: W=60.7s, B=63.3s)
+Game 59/60: black by checkmate (Clocks: W=61.7s, B=58.8s)
+Game 60/60: white by checkmate (Clocks: W=53.9s, B=50.8s)
+
+Match complete! +1 =0 -59
+Score: 1.7% +/- 1.7% (1 sigma)
+
+--- NNUE Run Details ---
+Positions: 2,000,000
+Epochs: 5
+Stockfish Depth: 8
+Weights SHA256: 0fa32920aa12fbaa0ab6312c24ebd249df614dc2bc1e67d4520765b2f49c5c18

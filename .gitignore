@@ -1,11 +1,41 @@
+# Python
 .venv/
 __pycache__/
 .mypy_cache/
 .ruff_cache/
+.pytest_cache/
+
+# macOS
+.DS_Store
+
+# Build outputs. Releases live in versions/ with a MANIFEST; these are scratch.
+build/
+snapshots/
 submission.zip
+*.zip
+!versions/**/*.zip
+
+# Engines and fixtures pulled down or generated, not authored here.
+baseline/
+baselines/
+gui_engines/
+data/
+tiny_dataset.csv
 *.pgn
-data/
-baselines/stockfish/
-data/
-*.npy
 _stage_*
+
+# Trained networks are force-added under weights/ (git add -f); stray ones are not.
+*.npy
+*.npz
+!weights/*.npy
+!weights/*.npz
+
+# Logs, patch leftovers, one-off captures
+*.log
+*.orig
+*.rej
+*.patch
+*.jsonl
+
+# Scratch: one-off diagnostics and patchers. Kept on disk, not in the repo.
+tools/scratch/

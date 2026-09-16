@@ -1,0 +1,4 @@
+Plies played: 128
+Game over by: Still playing
+Clock left white: 10254 ms
+Clock left black: 11926 ms

@@ -1,0 +1,16 @@
+v4-tal (Platform v6)
+
+Shipped 2026-09-05.
+Live on ladder: bot name Tal.
+
+Features:
+- Basic-mate drive: pushes lone enemy king to edge and walks winning king in (fixes K+R vs K draws)
+- Moves-to-go clock: time_left / max(20, 60 - fullmove) + 250, capped at 80% clock
+- Bitboard evaluation: tapered PeSTO iterating bitboards (~1.20x nps)
+- CONTEMPT = 0.0
+- agent.py matches on position only, restores traceback.print_exc()
+
+SHAs:
+a3f8f89d7e2be51860e7db9cfa2f0ec616acf5f253d4536bd7086450801e3e93  agent.py
+c3bc532a65faa856f352c2333c03846ec10522aef64235b3d9a9fe9d6914fcc5  search.py
+d2692572400754cae5fee4786059ecf589232b619a3efa1ffa5dd9bf6fcd1ab3  evaluation.py

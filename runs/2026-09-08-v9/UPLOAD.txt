@@ -1,0 +1,54 @@
+Platform v9, built 2026-09-08 from e0d5688 on branch v6-alekhine
+Zip sha256: 6366672b102456b9fdd07d8d604b92fb5e1b5bf1da7f9ff3ff7f4be25fc9240c
+Zip size: 1,411,954 bytes (1,511,637 unzipped, limit 50,000,000)
+
+Members, byte-identical to `git show HEAD:<file>`:
+  3ccafd1f52bf1e1c3ea81e50ad75aabe7c2853b777533152d46b297a1273ecdb  agent.py
+  3e3301a51d9818a7e1db83eb2c630a4286dccd82db2574050ef6bc86daa28f75  search.py
+  f016a23b724ed933f4926054f386b1f50e1b7dcaf7163b995b25f3cbc32c5eae  evaluation.py
+  weights/  (36 syzygy 3-4-man WDL/DTZ files)
+
+Built from a staging directory of `git show HEAD:<file>`, NOT from the working
+tree. harness/package.py globs every root *.py, and the tree currently holds
+bitboard.py, nnue.py and nsearch.py, none of which is imported when
+USE_NUMBA_SEARCH is unset. It also holds an UNCOMMITTED bishop-pair term in
+evaluation.py (+/-50 cp, flat across mg and eg) that has never been measured.
+None of that ships.
+
+Delta from v8:
+  - time policy: coefficient 0.045 -> 0.050 plus 400 ms of the 500 ms
+    increment. Depth by move number over 70 moves: opening 6.55 -> 6.80,
+    middlegame 6.00 -> 6.00, endgame 5.24 -> 5.20, converged clock floor
+    20.6 s -> 10.4 s. See runs/2026-09-08-clock/FINDINGS.md, including the
+    correction explaining why the first gate (clockprobe) was not a gate.
+  - evaluation: passed pawns (e5abedd). Committed as UNMEASURED -- it was
+    validated on 4 games, where the standard error is +/- 25 points. The
+    60-game re-run had not finished at upload time. Node rate 89,656 ->
+    91,705 NPS, so it is close to free either way.
+  - root_score restored in search.py; an uncommitted tidy-up had deleted it
+    and tests/test_search_equivalence.py reads it as its gate.
+
+NOT shipped, deliberately:
+  - check extension and the LMR gives-check guard. 26.0/52 = 50.0% +/- 6.9%
+    in a fixed-node A/B, 95% interval 36.4%..63.6%. Unmeasured, not neutral.
+    Theory is sound; the number does not support shipping it yet.
+  - nsearch.py, the numba search (8a3fc77). Measured at 0.99 Mnps aggregate,
+    not the 3.69 Mnps reported -- still ~15x the python search, which is the
+    largest lever available. But it picks a different move in all four
+    benchmark positions, so its strength is entirely unmeasured. Needs a
+    head-to-head at 120s+0.5s, 60 games, before it can ship.
+  - bishop pair (uncommitted, unmeasured, value guessed).
+
+Pre-upload verification, run against the unzipped archive with only the
+platform's packages on the path:
+  cold import          0.06 s   (90 s init budget)
+  128-ply game         no illegal move, no flag, result 1/2-1/2
+  clock left           white 6.2 s, black 5.8 s
+  lowest clock seen    white 5.7 s, black 5.3 s
+  peak RSS             455 MB   (2048 MB limit)
+  py files in zip      3        binaries 0
+
+Uploaded 2026-09-08 02:42 platform time. Platform hash 6366672b1024, matching
+the local sha256 prefix. Passed BUILDING -> SMOKE TEST -> ACTIVE.
+Slot 2 of 10 uploads in the 24 h window. First rated round on this build:
+8 September 08:00 London.

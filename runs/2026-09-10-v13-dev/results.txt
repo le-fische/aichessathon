@@ -1,0 +1,55 @@
+Candidate SHA256 hashes:
+  7d29bc31396ff3d2819d9dbdb6aa42ac1aa0c72e9a3010a554259167b04c35fa agent.py
+  d6bb8861c91cd3f59bd4269b07140144482d87c84f4c72148117b8cf93140149 bitboard.py
+  c7776dff84ad726ef99787f7a3efb5acd0ee3d980edf5d590117282b2dbbee99 evaluation.py
+  ac70e2161f3d09c27201d32edbb02d74366794934f372ef08137404232bec2fa measure_nps_dir.py
+  620354173a4c4d3e84a50a66f1ad2a23091141fe20f5b58afa4fdebab6a4a31f nnue.py
+  a55fe5c7c817fc8bd5d97ec2d7ec38c13754589acf61abc284a963ead9846330 nsearch.py
+  6cd9e509e1e9ccdc7fb12b1e3c9fe58c728e9b0140935058fe9a1f23938d6682 nsearch_nnue.py
+  517f26525d6a4333f7d3363bdc5ff1d1416afe446c01c56b0622338c5c3c694a probe_tests.py
+  8db41e93b7d4efbb80fb3f987e1d8aca920ec41829762192a7701fac5dae8a37 search.py
+  47c9e79d3b3d83a08016fbde68e52557c645a5d1e4bd9887102d48214c150cde start_match_v11.py
+  5a896b0309ba5bf01e35288fff233f19c7b847dd088622cbf9ee0db1dbe3aed1 test_draw.py
+  1ccb5c9d01c5bee31fbaf10c9e264923e7243fa46dcc1aaf0a01e9ed5aac2cd9 test_fast.py
+  e5474baedcaf21505551b088444653f729d3e34df54e9520baf282dd2aa71f02 test_perft.py
+  bdd4f05ebfa6fadec1907275fe9bb7900149db596af8183c65ace012f2d8e036 test_rank.py
+  a7902677e76bf42b81f85108bb6835fa79a57d1b791e811d5d61ef9a633fdd6d test_see.py
+  b67ea68b3c6d58c8e94612d148d27fa50e07bb15089f3bc6d2875bef10200187 trace_see.py
+
+Starting 30 games match at 120s + 500ms
+Candidate: /Users/le/Documents/chessathon
+Baseline: /Users/le/Documents/chessathon/versions/v11-kasparov
+
+Game  1/30: draw  by threefold_repetition | Candidate points: 0.5
+Game  2/30: draw  by threefold_repetition | Candidate points: 0.5
+Game  3/30: black by checkmate  | Candidate points: 0.0
+Game  4/30: draw  by threefold_repetition | Candidate points: 0.5
+Game  5/30: draw  by threefold_repetition | Candidate points: 0.5
+Game  6/30: white by checkmate  | Candidate points: 0.0
+Game  7/30: white by checkmate  | Candidate points: 1.0
+Game  8/30: white by checkmate  | Candidate points: 0.0
+Game  9/30: draw  by threefold_repetition | Candidate points: 0.5
+Game 10/30: white by checkmate  | Candidate points: 0.0
+Game 11/30: draw  by threefold_repetition | Candidate points: 0.5
+Game 12/30: draw  by insufficient_material | Candidate points: 0.5
+Game 13/30: draw  by threefold_repetition | Candidate points: 0.5
+Game 14/30: black by checkmate  | Candidate points: 1.0
+Game 15/30: draw  by threefold_repetition | Candidate points: 0.5
+Game 16/30: white by checkmate  | Candidate points: 0.0
+Game 17/30: white by checkmate  | Candidate points: 1.0
+Game 18/30: draw  by threefold_repetition | Candidate points: 0.5
+Game 19/30: white by checkmate  | Candidate points: 1.0
+Game 20/30: draw  by insufficient_material | Candidate points: 0.5
+Game 21/30: white by checkmate  | Candidate points: 1.0
+Game 22/30: draw  by threefold_repetition | Candidate points: 0.5
+Game 23/30: draw  by threefold_repetition | Candidate points: 0.5
+Game 24/30: black by checkmate  | Candidate points: 1.0
+Game 25/30: white by checkmate  | Candidate points: 1.0
+Game 26/30: draw  by threefold_repetition | Candidate points: 0.5
+Game 27/30: white by checkmate  | Candidate points: 1.0
+Game 28/30: white by checkmate  | Candidate points: 0.0
+Game 29/30: white by checkmate  | Candidate points: 1.0
+Game 30/30: draw  by threefold_repetition | Candidate points: 0.5
+
+Result: +9 =15 -6
+Score: 55.0% +/- 6.5% over 30 games

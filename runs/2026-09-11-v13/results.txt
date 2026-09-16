@@ -1,0 +1,64 @@
+GATE: v13 -- v12 + clock 0.050 + contempt 25
+120s + 500ms, colours swapped, one game at a time
+
+A (candidate) snapshots/v13_candidate:
+7d29bc31396ff3d2819d9dbdb6aa42ac1aa0c72e9a3010a554259167b04c35fa  agent.py
+941654fc9f846ccf5616e4e7f1c4461fffb4214b56bca90935283880cc229e5d  search.py
+b939e4e88ec59b8c026dba5fc438eee7b16271dee2e855922ef7c6c1be951a2c  evaluation.py
+be1947a9daa822f407372d5dc15b954446907bf81af38c17a27eb4ae8db00bfe  bitboard.py
+e4f2b1c978cdb54d89d2e0a6c6b8992e4328c0f9f66c7287feeb06e77d814b48  nsearch.py
+
+B (control)   snapshots/v13_control:
+7d29bc31396ff3d2819d9dbdb6aa42ac1aa0c72e9a3010a554259167b04c35fa  agent.py
+8db41e93b7d4efbb80fb3f987e1d8aca920ec41829762192a7701fac5dae8a37  search.py
+b939e4e88ec59b8c026dba5fc438eee7b16271dee2e855922ef7c6c1be951a2c  evaluation.py
+be1947a9daa822f407372d5dc15b954446907bf81af38c17a27eb4ae8db00bfe  bitboard.py
+52d2c20018e9449bd14c0b1b62cdbeba17c0a2f270b5043c52845c5ed5dba37a  nsearch.py
+
+game 1/40: white by checkmate  running +1 =0 -0  (100.0%)  [5m]
+game 2/40: white by checkmate  running +1 =0 -1  (50.0%)  [10m]
+game 3/40: draw by threefold_repetition  running +1 =1 -1  (50.0%)  [13m]
+game 4/40: black by checkmate  running +2 =1 -1  (62.5%)  [18m]
+game 5/40: draw by threefold_repetition  running +2 =2 -1  (60.0%)  [21m]
+game 6/40: white by checkmate  running +2 =2 -2  (50.0%)  [25m]
+game 7/40: draw by threefold_repetition  running +2 =3 -2  (50.0%)  [30m]
+game 8/40: draw by threefold_repetition  running +2 =4 -2  (50.0%)  [33m]
+game 9/40: draw by threefold_repetition  running +2 =5 -2  (50.0%)  [35m]
+game 10/40: draw by threefold_repetition  running +2 =6 -2  (50.0%)  [40m]
+game 11/40: white by checkmate  running +3 =6 -2  (54.5%)  [45m]
+game 12/40: white by checkmate  running +3 =6 -3  (50.0%)  [50m]
+game 13/40: white by checkmate  running +4 =6 -3  (53.8%)  [55m]
+game 14/40: draw by threefold_repetition  running +4 =7 -3  (53.6%)  [59m]
+game 15/40: white by checkmate  running +5 =7 -3  (56.7%)  [63m]
+game 16/40: draw by threefold_repetition  running +5 =8 -3  (56.2%)  [66m]
+game 17/40: black by checkmate  running +5 =8 -4  (52.9%)  [72m]
+game 18/40: black by checkmate  running +6 =8 -4  (55.6%)  [76m]
+game 19/40: draw by insufficient_material  running +6 =9 -4  (55.3%)  [81m]
+game 20/40: white by checkmate  running +6 =9 -5  (52.5%)  [86m]
+game 21/40: draw by threefold_repetition  running +6 =10 -5  (52.4%)  [92m]
+game 22/40: draw by threefold_repetition  running +6 =11 -5  (52.3%)  [96m]
+game 23/40: black by checkmate  running +6 =11 -6  (50.0%)  [100m]
+game 24/40: draw by threefold_repetition  running +6 =12 -6  (50.0%)  [104m]
+game 25/40: white by checkmate  running +7 =12 -6  (52.0%)  [109m]
+game 26/40: white by checkmate  running +7 =12 -7  (50.0%)  [113m]
+game 27/40: draw by threefold_repetition  running +7 =13 -7  (50.0%)  [117m]
+game 28/40: black by checkmate  running +8 =13 -7  (51.8%)  [122m]
+game 29/40: draw by threefold_repetition  running +8 =14 -7  (51.7%)  [127m]
+game 30/40: black by checkmate  running +9 =14 -7  (53.3%)  [132m]
+game 31/40: draw by insufficient_material  running +9 =15 -7  (53.2%)  [136m]
+game 32/40: draw by threefold_repetition  running +9 =16 -7  (53.1%)  [140m]
+game 33/40: black by checkmate  running +9 =16 -8  (51.5%)  [145m]
+game 34/40: draw by threefold_repetition  running +9 =17 -8  (51.5%)  [147m]
+game 35/40: draw by threefold_repetition  running +9 =18 -8  (51.4%)  [153m]
+game 36/40: draw by threefold_repetition  running +9 =19 -8  (51.4%)  [157m]
+game 37/40: white by checkmate  running +10 =19 -8  (52.7%)  [162m]
+game 38/40: white by checkmate  running +10 =19 -9  (51.3%)  [166m]
+game 39/40: white by checkmate  running +11 =19 -9  (52.6%)  [171m]
+game 40/40: white by checkmate  running +11 =19 -10  (51.2%)  [176m]
+
+screen complete: +11 =19 -10  score 51.2% +/- 5.7% (1 sigma, 40 games)
+inconclusive at 30. Continuing to 60.
+
+
+final: +11 =19 -10  score 51.2% +/- 5.7% (1 sigma, 40 games)
+VERDICT: UNMEASURED, not neutral. 51.2% +/- 5.7% crosses 50%. Do not ship.

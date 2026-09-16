@@ -1,0 +1,84 @@
+GATE: contempt -- score a draw at -25cp instead of 0, so a winning engine stops shuffling
+120s + 500ms, colours swapped, one game at a time
+
+A (candidate) snapshots/v11_contempt:
+7d29bc31396ff3d2819d9dbdb6aa42ac1aa0c72e9a3010a554259167b04c35fa  agent.py
+941654fc9f846ccf5616e4e7f1c4461fffb4214b56bca90935283880cc229e5d  search.py
+c7776dff84ad726ef99787f7a3efb5acd0ee3d980edf5d590117282b2dbbee99  evaluation.py
+d6bb8861c91cd3f59bd4269b07140144482d87c84f4c72148117b8cf93140149  bitboard.py
+5b64437e7cdeb0ae48109327dcfb8b4873c3bbe51e2d0f5cc8ac7919815ccb44  nsearch.py
+
+B (control)   snapshots/v11_control:
+7d29bc31396ff3d2819d9dbdb6aa42ac1aa0c72e9a3010a554259167b04c35fa  agent.py
+8db41e93b7d4efbb80fb3f987e1d8aca920ec41829762192a7701fac5dae8a37  search.py
+c7776dff84ad726ef99787f7a3efb5acd0ee3d980edf5d590117282b2dbbee99  evaluation.py
+d6bb8861c91cd3f59bd4269b07140144482d87c84f4c72148117b8cf93140149  bitboard.py
+292927666a896bbdd63610aacbdbddaed23c5a2c8c1d869fcd49ce0c03884bf9  nsearch.py
+
+game 1/30: draw by threefold_repetition  running +0 =1 -0  (50.0%)  [5m]
+game 2/30: draw by threefold_repetition  running +0 =2 -0  (50.0%)  [9m]
+game 3/30: black by checkmate  running +0 =2 -1  (33.3%)  [14m]
+game 4/30: draw by threefold_repetition  running +0 =3 -1  (37.5%)  [18m]
+game 5/30: draw by threefold_repetition  running +0 =4 -1  (40.0%)  [22m]
+game 6/30: draw by threefold_repetition  running +0 =5 -1  (41.7%)  [27m]
+game 7/30: white by checkmate  running +1 =5 -1  (50.0%)  [31m]
+game 8/30: white by checkmate  running +1 =5 -2  (43.8%)  [36m]
+game 9/30: draw by threefold_repetition  running +1 =6 -2  (44.4%)  [41m]
+game 10/30: white by checkmate  running +1 =6 -3  (40.0%)  [46m]
+game 11/30: white by checkmate  running +2 =6 -3  (45.5%)  [51m]
+game 12/30: draw by threefold_repetition  running +2 =7 -3  (45.8%)  [55m]
+game 13/30: draw by threefold_repetition  running +2 =8 -3  (46.2%)  [61m]
+game 14/30: draw by threefold_repetition  running +2 =9 -3  (46.4%)  [65m]
+game 15/30: white by checkmate  running +3 =9 -3  (50.0%)  [70m]
+game 16/30: white by checkmate  running +3 =9 -4  (46.9%)  [74m]
+game 17/30: draw by threefold_repetition  running +3 =10 -4  (47.1%)  [77m]
+game 18/30: black by checkmate  running +4 =10 -4  (50.0%)  [82m]
+game 19/30: draw by threefold_repetition  running +4 =11 -4  (50.0%)  [86m]
+game 20/30: black by checkmate  running +5 =11 -4  (52.5%)  [91m]
+game 21/30: black by checkmate  running +5 =11 -5  (50.0%)  [96m]
+game 22/30: draw by threefold_repetition  running +5 =12 -5  (50.0%)  [100m]
+game 23/30: draw by threefold_repetition  running +5 =13 -5  (50.0%)  [105m]
+game 24/30: draw by threefold_repetition  running +5 =14 -5  (50.0%)  [109m]
+game 25/30: draw by insufficient_material  running +5 =15 -5  (50.0%)  [114m]
+game 26/30: draw by threefold_repetition  running +5 =16 -5  (50.0%)  [118m]
+game 27/30: draw by threefold_repetition  running +5 =17 -5  (50.0%)  [122m]
+game 28/30: draw by threefold_repetition  running +5 =18 -5  (50.0%)  [127m]
+game 29/30: draw by threefold_repetition  running +5 =19 -5  (50.0%)  [131m]
+game 30/30: black by checkmate  running +6 =19 -5  (51.7%)  [136m]
+
+screen complete: +6 =19 -5  score 51.7% +/- 5.5% (1 sigma, 30 games)
+inconclusive at 30. Continuing to 60.
+
+game 31/60: white by checkmate  running +7 =19 -5  (53.2%)  [140m]
+game 32/60: black by checkmate  running +8 =19 -5  (54.7%)  [145m]
+game 33/60: black by checkmate  running +8 =19 -6  (53.0%)  [150m]
+game 34/60: draw by threefold_repetition  running +8 =20 -6  (52.9%)  [152m]
+game 35/60: white by checkmate  running +9 =20 -6  (54.3%)  [157m]
+game 36/60: draw by threefold_repetition  running +9 =21 -6  (54.2%)  [162m]
+game 37/60: white by checkmate  running +10 =21 -6  (55.4%)  [167m]
+game 38/60: white by checkmate  running +10 =21 -7  (53.9%)  [171m]
+game 39/60: white by checkmate  running +11 =21 -7  (55.1%)  [176m]
+game 40/60: white by checkmate  running +11 =21 -8  (53.8%)  [180m]
+game 41/60: draw by threefold_repetition  running +11 =22 -8  (53.7%)  [183m]
+game 42/60: draw by threefold_repetition  running +11 =23 -8  (53.6%)  [184m]
+game 43/60: draw by threefold_repetition  running +11 =24 -8  (53.5%)  [189m]
+game 44/60: black by checkmate  running +12 =24 -8  (54.5%)  [192m]
+game 45/60: white by checkmate  running +13 =24 -8  (55.6%)  [197m]
+game 46/60: white by checkmate  running +13 =24 -9  (54.3%)  [201m]
+game 47/60: black by checkmate  running +13 =24 -10  (53.2%)  [206m]
+game 48/60: draw by threefold_repetition  running +13 =25 -10  (53.1%)  [209m]
+game 49/60: draw by threefold_repetition  running +13 =26 -10  (53.1%)  [213m]
+game 50/60: black by checkmate  running +14 =26 -10  (54.0%)  [218m]
+game 51/60: white by checkmate  running +15 =26 -10  (54.9%)  [222m]
+game 52/60: white by checkmate  running +15 =26 -11  (53.8%)  [226m]
+game 53/60: black by checkmate  running +15 =26 -12  (52.8%)  [230m]
+game 54/60: black by checkmate  running +16 =26 -12  (53.7%)  [235m]
+game 55/60: black by checkmate  running +16 =26 -13  (52.7%)  [240m]
+game 56/60: draw by threefold_repetition  running +16 =27 -13  (52.7%)  [244m]
+game 57/60: draw by threefold_repetition  running +16 =28 -13  (52.6%)  [247m]
+game 58/60: draw by threefold_repetition  running +16 =29 -13  (52.6%)  [251m]
+game 59/60: draw by threefold_repetition  running +16 =30 -13  (52.5%)  [256m]
+game 60/60: draw by threefold_repetition  running +16 =31 -13  (52.5%)  [260m]
+
+final: +16 =31 -13  score 52.5% +/- 4.5% (1 sigma, 60 games)
+VERDICT: UNMEASURED, not neutral. 52.5% +/- 4.5% crosses 50%. Do not ship.

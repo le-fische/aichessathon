@@ -1,0 +1,8 @@
+v6-karpov (Numba Search + NNUE Engine)
+
+Features:
+- Numba search: JIT-compiled negamax + quiescence + TT inside Numba, ~15-30x faster than Python search (~1-2 Mnps)
+- Check extension and LMR quiet check exception
+- Tapered bishop pair evaluation term
+- NNUE evaluation infrastructure with piece-square benchmarks
+- Automatic fallback to Python search if Numba fails

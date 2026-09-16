@@ -1,0 +1,29 @@
+Starting 12 games match for depth at 120s + 500ms
+Numba: 8307e25a agent.py
+d6bb8861 bitboard.py
+c7776dff evaluation.py
+62035417 nnue.py
+5c532fb6 nsearch.py
+8db41e93 search.py
+
+Python: 715dac6b agent.py
+d6bb8861 bitboard.py
+c7776dff evaluation.py
+62035417 nnue.py
+88d79da4 nsearch.py
+8db41e93 search.py
+
+Game 1: white | Numba depth: 12.25, Python depth: 8.10
+Game 2: black | Numba depth: 12.50, Python depth: 8.67
+Game 3: white | Numba depth: 12.11, Python depth: 8.33
+Game 4: draw | Numba depth: 11.45, Python depth: 7.73
+Game 5: white | Numba depth: 13.27, Python depth: 9.57
+Game 6: black | Numba depth: 12.85, Python depth: 8.42
+Game 7: draw | Numba depth: 11.62, Python depth: 7.42
+Game 8: black | Numba depth: 12.93, Python depth: 8.59
+Game 9: draw | Numba depth: 20.24, Python depth: 13.74
+Game 10: black | Numba depth: 10.92, Python depth: 7.06
+Game 11: white | Numba depth: 12.51, Python depth: 8.60
+Game 12: black | Numba depth: 11.74, Python depth: 7.88
+
+Mean completed depth: Numba = 12.86, Python = 8.68

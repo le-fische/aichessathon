@@ -1,0 +1,15 @@
+v5-alekhine (Platform v9)
+
+Shipped 2026-09-08.
+Built from commit e0d5688 on branch v6-alekhine.
+
+Features:
+- Time policy: coefficient 0.050 plus 400 ms of the 500 ms increment
+- Evaluation: Passed Pawns bitboard evaluation term
+- Syzygy tablebases: 36 3-4 man WDL/DTZ tables supported
+- root_score restored in search.py
+
+SHAs:
+3ccafd1f52bf1e1c3ea81e50ad75aabe7c2853b777533152d46b297a1273ecdb  agent.py
+3e3301a51d9818a7e1db83eb2c630a4286dccd82db2574050ef6bc86daa28f75  search.py
+f016a23b724ed933f4926054f386b1f50e1b7dcaf7163b995b25f3cbc32c5eae  evaluation.py
