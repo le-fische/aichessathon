@@ -4,9 +4,11 @@ A chess engine written from scratch in Python for the [AI Chessathon](https://ai
 September 2026. No third-party engine code — the search, the evaluation and the move
 generation are all ours.
 
-**Result: finished around 199th of 465 entrants.** Peak rating 1835, final 1749, across
-108 rated games. That is mid-field, and [the post-mortem below](#post-mortem-why-it-finished-mid-field)
-says why in more detail than is comfortable.
+**Result: 135th of 334 in the final qualification Swiss — 5–4–4 over 13 rounds, 7.0 points,
+performance rating 1785.** The top 50 took a seat at the London final; the cut fell at 8.5.
+On the seeding ladder: 191st of 465, peak rating 1835, final 1699 across 109 rated games.
+That is mid-field, and [the post-mortem below](#post-mortem-why-it-finished-mid-field) says
+why in more detail than is comfortable.
 
 Built by [Houze Guo](https://github.com/le-fische) and
 [Gede Danny Putra Budiada](https://github.com/dannybud19) over nine days, from a
@@ -14,8 +16,23 @@ standing start.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/images/01-rating-trajectory-dark.png">
-  <img alt="Ladder rating across all 108 rated rounds, 1575 to a peak of 1835, finishing 1749" src="docs/images/01-rating-trajectory-light.png">
+  <img alt="Ladder rating across all 109 rated rounds, 1575 to a peak of 1835, finishing 1699" src="docs/images/01-rating-trajectory-light.png">
 </picture>
+
+The ladder above only seeded the draw. Seats were decided by a 13-round Swiss over builds
+locked at the deadline:
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/images/05-final-swiss-dark.png">
+  <img alt="Final Swiss points distribution: 7.0 points against a cut of 8.5 for the top 50" src="docs/images/05-final-swiss-light.png">
+</picture>
+
+Worth one caveat against ourselves. The build that played that Swiss was finished seven
+minutes before the lock and had never played a rated game — no gate, no evidence — and it
+performed at 1785 against a ladder rating of 1699. It would be easy to read that as the
+untested change working. It isn't: 13 games carries a standard error of roughly ±140 Elo,
+which is the same measurement problem described below, just pointing in a flattering
+direction for once.
 
 ---
 
@@ -246,8 +263,8 @@ shipped on. Several times that discipline caught something that a more optimisti
 would have shipped: the pawn-structure regression at 40.0%, the moves-to-go clock that cost
 79 rating points in six rounds, and the eval divergence between the numba and Python paths.
 
-Finishing 199th with an engine that is honestly documented is a better outcome than
-finishing 150th with one whose numbers nobody can reproduce.
+Finishing mid-field with an engine that is honestly documented is a better outcome than
+finishing fifty places higher with one whose numbers nobody can reproduce.
 
 ---
 

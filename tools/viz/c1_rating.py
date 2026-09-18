@@ -13,7 +13,7 @@ RATING = [1575,1626,1575,1582,1547,1549,1543,1505,1470,1438,1484,1513,1494,1493,
           1511,1529,1535,1531,1591,1635,1683,1636,1683,1723,1686,1660,1687,1706,
           1705,1728,1729,1714,1693,1709,1706,1687,1670,1654,1653,1673,1657,1658,
           1672,1685,1696,1713,1726,1716,1779,1835,1789,1830,1794,1753,1723,1697,
-          1700,1730,1736,1742,1744,1743,1703,1739,1790,1749]
+          1700,1730,1736,1742,1744,1743,1703,1739,1790,1749,1699]
 
 W, H = 1600, 900
 L, R, TOP, BOT = 96, 96, 210, 116
@@ -31,7 +31,7 @@ def build(mode):
 
     # Header
     o.append(text(64, 112, "Nine days on the ladder", t["ink"], 40, 600, spacing="-0.5"))
-    o.append(text(64, 150, "Self-written Python chess engine · AI Chessathon 2026 · 108 rated games",
+    o.append(text(64, 150, "Self-written Python chess engine · AI Chessathon 2026 · 109 rated games",
                   t["secondary"], 19))
 
     # Gridlines and y labels
@@ -47,7 +47,7 @@ def build(mode):
     o.append(text((px(18) + px(24)) / 2, TOP + 72, "reverted", t["muted"], 14, anchor="middle"))
 
     # x ticks
-    for r in (1, 20, 40, 60, 80, 108):
+    for r in (1, 20, 40, 60, 80, 109):
         o.append(text(px(r - 1), H - BOT + 34, f"R{r}", t["muted"], 15, anchor="middle", family=MONO))
     o.append(line(L, TOP + ph, W - R, TOP + ph, t["axis"], 1))
 
@@ -69,13 +69,13 @@ def build(mode):
     ifn = len(RATING) - 1
     o.append(circle(px(ifn), py(RATING[ifn]), 6, t["series1"], t["surface"], 2.5))
     o.append(line(px(ifn), py(RATING[ifn]) + 14, px(ifn), py(1622), t["axis"], 1, dash="3 4"))
-    o.append(text(px(ifn), py(1604), "final 1749", t["ink"], 18, 600, anchor="end"))
-    o.append(text(px(ifn), py(1566), "#199 of 465", t["secondary"], 15, anchor="end"))
+    o.append(text(px(ifn), py(1604), "final 1699", t["ink"], 18, 600, anchor="end"))
+    o.append(text(px(ifn), py(1566), "#191 of 465", t["secondary"], 15, anchor="end"))
 
     o.append(circle(px(0), py(RATING[0]), 5, t["surface"], t["series1"], 2.5))
     o.append(text(px(0) + 14, py(RATING[0]) - 14, "start 1575", t["secondary"], 15))
 
-    o.append(footer(W, H, t, "13 builds shipped · every change gated on 30–60 games before release"))
+    o.append(footer(W, H, t, "13 builds shipped · the ladder only seeded the draw; a 13-round Swiss decided the London seats"))
     o.append("</svg>")
     return "".join(o)
 
