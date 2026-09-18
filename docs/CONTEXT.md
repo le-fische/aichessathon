@@ -32,7 +32,7 @@ v10 is worth about +170 Elo over v9, almost entirely from compiling the search w
 1. **SEE (static exchange evaluation)** -- biggest missing piece, nobody on it. Ordering
    is MVV-LVA only and cannot tell a winning capture from a losing one. Skip SEE<0
    captures in quiescence, order the rest by SEE. Typically +20 to +50 Elo.
-2. **Gate Terms 3 and 4** (e078c41 rook on open file, 5963d9c doubled/isolated pawns).
+2. **Gate Terms 3 and 4** (0f575b8 rook on open file, 5197c06 doubled/isolated pawns).
    Committed, unmeasured, NOT in v10. They need numbers before v11.
 3. **Opening book** -- Danny, own branch, see TASKS.md. We ship none.
 4. **The flag question** -- ~8 games lost on time across ~160 local games, ZERO on the

@@ -40,7 +40,7 @@ Record the final gate number. Close that chat. Delete `weights/weights.npy`,
 wholesale, so they are dead payload in every zip. Commit that deletion on its own.
 
 **1. Gate Terms 3 and 4 together** (2h50m)
-Rook open file (`e078c41`) and doubled/isolated pawns (`5963d9c`): both committed, both
+Rook open file (`0f575b8`) and doubled/isolated pawns (`5197c06`): both committed, both
 unmeasured, neither in v10. First run `tests/test_evaluate.py` — the **random walk** is
 the gate, not the six curated positions. If it fails, stop; a divergence between the two
 evaluations explains more than a missing term. Gate both as one change (separately costs

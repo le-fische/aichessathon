@@ -167,7 +167,7 @@ NB_CALL = '''    white_pawns = pieces[PAWN] & colors[WHITE]
 '''
 
 text = (DST / "bitboard.py").read_text()
-# The pawn-terms commit (5963d9c) also defines FILE_MASKS in bitboard.py, as a
+# The pawn-terms commit (5197c06) also defines FILE_MASKS in bitboard.py, as a
 # different shape indexed differently. Two module-level definitions of one name
 # means the later one silently wins, and numba does not bounds-check. We use
 # KS_FILE_MASKS to avoid the collision. Guard against a future careless merge

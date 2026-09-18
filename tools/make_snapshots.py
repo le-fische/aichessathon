@@ -27,10 +27,10 @@ from pathlib import Path
 MEMBERS = ("agent.py", "search.py", "evaluation.py", "bitboard.py", "nsearch.py")
 
 # v10's shipped evaluation. Terms 3 and 4 are deliberately not in the control.
-BASE = "5780243"
+BASE = "c3736fd"
 # Danny's correctness prefix: qsearch clock + TT abort guard + SEE + unwind.
 V11_NSEARCH = "d27c6f7"
-TERMS34 = "5963d9c"      # rook open file + doubled/isolated pawns
+TERMS34 = "5197c06"      # rook open file + doubled/isolated pawns
 PANIC = "5fb2495"        # panic path actually searches
 LMR = "7b41bcc"          # LMR scaling + history penalty
 

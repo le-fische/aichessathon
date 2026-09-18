@@ -12,3 +12,18 @@ tidy-up. The scripts were restored from copies held outside the repository; two
 FINDINGS.md write-ups had to be rewritten from memory.
 
 If something in here looks like clutter, say so and let the human decide.
+
+--------------------------------------------------------------------------
+COMMIT REFERENCE MAP -- 2026-09-18
+
+main was rewritten to drop AI co-author metadata from its commits. File
+content is byte-identical; only author and message trailers changed. Three
+commit ids cited in entries below therefore moved:
+
+    5780243  ->  c3736fd   Add TASKS.md: parallel-safe work for a new collaborator
+    5963d9c  ->  5197c06   Add Doubled and Isolated pawn evaluation terms
+    e078c41  ->  0f575b8   Add Rook open file and 7th rank evaluation term
+
+Entries are not edited -- this directory is append-only. Read the old id in
+any entry above as the new one here. Ids reachable from the danny-test branch
+(d27c6f7, 5fb2495, 7b41bcc, 9d21403) were not rewritten and still resolve.
