@@ -116,7 +116,10 @@ where it went against us:
 | NNUE replacing the classical evaluation | +1 =0 −59, **1.7% ± 1.7%** | reverted |
 | Depth-preferred TT replacement | −3.6% nodes, 95% CI −7.8%…+32.7% | no effect, not shipped |
 
-One gate in seven shipped.
+One gate in seven shipped. The chart plots the six that have a score interval; the
+transposition-table change was measured in node counts rather than games. Note the v13
+row here is the clock-plus-contempt candidate, which failed and never shipped — the
+build that actually played the Swiss was a different, later v13.
 
 ---
 
@@ -260,8 +263,9 @@ the move unchanged. Written up in [`tools/probe/FINDINGS.md`](tools/probe/FINDIN
 The methodology. Frozen snapshots with hash manifests, every measurement appended to
 `runs/` whether or not it flattered us, and releases archived with the evidence they
 shipped on. Several times that discipline caught something that a more optimistic process
-would have shipped: the pawn-structure regression at 40.0%, the moves-to-go clock that cost
-79 rating points in six rounds, and the eval divergence between the numba and Python paths.
+would have shipped: the pawn-structure regression at 40.0%, the moves-to-go clock that sent
+the rating down across rounds 19–25 before it was reverted, and the eval divergence between
+the numba and Python paths.
 
 Finishing mid-field with an engine that is honestly documented is a better outcome than
 finishing fifty places higher with one whose numbers nobody can reproduce.
