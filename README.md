@@ -8,8 +8,9 @@ generation are all ours.
 108 rated games. That is mid-field, and [the post-mortem below](#post-mortem-why-it-finished-mid-field)
 says why in more detail than is comfortable.
 
-Built by [Houze Guo](https://github.com/le-fische) and Gede Danny Putra Budiada over nine
-days, from a standing start.
+Built by [Houze Guo](https://github.com/le-fische) and
+[Gede Danny Putra Budiada](https://github.com/dannybud19) over nine days, from a
+standing start.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/images/01-rating-trajectory-dark.png">
@@ -277,5 +278,15 @@ Requires Python 3.12, `python-chess`, `numpy`, `numba`; `torch` only for NNUE tr
 - `runs/` is append-only. Corrections are added as new entries; nothing is rewritten.
 - Internal working docs — the handoff, the task relays, the session context — are in
   [`docs/`](docs/).
+
+## Credits
+
+Written by [Houze Guo](https://github.com/le-fische) and
+[Gede Danny Putra Budiada](https://github.com/dannybud19).
+
+Claude (Anthropic) was used throughout as a development assistant — code review,
+measurement tooling, debugging, and drafting documentation including this README.
+It did not get a vote: every change it proposed had to clear the same gate as any
+other, and several of them are in the table above under "reverted".
 
 MIT licensed.
