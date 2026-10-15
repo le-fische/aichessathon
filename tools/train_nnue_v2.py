@@ -151,6 +151,16 @@ def export_quantized_weights(state_dict, output_dir="weights/v2_mlp"):
     print(f"  --> Saved quantized weights to {output_dir}/ and weights/")
 
 
+def correct_targets_to_stm(turn_indices, targets):
+    valid_mask = (turn_indices != 768)
+    counts = valid_mask.sum(axis=1)
+    row_idx = np.arange(len(turn_indices))
+    first_sq = turn_indices[:, 0] % 64
+    last_sq = turn_indices[row_idx, counts - 1] % 64
+    is_white = first_sq > last_sq
+    return np.where(is_white, targets, 1.0 - targets).astype(np.float32)
+
+
 def train_large_dataset(shards_dir="data/shards_50m", epochs=5, batch_size=16384, lr=0.003):
     device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
     print("==================================================================")
@@ -169,7 +179,7 @@ def train_large_dataset(shards_dir="data/shards_50m", epochs=5, batch_size=16384
     d0 = np.load(shard_files[0])
     val_turn_np = np.where(d0["turn_indices"][:100_000] == -1, 768, d0["turn_indices"][:100_000]).astype(np.int64)
     val_opp_np = np.where(d0["opp_indices"][:100_000] == -1, 768, d0["opp_indices"][:100_000]).astype(np.int64)
-    val_target_np = d0["targets"][:100_000]
+    val_target_np = correct_targets_to_stm(val_turn_np, d0["targets"][:100_000])
 
     val_turn = torch.from_numpy(val_turn_np).to(device)
     val_opp = torch.from_numpy(val_opp_np).to(device)
@@ -208,6 +218,7 @@ def train_large_dataset(shards_dir="data/shards_50m", epochs=5, batch_size=16384
 
             t_idx = np.where(t_idx == -1, 768, t_idx).astype(np.int64)
             o_idx = np.where(o_idx == -1, 768, o_idx).astype(np.int64)
+            tgts = correct_targets_to_stm(t_idx, tgts)
 
             n_shard = len(tgts)
             perm = np.random.permutation(n_shard)

@@ -157,7 +157,7 @@ def nnue_eval_head(acc, turn, total_pieces, w1, b1, w2, b2):
     if total_pieces > 26: bucket = 6
     if total_pieces > 29: bucket = 7
 
-    out = b2[bucket]
+    out = np.int64(b2[bucket])
     w2_b = w2[bucket]
     
     c_acc = np.empty(512, dtype=np.int32)
@@ -169,31 +169,23 @@ def nnue_eval_head(acc, turn, total_pieces, w1, b1, w2, b2):
         c_acc[256 + i] = 0 if v < 0 else (127 if v > 127 else v)
 
     for i in range(64):
-        s = b1[i]
+        s = np.int64(b1[i])
         w1_row = w1[i]
         for j in range(512):
-            s += c_acc[j] * int(w1_row[j])
+            s += np.int64(c_acc[j]) * np.int64(w1_row[j])
         s = s // 64
         if s < 0: s = 0
         elif s > 127: s = 127
         if i >= 32:
             s = (s * s) // 127
-        out += s * int(w2_b[i])
+        out += s * np.int64(w2_b[i])
 
-    return (out * 173718) // 11117326
+    return np.int32((out * 173718) // 11117326)
 
 @njit(fastmath=True)
-def hybrid_eval(pieces, colors, state, acc, w1, b1, w2, b2):
-    classical_score = evaluate(pieces, colors, state)
+def pure_nnue_eval(pieces, colors, state, acc, w1, b1, w2, b2):
     total_pieces = popcount(colors[0] | colors[1])
-    nnue_score = nnue_eval_head(acc, state[0], total_pieces, w1, b1, w2, b2)
-    
-    # In endgames with <= 4 pieces or bare king, classical evaluation (with Syzygy and drive) dominates
-    if total_pieces <= 4:
-        return classical_score
-        
-    # Hybrid blend: 70% NNUE + 30% Classical
-    return 0.70 * float(nnue_score) + 0.30 * float(classical_score)
+    return float(nnue_eval_head(acc, state[0], total_pieces, w1, b1, w2, b2))
 
 
 # ---------------------------------------------------------------------------
@@ -410,7 +402,7 @@ def qsearch(pieces, colors, state, alpha, beta, ply, path_keys, path_count, star
             return alpha
 
     if ply >= 127:
-        return hybrid_eval(pieces, colors, state, acc, weights_fc1, biases_fc1, weights_fc2, biases_fc2)
+        return pure_nnue_eval(pieces, colors, state, acc, weights_fc1, biases_fc1, weights_fc2, biases_fc2)
         
     if is_insufficient_material(pieces):
         return 0.0
@@ -419,7 +411,7 @@ def qsearch(pieces, colors, state, alpha, beta, ply, path_keys, path_count, star
     stand_pat = -1e9
     
     if not is_ch:
-        stand_pat = hybrid_eval(pieces, colors, state, acc, weights_fc1, biases_fc1, weights_fc2, biases_fc2)
+        stand_pat = pure_nnue_eval(pieces, colors, state, acc, weights_fc1, biases_fc1, weights_fc2, biases_fc2)
         if stand_pat >= beta:
             return stand_pat
         if alpha < stand_pat:
