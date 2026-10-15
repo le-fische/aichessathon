@@ -149,6 +149,11 @@ def export_quantized_weights(state_dict, output_dir="weights/v2_mlp"):
     np.save("weights/biases_fc2.npy", b_fc2)
     
     print(f"  --> Saved quantized weights to {output_dir}/ and weights/")
+    try:
+        from tools.export_web_weights import export_web_weights
+        export_web_weights(weights_dir=output_dir, output_dir="docs")
+    except Exception as e:
+        print(f"  (Warning: web weight export skipped: {e})")
 
 
 def correct_targets_to_stm(turn_indices, targets):

@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>NNUE v2 Silicon — Neural Network Chess Engine</title>
+  <meta name="description" content="Play against NNUE v2 Silicon in your browser. 100% client-side pure NNUE neural network engine trained on 50M Stockfish evaluations with SCReLU activations and material buckets.">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <div class="brand-icon">♞</div>
+      <div class="brand-text">
+        <h1>NNUE v2 Silicon</h1>
+        <span>50M Stockfish Positions • 8 Buckets • SCReLU</span>
+      </div>
+    </div>
+    <div class="header-badges">
+      <div class="badge pulse">Local Device Execution</div>
+      <div class="badge">Pure NNUE</div>
+    </div>
+  </header>
+
+  <main>
+    <section class="game-container">
+      <div class="eval-bar-wrapper">
+        <div id="eval-bar-black" class="eval-bar-black"></div>
+        <div id="eval-bar-white" class="eval-bar-white"></div>
+        <div id="eval-score-label" class="eval-score-label">+0.2</div>
+      </div>
+      <div class="board-wrapper">
+        <div id="board" class="board"></div>
+      </div>
+    </section>
+
+    <aside class="sidebar">
+      <div id="status-banner" class="status-banner">Your turn (White).</div>
+
+      <div class="card">
+        <div class="card-title">
+          <span>Engine Telemetry</span>
+          <span style="font-size: 0.7rem; color: var(--text-muted);">Web Worker Thread</span>
+        </div>
+        <div class="stats-grid">
+          <div class="stat-box">
+            <div class="stat-label">Search Depth</div>
+            <div id="depth-value" class="stat-value highlight">—</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-label">Nodes Searched</div>
+            <div id="nodes-value" class="stat-value">—</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-label">Eval Speed</div>
+            <div id="nps-value" class="stat-value">—</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-label">Move Latency</div>
+            <div id="speed-value" class="stat-value">—</div>
+          </div>
+        </div>
+        <div id="engine-thought" class="engine-thought">Ready for play.</div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Game Settings</div>
+        <div style="margin-bottom: 0.75rem;">
+          <label style="font-size: 0.7rem; color: var(--text-muted); display: block; margin-bottom: 0.3rem;">ENGINE THINKING TIME</label>
+          <select id="difficulty-select" class="select-control">
+            <option value="500">Casual (0.5 seconds)</option>
+            <option value="1500">Club (1.5 seconds)</option>
+            <option value="3000" selected>Rapid (3.0 seconds)</option>
+            <option value="5000">Master (5.0 seconds)</option>
+            <option value="8000">Beast Mode (8.0 seconds)</option>
+          </select>
+        </div>
+        <div class="btn-row">
+          <button id="btn-play-white" class="btn primary">Play as White</button>
+          <button id="btn-play-black" class="btn">Play as Black</button>
+        </div>
+        <div class="btn-row">
+          <button id="btn-new-game" class="btn">New Game</button>
+          <button id="btn-undo" class="btn">Undo Move</button>
+        </div>
+        <button id="btn-flip-board" class="btn" style="width: 100%;">Flip Board</button>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Move History</div>
+        <div id="history-list" class="history-container"></div>
+      </div>
+    </aside>
+  </main>
+
+  <footer>
+    <p>NNUE v2 Silicon: 768 &rarr; 256 &rarr; 64 SCReLU &rarr; 8 Material Buckets. QAT quantized INT8/INT16 weights trained on 50 Million high-depth Stockfish evaluations. Runs 100% locally in your browser.</p>
+  </footer>
+
+  <script src="chess.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
