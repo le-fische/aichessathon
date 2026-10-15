@@ -1,30 +1,70 @@
 # ruff: noqa: E501
 # mypy: ignore-errors
+import os
+import sys
 import time
-
 import chess
 import numpy as np
 from numba import njit, objmode
 
-# NNUE Setup
-import os
-import numpy as np
+import bitboard
+from bitboard import (
+    BISHOP,
+    BLACK,
+    KING,
+    KING_ATTACKS,
+    KNIGHT,
+    KNIGHT_ATTACKS,
+    NONE,
+    PAWN,
+    PAWN_ATTACKS,
+    QUEEN,
+    ROOK,
+    WHITE,
+    decode_move,
+    evaluate,
+    from_chess_board,
+    generate_pseudo_legal_moves,
+    get_bishop_attacks,
+    get_rook_attacks,
+    is_square_attacked,
+    lsb,
+    make_move,
+    unmake_move,
+    popcount,
+)
 
-# Load weights relative to this file, from weights/, which is where
-# tools/train_nnue.py writes them and where the packaged zip carries them.
-# The previous version looked for root-level files in the process working
-# directory. They were never there, so the fallback below ran every time and
-# every NNUE gate measured an all-zero network.
+# ---------------------------------------------------------------------------
+# NNUE v2 Silicon Model Weights Loader
+# ---------------------------------------------------------------------------
 _HERE = os.path.dirname(os.path.abspath(__file__))
-_W = os.path.join(_HERE, "weights", "weights.npy")
-if os.path.exists(_W):
-    weights = np.load(_W)
-    biases = np.load(os.path.join(_HERE, "weights", "biases.npy"))
-    weights2 = np.load(os.path.join(_HERE, "weights", "weights2.npy"))
-else:
-    weights = np.zeros((768, 256), dtype=np.int16)
-    biases = np.zeros(256, dtype=np.int16)
-    weights2 = np.zeros(512, dtype=np.int8)
+_W_DIR = os.path.join(_HERE, "weights", "v2_mlp")
+if not os.path.exists(_W_DIR):
+    _W_DIR = os.path.join(_HERE, "weights")
+
+def _load_or_default(filename, shape, dtype):
+    path = os.path.join(_W_DIR, filename)
+    if not os.path.exists(path):
+        alt_path = os.path.join(_HERE, "weights", filename)
+        if os.path.exists(alt_path):
+            path = alt_path
+    if os.path.exists(path):
+        try:
+            arr = np.load(path)
+            if arr.shape == shape and arr.dtype == dtype:
+                return arr
+            elif arr.shape == shape:
+                return arr.astype(dtype)
+        except Exception:
+            pass
+    return np.zeros(shape, dtype=dtype)
+
+weights_acc = _load_or_default("weights_acc.npy", (768, 256), np.int16)
+biases_acc = _load_or_default("biases_acc.npy", (256,), np.int16)
+weights_fc1 = _load_or_default("weights_fc1.npy", (64, 512), np.int8)
+biases_fc1 = _load_or_default("biases_fc1.npy", (64,), np.int32)
+weights_fc2 = _load_or_default("weights_fc2.npy", (8, 64), np.int8)
+biases_fc2 = _load_or_default("biases_fc2.npy", (8,), np.int32)
 
 @njit(cache=False)
 def nnue_full_refresh(pieces, colors, weights, biases, acc):
@@ -53,26 +93,38 @@ def extract_diffs(move, turn, diffs):
     castle = (move >> 22) & 0x1
     opp = turn ^ 1
     count = 0
-    diffs[count, 0] = -1; diffs[count, 1] = turn; diffs[count, 2] = piece_moved; diffs[count, 3] = fr; count += 1
-    diffs[count, 0] = 1; diffs[count, 1] = turn; diffs[count, 2] = promo if promo != 6 else piece_moved; diffs[count, 3] = to; count += 1
+    diffs[count, 0] = -1
+    diffs[count, 1] = turn
+    diffs[count, 2] = piece_moved
+    diffs[count, 3] = fr
+    count += 1
+    diffs[count, 0] = 1
+    diffs[count, 1] = turn
+    diffs[count, 2] = promo if promo != 6 else piece_moved
+    diffs[count, 3] = to
+    count += 1
     if captured != 6:
         cap_sq = to
         if ep:
             cap_sq = to - 8 if turn == 0 else to + 8
-        diffs[count, 0] = -1; diffs[count, 1] = opp; diffs[count, 2] = 0 if ep else captured; diffs[count, 3] = cap_sq; count += 1
+        diffs[count, 0] = -1
+        diffs[count, 1] = opp
+        diffs[count, 2] = 0 if ep else captured
+        diffs[count, 3] = cap_sq
+        count += 1
     if castle:
         if to == 62:  # g8, Black kingside: rook h8 -> f8
-            diffs[count, 0] = -1; diffs[count, 1] = 1; diffs[count, 2] = 3; diffs[count, 3] = 63; count+=1
-            diffs[count, 0] = 1; diffs[count, 1] = 1; diffs[count, 2] = 3; diffs[count, 3] = 61; count+=1
+            diffs[count, 0] = -1; diffs[count, 1] = 1; diffs[count, 2] = 3; diffs[count, 3] = 63; count += 1
+            diffs[count, 0] = 1; diffs[count, 1] = 1; diffs[count, 2] = 3; diffs[count, 3] = 61; count += 1
         elif to == 58:  # c8, Black queenside: rook a8 -> d8
-            diffs[count, 0] = -1; diffs[count, 1] = 1; diffs[count, 2] = 3; diffs[count, 3] = 56; count+=1
-            diffs[count, 0] = 1; diffs[count, 1] = 1; diffs[count, 2] = 3; diffs[count, 3] = 59; count+=1
+            diffs[count, 0] = -1; diffs[count, 1] = 1; diffs[count, 2] = 3; diffs[count, 3] = 56; count += 1
+            diffs[count, 0] = 1; diffs[count, 1] = 1; diffs[count, 2] = 3; diffs[count, 3] = 59; count += 1
         elif to == 6:  # g1, White kingside: rook h1 -> f1
-            diffs[count, 0] = -1; diffs[count, 1] = 0; diffs[count, 2] = 3; diffs[count, 3] = 7; count+=1
-            diffs[count, 0] = 1; diffs[count, 1] = 0; diffs[count, 2] = 3; diffs[count, 3] = 5; count+=1
+            diffs[count, 0] = -1; diffs[count, 1] = 0; diffs[count, 2] = 3; diffs[count, 3] = 7; count += 1
+            diffs[count, 0] = 1; diffs[count, 1] = 0; diffs[count, 2] = 3; diffs[count, 3] = 5; count += 1
         elif to == 2:  # c1, White queenside: rook a1 -> d1
-            diffs[count, 0] = -1; diffs[count, 1] = 0; diffs[count, 2] = 3; diffs[count, 3] = 0; count+=1
-            diffs[count, 0] = 1; diffs[count, 1] = 0; diffs[count, 2] = 3; diffs[count, 3] = 3; count+=1
+            diffs[count, 0] = -1; diffs[count, 1] = 0; diffs[count, 2] = 3; diffs[count, 3] = 0; count += 1
+            diffs[count, 0] = 1; diffs[count, 1] = 0; diffs[count, 2] = 3; diffs[count, 3] = 3; count += 1
     return count
 
 @njit(cache=False)
@@ -93,49 +145,65 @@ def apply_diffs(weights, acc, diffs, count):
                 acc[0, j] -= weights[w_idx, j]
                 acc[1, j] -= weights[b_idx, j]
 
-@njit(cache=False)
-def nnue_eval(weights2, acc, turn):
-    out = 0
+@njit(fastmath=True)
+def nnue_eval_head(acc, turn, total_pieces, w1, b1, w2, b2):
     opp = turn ^ 1
+    bucket = 0
+    if total_pieces > 6: bucket = 1
+    if total_pieces > 10: bucket = 2
+    if total_pieces > 14: bucket = 3
+    if total_pieces > 18: bucket = 4
+    if total_pieces > 22: bucket = 5
+    if total_pieces > 26: bucket = 6
+    if total_pieces > 29: bucket = 7
+
+    out = b2[bucket]
+    w2_b = w2[bucket]
+    
+    c_acc = np.empty(512, dtype=np.int32)
     for i in range(256):
         v = acc[turn, i]
-        if v < 0: v = 0
-        elif v > 127: v = 127
-        out += v * weights2[i]
+        c_acc[i] = 0 if v < 0 else (127 if v > 127 else v)
     for i in range(256):
         v = acc[opp, i]
-        if v < 0: v = 0
-        elif v > 127: v = 127
-        out += v * weights2[256 + i]
-    return out // 64
+        c_acc[256 + i] = 0 if v < 0 else (127 if v > 127 else v)
+
+    for i in range(64):
+        s = b1[i]
+        w1_row = w1[i]
+        for j in range(512):
+            s += c_acc[j] * int(w1_row[j])
+        s = s // 64
+        if s < 0: s = 0
+        elif s > 127: s = 127
+        if i >= 32:
+            s = (s * s) // 127
+        out += s * int(w2_b[i])
+
+    return (out * 173718) // 11117326
+
+@njit(fastmath=True)
+def hybrid_eval(pieces, colors, state, acc, w1, b1, w2, b2):
+    classical_score = evaluate(pieces, colors, state)
+    total_pieces = popcount(colors[0] | colors[1])
+    nnue_score = nnue_eval_head(acc, state[0], total_pieces, w1, b1, w2, b2)
+    
+    # In endgames with <= 4 pieces or bare king, classical evaluation (with Syzygy and drive) dominates
+    if total_pieces <= 4:
+        return classical_score
+        
+    # Hybrid blend: 70% NNUE + 30% Classical
+    return 0.70 * float(nnue_score) + 0.30 * float(classical_score)
 
 
-import bitboard
-from bitboard import (
-    BISHOP,
-    KING,
-    KNIGHT,
-    NONE,
-    PAWN,
-    QUEEN,
-    ROOK,
-    decode_move,
-    evaluate,
-    from_chess_board,
-    generate_pseudo_legal_moves,
-    is_square_attacked,
-    lsb,
-    make_move,
-    unmake_move,
-)
-
-# Constants
+# ---------------------------------------------------------------------------
+# Search Constants & Transposition Table
+# ---------------------------------------------------------------------------
 TT_EXACT = 0
 TT_LOWER = 1
 TT_UPPER = 2
 MATE_VALUE = 30000
 
-# TT Arrays
 TT_SIZE = 16777216  # 2^24
 tt_keys = np.zeros(TT_SIZE, dtype=np.uint64)
 tt_depths = np.zeros(TT_SIZE, dtype=np.int8)
@@ -144,6 +212,7 @@ tt_flags = np.zeros(TT_SIZE, dtype=np.uint8)
 tt_moves = np.zeros(TT_SIZE, dtype=np.uint32)
 
 PIECE_VALUE = np.array([100, 320, 330, 500, 900, 0, 0], dtype=np.int32)
+SEE_VALUE = np.array([100, 320, 330, 500, 900, 10000, 0], dtype=np.int32)
 CONTEMPT = 0.0
 
 def clear_tt():
@@ -160,7 +229,6 @@ def get_draw_score(ply):
 def in_check(pieces, colors, state):
     turn = state[0]
     opp = turn ^ 1
-    king_sq = -1
     bb = pieces[KING] & colors[turn]
     if bb == 0:
         return False
@@ -211,17 +279,147 @@ def insertion_sort(moves, scores, count):
         moves[j + 1] = key_move
 
 @njit(cache=False)
+def least_valuable_attacker(pieces, colors, occ, sq, side):
+    own = colors[side] & occ
+    bb = PAWN_ATTACKS[side ^ 1][sq] & pieces[PAWN] & own
+    if bb:
+        return lsb(bb), PAWN
+    bb = KNIGHT_ATTACKS[sq] & pieces[KNIGHT] & own
+    if bb:
+        return lsb(bb), KNIGHT
+
+    b_att = get_bishop_attacks(sq, occ)
+    bb = b_att & pieces[BISHOP] & own
+    if bb:
+        return lsb(bb), BISHOP
+
+    r_att = get_rook_attacks(sq, occ)
+    bb = r_att & pieces[ROOK] & own
+    if bb:
+        return lsb(bb), ROOK
+
+    q_att = b_att | r_att
+    bb = q_att & pieces[QUEEN] & own
+    if bb:
+        return lsb(bb), QUEEN
+
+    bb = KING_ATTACKS[sq] & pieces[KING] & own
+    if bb:
+        return lsb(bb), KING
+
+    return -1, NONE
+
+@njit(cache=False)
+def see(pieces, colors, state, move):
+    fr_sq = move & 0x3F
+    to_sq = (move >> 6) & 0x3F
+    promo = (move >> 12) & 0x7
+    piece_moved = (move >> 15) & 0x7
+    captured = (move >> 18) & 0x7
+    is_ep = (move >> 21) & 1
+
+    if captured == NONE or promo != NONE or is_ep:
+        return 0
+
+    gain = np.zeros(64, dtype=np.int32)
+    occ = colors[WHITE] | colors[BLACK]
+    side = np.int64(state[0])
+
+    gain[0] = SEE_VALUE[captured]
+    attacker = piece_moved
+    occ ^= np.uint64(1) << np.uint64(fr_sq)
+
+    d = 0
+    while d < 62:
+        d += 1
+        side ^= 1
+        gain[d] = SEE_VALUE[attacker] - gain[d - 1]
+        if max(-gain[d - 1], gain[d]) < 0:
+            break
+        sq = -1
+        piece = 0
+        while True:
+            sq, piece = least_valuable_attacker(pieces, colors, occ, to_sq, side)
+            if sq < 0:
+                break
+            
+            is_legal = True
+            king_bb = pieces[KING] & colors[side]
+            if king_bb:
+                king_sq = lsb(king_bb)
+                new_occ = occ ^ (np.uint64(1) << np.uint64(sq))
+                opp = side ^ 1
+                enemy_rooks = (pieces[ROOK] | pieces[QUEEN]) & colors[opp]
+                enemy_bishops = (pieces[BISHOP] | pieces[QUEEN]) & colors[opp]
+                if piece == KING:
+                    if enemy_rooks and (get_rook_attacks(to_sq, new_occ) & enemy_rooks): is_legal = False
+                    elif enemy_bishops and (get_bishop_attacks(to_sq, new_occ) & enemy_bishops): is_legal = False
+                    elif side == WHITE and (PAWN_ATTACKS[BLACK][to_sq] & pieces[PAWN] & colors[BLACK]): is_legal = False
+                    elif side == BLACK and (PAWN_ATTACKS[WHITE][to_sq] & pieces[PAWN] & colors[WHITE]): is_legal = False
+                    elif KNIGHT_ATTACKS[to_sq] & pieces[KNIGHT] & colors[opp]: is_legal = False
+                    elif KING_ATTACKS[to_sq] & pieces[KING] & colors[opp]: is_legal = False
+                else:
+                    if enemy_rooks and (get_rook_attacks(king_sq, new_occ) & enemy_rooks): is_legal = False
+                    elif enemy_bishops and (get_bishop_attacks(king_sq, new_occ) & enemy_bishops): is_legal = False
+            
+            occ ^= np.uint64(1) << np.uint64(sq)
+            if is_legal:
+                break
+
+        if sq < 0:
+            break
+        attacker = piece
+
+    while d > 1:
+        d -= 1
+        gain[d - 1] = -max(-gain[d - 1], gain[d])
+
+    return gain[0]
+
+QS_KILLERS = np.zeros((1, 2), dtype=np.uint32)
+QS_HISTORY = np.zeros((64, 64), dtype=np.int32)
+
+@njit(cache=False)
+def is_insufficient_material(pieces):
+    if pieces[PAWN] or pieces[ROOK] or pieces[QUEEN]:
+        return False
+    knights = popcount(pieces[KNIGHT])
+    bishops = popcount(pieces[BISHOP])
+    return (knights + bishops) <= 1
+
+@njit(cache=False)
+def has_legal_moves(pieces, colors, state):
+    moves = np.zeros(256, dtype=np.uint32)
+    count = generate_pseudo_legal_moves(pieces, colors, state, moves)
+    undo = np.zeros(4, dtype=np.uint64)
+    for i in range(count):
+        if make_move(pieces, colors, state, moves[i], undo):
+            unmake_move(pieces, colors, state, moves[i], undo)
+            return True
+    return False
+
+@njit(cache=False)
 def qsearch(pieces, colors, state, alpha, beta, ply, path_keys, path_count, start_time, budget_ms, nodes, acc, diffs):
     nodes[0] += 1
-    
+
+    if (nodes[0] & 255) == 0:
+        with objmode(curr_time='float64'):
+            curr_time = time.time()
+        if (curr_time - start_time) * 1000 > budget_ms * 0.85:
+            nodes[1] = 1
+            return alpha
+
     if ply >= 127:
-        return nnue_eval(weights2, acc, state[0])
+        return hybrid_eval(pieces, colors, state, acc, weights_fc1, biases_fc1, weights_fc2, biases_fc2)
+        
+    if is_insufficient_material(pieces):
+        return 0.0
         
     is_ch = in_check(pieces, colors, state)
     stand_pat = -1e9
     
     if not is_ch:
-        stand_pat = nnue_eval(weights2, acc, state[0])
+        stand_pat = hybrid_eval(pieces, colors, state, acc, weights_fc1, biases_fc1, weights_fc2, biases_fc2)
         if stand_pat >= beta:
             return stand_pat
         if alpha < stand_pat:
@@ -230,7 +428,6 @@ def qsearch(pieces, colors, state, alpha, beta, ply, path_keys, path_count, star
     moves = np.zeros(256, dtype=np.uint32)
     count = generate_pseudo_legal_moves(pieces, colors, state, moves)
     
-    # Filter captures and promotions if not in check
     if not is_ch:
         filtered_count = 0
         for i in range(count):
@@ -243,18 +440,9 @@ def qsearch(pieces, colors, state, alpha, beta, ply, path_keys, path_count, star
         count = filtered_count
         
     if count == 0:
-        if is_ch:
-            # We don't know if checkmate because pseudo moves might all be illegal
-            # But qsearch usually evaluates after legal checks
-            # In qsearch if no legal captures we just return stand_pat if not in check
-            # Wait, if in check we need legal moves.
-            pass
         return stand_pat
 
-    # Fake killers and history for qsearch score
-    killers = np.zeros((1, 2), dtype=np.uint32)
-    history = np.zeros((64, 64), dtype=np.int32)
-    scores = score_moves(moves, count, 0, killers, 0, history)
+    scores = score_moves(moves, count, 0, QS_KILLERS, 0, QS_HISTORY)
     insertion_sort(moves, scores, count)
     
     best_score = -1e9 if is_ch else stand_pat
@@ -271,22 +459,27 @@ def qsearch(pieces, colors, state, alpha, beta, ply, path_keys, path_count, star
                 victim = captured if captured != NONE else PAWN
                 if stand_pat + PIECE_VALUE[victim] + 200 < alpha:
                     continue
-                    
-        diff_count = extract_diffs(move, state[0], diffs)
-        apply_diffs(weights, acc, diffs, diff_count)
+                if captured != NONE and see(pieces, colors, state, move) < 0:
+                    continue
+
+        diff_count = extract_diffs(move, state[0], diffs[ply])
+        apply_diffs(weights_acc, acc, diffs[ply], diff_count)
         is_legal = make_move(pieces, colors, state, move, undo)
         if not is_legal:
             unmake_move(pieces, colors, state, move, undo)
-            for j in range(diff_count): diffs[j, 0] = -diffs[j, 0]
-            apply_diffs(weights, acc, diffs, diff_count)
+            for j in range(diff_count): diffs[ply, j, 0] = -diffs[ply, j, 0]
+            apply_diffs(weights_acc, acc, diffs[ply], diff_count)
             continue
             
         legal_moves_played += 1
         child_score = -qsearch(pieces, colors, state, -beta, -alpha, ply + 1, path_keys, path_count, start_time, budget_ms, nodes, acc, diffs)
         unmake_move(pieces, colors, state, move, undo)
-        for j in range(diff_count): diffs[j, 0] = -diffs[j, 0]
-        apply_diffs(weights, acc, diffs, diff_count)
-        
+        for j in range(diff_count): diffs[ply, j, 0] = -diffs[ply, j, 0]
+        apply_diffs(weights_acc, acc, diffs[ply], diff_count)
+
+        if nodes[1] != 0:
+            break
+
         if child_score > best_score:
             best_score = child_score
         if child_score > alpha:
@@ -310,11 +503,15 @@ def negamax(pieces, colors, state, depth, ply, alpha, beta, prev_is_null,
         with objmode(curr_time='float64'):
             curr_time = time.time()
         if (curr_time - start_time) * 1000 > budget_ms * 0.85:
-            return 0.0 # Timeout
+            nodes[1] = 1
+            return 0.0
+
     is_ch = in_check(pieces, colors, state)
     if is_ch and ply < 2 * root_depth:
         depth += 1
 
+    if is_insufficient_material(pieces):
+        return 0.0
 
     hash_key = state[4]
     
@@ -362,8 +559,6 @@ def negamax(pieces, colors, state, depth, ply, alpha, beta, prev_is_null,
         
     path_keys[path_count] = hash_key
     path_count += 1
-    
-    is_ch = in_check(pieces, colors, state)
     
     if not is_ch and depth >= 3 and not prev_is_null:
         us_pieces = colors[state[0]]
@@ -414,13 +609,13 @@ def negamax(pieces, colors, state, depth, ply, alpha, beta, prev_is_null,
         promo = (move >> 12) & 0x7
         is_quiet = not is_capture and promo == NONE and move != killers[ply, 0] and move != killers[ply, 1]
         
-        diff_count = extract_diffs(move, state[0], diffs)
-        apply_diffs(weights, acc, diffs, diff_count)
+        diff_count = extract_diffs(move, state[0], diffs[ply])
+        apply_diffs(weights_acc, acc, diffs[ply], diff_count)
         is_legal = make_move(pieces, colors, state, move, undo)
         if not is_legal:
             unmake_move(pieces, colors, state, move, undo)
-            for j in range(diff_count): diffs[j, 0] = -diffs[j, 0]
-            apply_diffs(weights, acc, diffs, diff_count)
+            for j in range(diff_count): diffs[ply, j, 0] = -diffs[ply, j, 0]
+            apply_diffs(weights_acc, acc, diffs[ply], diff_count)
             continue
             
         legal_moves_played += 1
@@ -446,8 +641,12 @@ def negamax(pieces, colors, state, depth, ply, alpha, beta, prev_is_null,
                              tt_keys, tt_depths, tt_scores, tt_flags, tt_moves, root_depth, acc, diffs)
                              
         unmake_move(pieces, colors, state, move, undo)
-        for j in range(diff_count): diffs[j, 0] = -diffs[j, 0]
-        apply_diffs(weights, acc, diffs, diff_count)
+        for j in range(diff_count): diffs[ply, j, 0] = -diffs[ply, j, 0]
+        apply_diffs(weights_acc, acc, diffs[ply], diff_count)
+
+        if nodes[1] != 0:
+            path_count -= 1
+            return 0.0
         
         if score > best_score:
             best_score = score
@@ -484,12 +683,12 @@ def negamax(pieces, colors, state, depth, ply, alpha, beta, prev_is_null,
     elif best_score >= beta:
         flag = TT_LOWER
         
-    # Always replace for now
-    tt_keys[tt_idx] = hash_key
-    tt_depths[tt_idx] = depth
-    tt_scores[tt_idx] = store_score
-    tt_flags[tt_idx] = flag
-    tt_moves[tt_idx] = current_best_move
+    if nodes[1] == 0:
+        tt_keys[tt_idx] = hash_key
+        tt_depths[tt_idx] = depth
+        tt_scores[tt_idx] = store_score
+        tt_flags[tt_idx] = flag
+        tt_moves[tt_idx] = current_best_move
     
     path_count -= 1
     return best_score
@@ -498,16 +697,17 @@ def negamax(pieces, colors, state, depth, ply, alpha, beta, prev_is_null,
 def numba_search(pieces, colors, state, time_left_ms, pos_counts_keys, pos_counts_vals, max_nodes, start_time, 
                  tt_keys, tt_depths, tt_scores, tt_flags, tt_moves, max_depth=64):
     acc = np.zeros((2, 256), dtype=np.int16)
-    nnue_full_refresh(pieces, colors, weights, biases, acc)
-    diffs = np.zeros((6, 4), dtype=np.int8)
+    nnue_full_refresh(pieces, colors, weights_acc, biases_acc, acc)
+    diffs = np.zeros((128, 6, 4), dtype=np.int8)
+
     if time_left_ms < 3000:
-        budget_ms = min(200.0, time_left_ms * 0.1)
+        budget_ms = min(time_left_ms * 0.15, 400.0)
         panic = True
     else:
         budget_ms = min(time_left_ms * 0.045 + 400.0, time_left_ms * 0.25)
         panic = False
         
-    nodes = np.zeros(1, dtype=np.int64)
+    nodes = np.zeros(2, dtype=np.int64)
     killers = np.zeros((128, 2), dtype=np.uint32)
     history_table = np.zeros((64, 64), dtype=np.int32)
     path_keys = np.zeros(256, dtype=np.uint64)
@@ -558,20 +758,22 @@ def numba_search(pieces, colors, state, time_left_ms, pos_counts_keys, pos_count
             
             for i in range(legal_count):
                 move = legal_moves[i]
-                diff_count = extract_diffs(move, state[0], diffs)
-                apply_diffs(weights, acc, diffs, diff_count)
+                diff_count = extract_diffs(move, state[0], diffs[0])
+                apply_diffs(weights_acc, acc, diffs[0], diff_count)
                 make_move(pieces, colors, state, move, undo)
                 score = -negamax(pieces, colors, state, depth - 1, 1, -beta, -alpha, False,
                                  path_keys, path_count, pos_counts_keys, pos_counts_vals,
                                  killers, history_table, start_time, budget_ms, max_nodes, nodes, panic,
                                  tt_keys, tt_depths, tt_scores, tt_flags, tt_moves, depth, acc, diffs)
                 unmake_move(pieces, colors, state, move, undo)
-                for j in range(diff_count): diffs[j, 0] = -diffs[j, 0]
-                apply_diffs(weights, acc, diffs, diff_count)
+                for j in range(diff_count): diffs[0, j, 0] = -diffs[0, j, 0]
+                apply_diffs(weights_acc, acc, diffs[0], diff_count)
                 
                 # Check timeout
                 timeout = False
-                if max_nodes > 0 and nodes[0] >= max_nodes:
+                if nodes[1] != 0:
+                    timeout = True
+                elif max_nodes > 0 and nodes[0] >= max_nodes:
                     timeout = True
                 else:
                     with objmode(curr_time='float64'):
@@ -607,10 +809,8 @@ def numba_search(pieces, colors, state, time_left_ms, pos_counts_keys, pos_count
             
         prev_score = current_best_score
         best_move = current_best_move
-        
-        if panic:
-            break
-                    
+        completed_depth = depth
+
         if max_nodes > 0:
             if nodes[0] >= max_nodes / 2:
                 break
@@ -620,7 +820,6 @@ def numba_search(pieces, colors, state, time_left_ms, pos_counts_keys, pos_count
             if (curr_time - start_time) * 1000 > budget_ms / 2:
                 break
                 
-        completed_depth = depth
         depth += 1
         
     return best_move, prev_score, nodes[0], completed_depth
@@ -638,21 +837,20 @@ def get_move_with_info(board: chess.Board, time_left_ms: int, position_counts, m
     pos_keys = np.array(pos_keys, dtype=np.uint64)
     pos_vals = np.array(pos_vals, dtype=np.int32)
     
-    import os
     max_nodes_env = os.environ.get("SEARCH_MAX_NODES")
     max_nodes = int(max_nodes_env) if max_nodes_env else 0
     
     start_time = time.time()
     
-    best_move, score, nodes, completed_depth = numba_search(pieces, colors, state, time_left_ms, pos_keys, pos_vals, max_nodes, start_time,
-                                           tt_keys, tt_depths, tt_scores, tt_flags, tt_moves, max_depth)
+    best_move, score, nodes, completed_depth = numba_search(
+        pieces, colors, state, time_left_ms, pos_keys, pos_vals, max_nodes, start_time,
+        tt_keys, tt_depths, tt_scores, tt_flags, tt_moves, max_depth
+    )
     
     if best_move == 0:
         return next(iter(board.legal_moves)).uci(), score, nodes
         
     uci = decode_move(best_move)
-    import sys
-    import os
     if os.environ.get('CHESSATHON_DEPTH_LOG') == '1':
         print(f"info depth {completed_depth} score cp {int(score)} nodes {nodes}", file=sys.stderr)
     return uci, score, nodes
@@ -662,7 +860,7 @@ def get_move(board: chess.Board, time_left_ms: int, position_counts) -> str:
     return uci
 
 # Warmup JIT compilation off the clock
-print("Warming up Numba JIT...")
+print("Warming up Hybrid NNUE v2 + Classical Numba JIT...")
 _b = chess.Board()
 _p, _c, _s = from_chess_board(_b)
 _pk = np.array([], dtype=np.uint64)
@@ -670,5 +868,3 @@ _pv = np.array([], dtype=np.int32)
 clear_tt()
 numba_search(_p, _c, _s, 1000, _pk, _pv, 10, time.time(), tt_keys, tt_depths, tt_scores, tt_flags, tt_moves, 1)
 print("Warmup complete.")
-
-

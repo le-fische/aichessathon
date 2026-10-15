@@ -1,7 +1,8 @@
 # ruff: noqa: E501
 # mypy: ignore-errors
+import os
+import sys
 import time
-
 import chess
 import numpy as np
 from numba import njit, objmode
@@ -33,13 +34,176 @@ from bitboard import (
     popcount,
 )
 
-# Constants
+# ---------------------------------------------------------------------------
+# NNUE v2 Silicon Model Weights Loader
+# ---------------------------------------------------------------------------
+_HERE = os.path.dirname(os.path.abspath(__file__))
+_W_DIR = os.path.join(_HERE, "weights", "v2_mlp")
+if not os.path.exists(_W_DIR):
+    _W_DIR = os.path.join(_HERE, "weights")
+
+def _load_or_default(filename, shape, dtype):
+    path = os.path.join(_W_DIR, filename)
+    if not os.path.exists(path):
+        alt_path = os.path.join(_HERE, "weights", filename)
+        if os.path.exists(alt_path):
+            path = alt_path
+    if os.path.exists(path):
+        try:
+            arr = np.load(path)
+            if arr.shape == shape and arr.dtype == dtype:
+                return arr
+            elif arr.shape == shape:
+                return arr.astype(dtype)
+        except Exception:
+            pass
+    return np.zeros(shape, dtype=dtype)
+
+weights_acc = _load_or_default("weights_acc.npy", (768, 256), np.int16)
+biases_acc = _load_or_default("biases_acc.npy", (256,), np.int16)
+weights_fc1 = _load_or_default("weights_fc1.npy", (64, 512), np.int8)
+biases_fc1 = _load_or_default("biases_fc1.npy", (64,), np.int32)
+weights_fc2 = _load_or_default("weights_fc2.npy", (8, 64), np.int8)
+biases_fc2 = _load_or_default("biases_fc2.npy", (8,), np.int32)
+
+@njit(cache=False)
+def nnue_full_refresh(pieces, colors, weights, biases, acc):
+    acc[0, :] = biases[:]
+    acc[1, :] = biases[:]
+    for c in range(2):
+        for p in range(6):
+            bb = pieces[p] & colors[c]
+            while bb:
+                sq = bitboard.lsb(bb)
+                w_idx = c * 384 + p * 64 + sq
+                b_idx = (c ^ 1) * 384 + p * 64 + (sq ^ 56)
+                for j in range(256):
+                    acc[0, j] += weights[w_idx, j]
+                    acc[1, j] += weights[b_idx, j]
+                bb &= bb - np.uint64(1)
+
+@njit(cache=False)
+def extract_diffs(move, turn, diffs):
+    fr = move & 0x3F
+    to = (move >> 6) & 0x3F
+    promo = (move >> 12) & 0x7
+    piece_moved = (move >> 15) & 0x7
+    captured = (move >> 18) & 0x7
+    ep = (move >> 21) & 0x1
+    castle = (move >> 22) & 0x1
+    opp = turn ^ 1
+    count = 0
+    diffs[count, 0] = -1
+    diffs[count, 1] = turn
+    diffs[count, 2] = piece_moved
+    diffs[count, 3] = fr
+    count += 1
+    diffs[count, 0] = 1
+    diffs[count, 1] = turn
+    diffs[count, 2] = promo if promo != 6 else piece_moved
+    diffs[count, 3] = to
+    count += 1
+    if captured != 6:
+        cap_sq = to
+        if ep:
+            cap_sq = to - 8 if turn == 0 else to + 8
+        diffs[count, 0] = -1
+        diffs[count, 1] = opp
+        diffs[count, 2] = 0 if ep else captured
+        diffs[count, 3] = cap_sq
+        count += 1
+    if castle:
+        if to == 62:  # g8, Black kingside: rook h8 -> f8
+            diffs[count, 0] = -1; diffs[count, 1] = 1; diffs[count, 2] = 3; diffs[count, 3] = 63; count += 1
+            diffs[count, 0] = 1; diffs[count, 1] = 1; diffs[count, 2] = 3; diffs[count, 3] = 61; count += 1
+        elif to == 58:  # c8, Black queenside: rook a8 -> d8
+            diffs[count, 0] = -1; diffs[count, 1] = 1; diffs[count, 2] = 3; diffs[count, 3] = 56; count += 1
+            diffs[count, 0] = 1; diffs[count, 1] = 1; diffs[count, 2] = 3; diffs[count, 3] = 59; count += 1
+        elif to == 6:  # g1, White kingside: rook h1 -> f1
+            diffs[count, 0] = -1; diffs[count, 1] = 0; diffs[count, 2] = 3; diffs[count, 3] = 7; count += 1
+            diffs[count, 0] = 1; diffs[count, 1] = 0; diffs[count, 2] = 3; diffs[count, 3] = 5; count += 1
+        elif to == 2:  # c1, White queenside: rook a1 -> d1
+            diffs[count, 0] = -1; diffs[count, 1] = 0; diffs[count, 2] = 3; diffs[count, 3] = 0; count += 1
+            diffs[count, 0] = 1; diffs[count, 1] = 0; diffs[count, 2] = 3; diffs[count, 3] = 3; count += 1
+    return count
+
+@njit(cache=False)
+def apply_diffs(weights, acc, diffs, count):
+    for i in range(count):
+        sign = diffs[i, 0]
+        c = diffs[i, 1]
+        p = diffs[i, 2]
+        sq = diffs[i, 3]
+        w_idx = c * 384 + p * 64 + sq
+        b_idx = (c ^ 1) * 384 + p * 64 + (sq ^ 56)
+        if sign == 1:
+            for j in range(256):
+                acc[0, j] += weights[w_idx, j]
+                acc[1, j] += weights[b_idx, j]
+        else:
+            for j in range(256):
+                acc[0, j] -= weights[w_idx, j]
+                acc[1, j] -= weights[b_idx, j]
+
+@njit(fastmath=True)
+def nnue_eval_head(acc, turn, total_pieces, w1, b1, w2, b2):
+    opp = turn ^ 1
+    bucket = 0
+    if total_pieces > 6: bucket = 1
+    if total_pieces > 10: bucket = 2
+    if total_pieces > 14: bucket = 3
+    if total_pieces > 18: bucket = 4
+    if total_pieces > 22: bucket = 5
+    if total_pieces > 26: bucket = 6
+    if total_pieces > 29: bucket = 7
+
+    out = b2[bucket]
+    w2_b = w2[bucket]
+    
+    c_acc = np.empty(512, dtype=np.int32)
+    for i in range(256):
+        v = acc[turn, i]
+        c_acc[i] = 0 if v < 0 else (127 if v > 127 else v)
+    for i in range(256):
+        v = acc[opp, i]
+        c_acc[256 + i] = 0 if v < 0 else (127 if v > 127 else v)
+
+    for i in range(64):
+        s = b1[i]
+        w1_row = w1[i]
+        for j in range(512):
+            s += c_acc[j] * int(w1_row[j])
+        s = s // 64
+        if s < 0: s = 0
+        elif s > 127: s = 127
+        if i >= 32:
+            s = (s * s) // 127
+        out += s * int(w2_b[i])
+
+    return (out * 173718) // 11117326
+
+@njit(fastmath=True)
+def hybrid_eval(pieces, colors, state, acc, w1, b1, w2, b2):
+    classical_score = evaluate(pieces, colors, state)
+    total_pieces = popcount(colors[0] | colors[1])
+    nnue_score = nnue_eval_head(acc, state[0], total_pieces, w1, b1, w2, b2)
+    
+    # In endgames with <= 4 pieces or bare king, classical evaluation (with Syzygy and drive) dominates
+    if total_pieces <= 4:
+        return classical_score
+        
+    # Hybrid blend: 70% NNUE + 30% Classical
+    return 0.70 * float(nnue_score) + 0.30 * float(classical_score)
+
+
+# ---------------------------------------------------------------------------
+# Search Constants & Transposition Table
+# ---------------------------------------------------------------------------
 TT_EXACT = 0
 TT_LOWER = 1
 TT_UPPER = 2
 MATE_VALUE = 30000
 
-# TT Arrays
 TT_SIZE = 16777216  # 2^24
 tt_keys = np.zeros(TT_SIZE, dtype=np.uint64)
 tt_depths = np.zeros(TT_SIZE, dtype=np.int8)
@@ -48,10 +212,6 @@ tt_flags = np.zeros(TT_SIZE, dtype=np.uint8)
 tt_moves = np.zeros(TT_SIZE, dtype=np.uint32)
 
 PIECE_VALUE = np.array([100, 320, 330, 500, 900, 0, 0], dtype=np.int32)
-
-# SEE needs a king value: PIECE_VALUE has KING = 0, which would make the king look like
-# a free attacker and invert the swap-off. 10000 keeps it last in the ordering, and a
-# king capture into a still-defended square scores hugely negative, which is correct.
 SEE_VALUE = np.array([100, 320, 330, 500, 900, 10000, 0], dtype=np.int32)
 CONTEMPT = 0.0
 
@@ -69,7 +229,6 @@ def get_draw_score(ply):
 def in_check(pieces, colors, state):
     turn = state[0]
     opp = turn ^ 1
-    king_sq = -1
     bb = pieces[KING] & colors[turn]
     if bb == 0:
         return False
@@ -121,18 +280,7 @@ def insertion_sort(moves, scores, count):
 
 @njit(cache=False)
 def least_valuable_attacker(pieces, colors, occ, sq, side):
-    """Square and piece type of the cheapest `side` attacker of `sq`, given `occ`.
-
-    Slider attacks are recomputed against the live occupancy every call. That is what
-    makes x-rays work: once the front attacker is removed from `occ`, the slider behind
-    it shows up here on the next iteration without any special case.
-
-    Returns (-1, NONE) when `side` has no attacker left.
-    """
     own = colors[side] & occ
-
-    # PAWN_ATTACKS is indexed by the attacking side's *opposite*: the squares a `side`
-    # pawn attacks sq from are the squares an opposing pawn on sq would attack.
     bb = PAWN_ATTACKS[side ^ 1][sq] & pieces[PAWN] & own
     if bb:
         return lsb(bb), PAWN
@@ -150,7 +298,8 @@ def least_valuable_attacker(pieces, colors, occ, sq, side):
     if bb:
         return lsb(bb), ROOK
 
-    bb = (b_att | r_att) & pieces[QUEEN] & own
+    q_att = b_att | r_att
+    bb = q_att & pieces[QUEEN] & own
     if bb:
         return lsb(bb), QUEEN
 
@@ -160,21 +309,8 @@ def least_valuable_attacker(pieces, colors, occ, sq, side):
 
     return -1, NONE
 
-
 @njit(cache=False)
 def see(pieces, colors, state, move):
-    """Static exchange evaluation of a capture, in centipawns.
-
-    Positive means the capture wins material once both sides have exchanged everything
-    they profitably can on the target square. MVV-LVA cannot express this: it ranks QxP
-    on a defended pawn by victim value alone, so quiescence searches it and burns nodes
-    proving it was bad.
-
-    Returns 0 for moves the swap-off does not model -- quiet moves, promotions (the
-    moving piece changes value mid-exchange) and en passant (the captured pawn is not on
-    the target square). Neutral rather than negative, so the SEE < 0 filter never skips
-    them.
-    """
     fr_sq = move & 0x3F
     to_sq = (move >> 6) & 0x3F
     promo = (move >> 12) & 0x7
@@ -197,9 +333,7 @@ def see(pieces, colors, state, move):
     while d < 62:
         d += 1
         side ^= 1
-        # Value of the piece now standing on to_sq, less what the previous side won.
         gain[d] = SEE_VALUE[attacker] - gain[d - 1]
-        # Even conceding the piece outright cannot improve either side's result.
         if max(-gain[d - 1], gain[d]) < 0:
             break
         sq = -1
@@ -236,19 +370,14 @@ def see(pieces, colors, state, move):
             break
         attacker = piece
 
-    # Negamax back down the swap list: each side stands pat if capturing is worse.
     while d > 1:
         d -= 1
         gain[d - 1] = -max(-gain[d - 1], gain[d])
 
     return gain[0]
 
-
-# Read-only stand-ins passed to score_moves from quiescence, which has no
-# killers or history of its own and never writes to either.
 QS_KILLERS = np.zeros((1, 2), dtype=np.uint32)
 QS_HISTORY = np.zeros((64, 64), dtype=np.int32)
-
 
 @njit(cache=False)
 def is_insufficient_material(pieces):
@@ -257,7 +386,6 @@ def is_insufficient_material(pieces):
     knights = popcount(pieces[KNIGHT])
     bishops = popcount(pieces[BISHOP])
     return (knights + bishops) <= 1
-
 
 @njit(cache=False)
 def has_legal_moves(pieces, colors, state):
@@ -271,13 +399,9 @@ def has_legal_moves(pieces, colors, state):
     return False
 
 @njit(cache=False)
-def qsearch(pieces, colors, state, alpha, beta, ply, path_keys, path_count, start_time, budget_ms, nodes):
+def qsearch(pieces, colors, state, alpha, beta, ply, path_keys, path_count, start_time, budget_ms, nodes, acc, diffs):
     nodes[0] += 1
 
-    # v11: quiescence used to take start_time and budget_ms and read neither, so a large
-    # capture subtree ran past the deadline unchecked. Measured: 6,061 ms against a 648 ms
-    # budget at ply 155, clock to -0.55 s, game lost on time. Same cadence and same
-    # deadline negamax uses. nodes[1] is the shared stop flag; see numba_search.
     if (nodes[0] & 255) == 0:
         with objmode(curr_time='float64'):
             curr_time = time.time()
@@ -286,18 +410,16 @@ def qsearch(pieces, colors, state, alpha, beta, ply, path_keys, path_count, star
             return alpha
 
     if ply >= 127:
-        return evaluate(pieces, colors, state)
+        return hybrid_eval(pieces, colors, state, acc, weights_fc1, biases_fc1, weights_fc2, biases_fc2)
         
     if is_insufficient_material(pieces):
         return 0.0
         
     is_ch = in_check(pieces, colors, state)
-    
-        
     stand_pat = -1e9
     
     if not is_ch:
-        stand_pat = evaluate(pieces, colors, state)
+        stand_pat = hybrid_eval(pieces, colors, state, acc, weights_fc1, biases_fc1, weights_fc2, biases_fc2)
         if stand_pat >= beta:
             return stand_pat
         if alpha < stand_pat:
@@ -306,7 +428,6 @@ def qsearch(pieces, colors, state, alpha, beta, ply, path_keys, path_count, star
     moves = np.zeros(256, dtype=np.uint32)
     count = generate_pseudo_legal_moves(pieces, colors, state, moves)
     
-    # Filter captures and promotions if not in check
     if not is_ch:
         filtered_count = 0
         for i in range(count):
@@ -319,17 +440,8 @@ def qsearch(pieces, colors, state, alpha, beta, ply, path_keys, path_count, star
         count = filtered_count
         
     if count == 0:
-        if is_ch:
-            # We don't know if checkmate because pseudo moves might all be illegal
-            # But qsearch usually evaluates after legal checks
-            # In qsearch if no legal captures we just return stand_pat if not in check
-            # Wait, if in check we need legal moves.
-            pass
         return stand_pat
 
-    # score_moves wants a killers array and a history table; quiescence has
-    # neither and writes to neither, so these are module-level read-only zeros
-    # rather than a fresh (1,2) array and a 16 KB table allocated at every node.
     scores = score_moves(moves, count, 0, QS_KILLERS, 0, QS_HISTORY)
     insertion_sort(moves, scores, count)
     
@@ -347,25 +459,24 @@ def qsearch(pieces, colors, state, alpha, beta, ply, path_keys, path_count, star
                 victim = captured if captured != NONE else PAWN
                 if stand_pat + PIECE_VALUE[victim] + 200 < alpha:
                     continue
-                # v11: skip captures that lose material outright. MVV-LVA cannot tell a
-                # winning capture from a losing one, so quiescence was searching QxP into
-                # a defended pawn and burning nodes proving it was bad. Only when not in
-                # check -- in check every evasion has to be searched.
                 if captured != NONE and see(pieces, colors, state, move) < 0:
                     continue
 
-
+        diff_count = extract_diffs(move, state[0], diffs[ply])
+        apply_diffs(weights_acc, acc, diffs[ply], diff_count)
         is_legal = make_move(pieces, colors, state, move, undo)
         if not is_legal:
             unmake_move(pieces, colors, state, move, undo)
+            for j in range(diff_count): diffs[ply, j, 0] = -diffs[ply, j, 0]
+            apply_diffs(weights_acc, acc, diffs[ply], diff_count)
             continue
             
         legal_moves_played += 1
-        child_score = -qsearch(pieces, colors, state, -beta, -alpha, ply + 1, path_keys, path_count, start_time, budget_ms, nodes)
+        child_score = -qsearch(pieces, colors, state, -beta, -alpha, ply + 1, path_keys, path_count, start_time, budget_ms, nodes, acc, diffs)
         unmake_move(pieces, colors, state, move, undo)
+        for j in range(diff_count): diffs[ply, j, 0] = -diffs[ply, j, 0]
+        apply_diffs(weights_acc, acc, diffs[ply], diff_count)
 
-        # Same reason as in negamax: unwind immediately instead of starting the next
-        # capture, and do not let the abort value become best_score.
         if nodes[1] != 0:
             break
 
@@ -385,22 +496,22 @@ def qsearch(pieces, colors, state, alpha, beta, ply, path_keys, path_count, star
 def negamax(pieces, colors, state, depth, ply, alpha, beta, prev_is_null, 
             path_keys, path_count, pos_counts_keys, pos_counts_vals, 
             killers, history_table, start_time, budget_ms, max_nodes, nodes, panic,
-            tt_keys, tt_depths, tt_scores, tt_flags, tt_moves, root_depth):
+            tt_keys, tt_depths, tt_scores, tt_flags, tt_moves, root_depth, acc, diffs):
     
     nodes[0] += 1
     if (nodes[0] & 255) == 0:
         with objmode(curr_time='float64'):
             curr_time = time.time()
         if (curr_time - start_time) * 1000 > budget_ms * 0.85:
-            nodes[1] = 1  # v11: mark the search aborted so no TT entry is written
-            return 0.0 # Timeout
+            nodes[1] = 1
+            return 0.0
+
     is_ch = in_check(pieces, colors, state)
     if is_ch and ply < 2 * root_depth:
         depth += 1
 
     if is_insufficient_material(pieces):
         return 0.0
-
 
     hash_key = state[4]
     
@@ -444,12 +555,10 @@ def negamax(pieces, colors, state, depth, ply, alpha, beta, prev_is_null,
                 return score
                 
     if depth <= 0:
-        return qsearch(pieces, colors, state, alpha, beta, ply, path_keys, path_count, start_time, budget_ms, nodes)
+        return qsearch(pieces, colors, state, alpha, beta, ply, path_keys, path_count, start_time, budget_ms, nodes, acc, diffs)
         
     path_keys[path_count] = hash_key
     path_count += 1
-    
-    is_ch = in_check(pieces, colors, state)
     
     if not is_ch and depth >= 3 and not prev_is_null:
         us_pieces = colors[state[0]]
@@ -472,7 +581,7 @@ def negamax(pieces, colors, state, depth, ply, alpha, beta, prev_is_null,
             null_score = -negamax(pieces, colors, state, depth - 3, ply + 1, -beta, -beta + 1, True, 
                                   path_keys, path_count, pos_counts_keys, pos_counts_vals,
                                   killers, history_table, start_time, budget_ms, max_nodes, nodes, panic,
-                                  tt_keys, tt_depths, tt_scores, tt_flags, tt_moves, root_depth)
+                                  tt_keys, tt_depths, tt_scores, tt_flags, tt_moves, root_depth, acc, diffs)
             
             state[0] = opp ^ 1
             state[2] = ep_save
@@ -500,58 +609,49 @@ def negamax(pieces, colors, state, depth, ply, alpha, beta, prev_is_null,
         promo = (move >> 12) & 0x7
         is_quiet = not is_capture and promo == NONE and move != killers[ply, 0] and move != killers[ply, 1]
         
+        diff_count = extract_diffs(move, state[0], diffs[ply])
+        apply_diffs(weights_acc, acc, diffs[ply], diff_count)
         is_legal = make_move(pieces, colors, state, move, undo)
         if not is_legal:
             unmake_move(pieces, colors, state, move, undo)
+            for j in range(diff_count): diffs[ply, j, 0] = -diffs[ply, j, 0]
+            apply_diffs(weights_acc, acc, diffs[ply], diff_count)
             continue
             
         legal_moves_played += 1
-        gives_check = in_check(pieces, colors, state)
+        needs_full_search = True
+        score = 0.0
         
-        if legal_moves_played == 1:
+        gives_check = in_check(pieces, colors, state)
+        if legal_moves_played >= 4 and depth >= 3 and not is_ch and is_quiet and not gives_check:
+            reduced_score = -negamax(pieces, colors, state, depth - 2, ply + 1, -alpha - 1, -alpha, False,
+                                     path_keys, path_count, pos_counts_keys, pos_counts_vals,
+                                     killers, history_table, start_time, budget_ms, max_nodes, nodes, panic,
+                                     tt_keys, tt_depths, tt_scores, tt_flags, tt_moves, root_depth, acc, diffs)
+            if reduced_score > alpha:
+                needs_full_search = True
+            else:
+                score = reduced_score
+                needs_full_search = False
+                
+        if needs_full_search:
             score = -negamax(pieces, colors, state, depth - 1, ply + 1, -beta, -alpha, False,
                              path_keys, path_count, pos_counts_keys, pos_counts_vals,
                              killers, history_table, start_time, budget_ms, max_nodes, nodes, panic,
-                             tt_keys, tt_depths, tt_scores, tt_flags, tt_moves, root_depth)
-        else:
-            needs_full_search = True
-            if legal_moves_played >= 4 and depth >= 3 and not is_ch and is_quiet and not gives_check:
-                reduced_score = -negamax(pieces, colors, state, depth - 2, ply + 1, -alpha - 1, -alpha, False,
-                                         path_keys, path_count, pos_counts_keys, pos_counts_vals,
-                                         killers, history_table, start_time, budget_ms, max_nodes, nodes, panic,
-                                         tt_keys, tt_depths, tt_scores, tt_flags, tt_moves, root_depth)
-                if reduced_score > alpha:
-                    needs_full_search = True
-                else:
-                    score = reduced_score
-                    needs_full_search = False
-                    
-            if needs_full_search:
-                score = -negamax(pieces, colors, state, depth - 1, ply + 1, -alpha - 1, -alpha, False,
-                                 path_keys, path_count, pos_counts_keys, pos_counts_vals,
-                                 killers, history_table, start_time, budget_ms, max_nodes, nodes, panic,
-                                 tt_keys, tt_depths, tt_scores, tt_flags, tt_moves, root_depth)
-                if score > alpha and score < beta:
-                    score = -negamax(pieces, colors, state, depth - 1, ply + 1, -beta, -alpha, False,
-                                     path_keys, path_count, pos_counts_keys, pos_counts_vals,
-                                     killers, history_table, start_time, budget_ms, max_nodes, nodes, panic,
-                                     tt_keys, tt_depths, tt_scores, tt_flags, tt_moves, root_depth)
+                             tt_keys, tt_depths, tt_scores, tt_flags, tt_moves, root_depth, acc, diffs)
                              
         unmake_move(pieces, colors, state, move, undo)
+        for j in range(diff_count): diffs[ply, j, 0] = -diffs[ply, j, 0]
+        apply_diffs(weights_acc, acc, diffs[ply], diff_count)
 
-        # v11: stop the move loop the moment any descendant aborted on the deadline.
-        # Checking only at node entry is not enough: an aborted child returns after ~256
-        # nodes and the loop immediately starts the next one, so unwinding a depth-10
-        # tree costs ~35 moves x 256 nodes per level. Measured 5.8M nodes and 1,951 ms
-        # spent past the deadline before this check existed. `score` here is the
-        # fabricated abort value, so break before it can become best_score.
         if nodes[1] != 0:
-            break
-
+            path_count -= 1
+            return 0.0
+        
         if score > best_score:
             best_score = score
             current_best_move = move
-
+            
         if score > alpha:
             alpha = score
             
@@ -583,10 +683,6 @@ def negamax(pieces, colors, state, depth, ply, alpha, beta, prev_is_null,
     elif best_score >= beta:
         flag = TT_LOWER
         
-    # Always replace for now -- but never with the result of an aborted search.
-    # v11: on timeout negamax returns a fabricated 0.0 which propagated up as a real
-    # child score and was stored here as an exact entry. With "always replace" and the
-    # table 98% full by move 156, every timed-out search poisoned it with fake draws.
     if nodes[1] == 0:
         tt_keys[tt_idx] = hash_key
         tt_depths[tt_idx] = depth
@@ -600,19 +696,17 @@ def negamax(pieces, colors, state, depth, ply, alpha, beta, prev_is_null,
 @njit(cache=False)
 def numba_search(pieces, colors, state, time_left_ms, pos_counts_keys, pos_counts_vals, max_nodes, start_time, 
                  tt_keys, tt_depths, tt_scores, tt_flags, tt_moves, max_depth=64):
+    acc = np.zeros((2, 256), dtype=np.int16)
+    nnue_full_refresh(pieces, colors, weights_acc, biases_acc, acc)
+    diffs = np.zeros((128, 6, 4), dtype=np.int8)
+
     if time_left_ms < 3000:
-        # v11: was min(200.0, time_left_ms * 0.1), which put a 2.7x cliff at the 3000 ms
-        # boundary -- 535 ms of budget at 3000, 200 ms at 2999. 15% capped at 400 ms
-        # keeps a large reserve while making the boundary nearly continuous. The search
-        # still aborts at budget_ms * 0.85, so real spend here is ~340 ms at worst.
         budget_ms = min(time_left_ms * 0.15, 400.0)
         panic = True
     else:
         budget_ms = min(time_left_ms * 0.045 + 400.0, time_left_ms * 0.25)
         panic = False
         
-    # nodes[0] = node count, nodes[1] = stop flag set when a search aborts on the
-    # deadline. Carried in the existing array so no signature has to change.
     nodes = np.zeros(2, dtype=np.int64)
     killers = np.zeros((128, 2), dtype=np.uint32)
     history_table = np.zeros((64, 64), dtype=np.int32)
@@ -664,16 +758,22 @@ def numba_search(pieces, colors, state, time_left_ms, pos_counts_keys, pos_count
             
             for i in range(legal_count):
                 move = legal_moves[i]
+                diff_count = extract_diffs(move, state[0], diffs[0])
+                apply_diffs(weights_acc, acc, diffs[0], diff_count)
                 make_move(pieces, colors, state, move, undo)
                 score = -negamax(pieces, colors, state, depth - 1, 1, -beta, -alpha, False,
                                  path_keys, path_count, pos_counts_keys, pos_counts_vals,
                                  killers, history_table, start_time, budget_ms, max_nodes, nodes, panic,
-                                 tt_keys, tt_depths, tt_scores, tt_flags, tt_moves, depth)
+                                 tt_keys, tt_depths, tt_scores, tt_flags, tt_moves, depth, acc, diffs)
                 unmake_move(pieces, colors, state, move, undo)
+                for j in range(diff_count): diffs[0, j, 0] = -diffs[0, j, 0]
+                apply_diffs(weights_acc, acc, diffs[0], diff_count)
                 
                 # Check timeout
                 timeout = False
-                if max_nodes > 0 and nodes[0] >= max_nodes:
+                if nodes[1] != 0:
+                    timeout = True
+                elif max_nodes > 0 and nodes[0] >= max_nodes:
                     timeout = True
                 else:
                     with objmode(curr_time='float64'):
@@ -709,16 +809,6 @@ def numba_search(pieces, colors, state, time_left_ms, pos_counts_keys, pos_count
             
         prev_score = current_best_score
         best_move = current_best_move
-
-        # v11: `if panic: break` used to sit here, stopping after one iteration and --
-        # because it broke before `completed_depth = depth` below -- reporting depth 0
-        # for every move under 3 s of clock. The engine spent 2.4 ms of a 200 ms budget
-        # and played the first move iterative deepening happened to have.
-        #
-        # Removing it cannot cause a flag: the loop below only starts another iteration
-        # while less than half the budget is gone, and every iteration aborts at
-        # budget_ms * 0.85 like any other. It just stops discarding the budget.
-
         completed_depth = depth
 
         if max_nodes > 0:
@@ -747,21 +837,20 @@ def get_move_with_info(board: chess.Board, time_left_ms: int, position_counts, m
     pos_keys = np.array(pos_keys, dtype=np.uint64)
     pos_vals = np.array(pos_vals, dtype=np.int32)
     
-    import os
     max_nodes_env = os.environ.get("SEARCH_MAX_NODES")
     max_nodes = int(max_nodes_env) if max_nodes_env else 0
     
     start_time = time.time()
     
-    best_move, score, nodes, completed_depth = numba_search(pieces, colors, state, time_left_ms, pos_keys, pos_vals, max_nodes, start_time,
-                                           tt_keys, tt_depths, tt_scores, tt_flags, tt_moves, max_depth)
+    best_move, score, nodes, completed_depth = numba_search(
+        pieces, colors, state, time_left_ms, pos_keys, pos_vals, max_nodes, start_time,
+        tt_keys, tt_depths, tt_scores, tt_flags, tt_moves, max_depth
+    )
     
     if best_move == 0:
         return next(iter(board.legal_moves)).uci(), score, nodes
         
     uci = decode_move(best_move)
-    import sys
-    import os
     if os.environ.get('CHESSATHON_DEPTH_LOG') == '1':
         print(f"info depth {completed_depth} score cp {int(score)} nodes {nodes}", file=sys.stderr)
     return uci, score, nodes
@@ -771,7 +860,7 @@ def get_move(board: chess.Board, time_left_ms: int, position_counts) -> str:
     return uci
 
 # Warmup JIT compilation off the clock
-print("Warming up Numba JIT...")
+print("Warming up Hybrid NNUE v2 + Classical Numba JIT...")
 _b = chess.Board()
 _p, _c, _s = from_chess_board(_b)
 _pk = np.array([], dtype=np.uint64)
@@ -779,5 +868,3 @@ _pv = np.array([], dtype=np.int32)
 clear_tt()
 numba_search(_p, _c, _s, 1000, _pk, _pv, 10, time.time(), tt_keys, tt_depths, tt_scores, tt_flags, tt_moves, 1)
 print("Warmup complete.")
-
-

@@ -19,16 +19,21 @@ submission.zip
 baseline/
 baselines/
 gui_engines/
+data
 data/
 tiny_dataset.csv
 *.pgn
 _stage_*
+project/
+msc/
+.git-rewrite.done/
 
 # Trained networks are force-added under weights/ (git add -f); stray ones are not.
 *.npy
 *.npz
 !weights/*.npy
 !weights/*.npz
+!weights/v2_mlp/*.npy
 
 # Logs, patch leftovers, one-off captures
 *.log
